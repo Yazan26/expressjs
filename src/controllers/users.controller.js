@@ -10,7 +10,7 @@ const usersController={
         }
         
     })
-    logger.debug('info', 'Hello again distributed logs');
+   // logger.debug('info', 'Hello again distributed logs');
     },
     delete:(req,res,next)=>{
         let userId = req.params.userId;
