@@ -1,0 +1,23 @@
+extends layout
+
+
+//- block content
+//-   ul
+//-     each user in users
+//-       li= user.firstname
+
+block content
+  table(class="table table-success table-striped")
+    thead
+      tr(class="table-active")
+        th(scope="col") ID
+        th(scope="col") First Name
+        th(scope="col") Last Name
+        th(scope="col") Social
+    tbody
+      each user in users
+        tr
+          th(scope="row")= user.id
+          td= user.firstname
+          td= user.lastname
+          td= user.social
