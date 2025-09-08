@@ -3,7 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var httplogger = require('morgan');
-
+var favicon = require('serve-favicon');
 
 
 var indexRouter = require('./src/routes/index');
@@ -16,6 +16,7 @@ app.set('views', path.join(__dirname, 'src', 'views'));
 app.set('view engine', 'pug');
 
 app.use(httplogger('dev'));
+app.use(favicon(path.join(__dirname, 'favicon.ico')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
