@@ -5,28 +5,40 @@ const usersController={
         let userId = req.params.userId;
     userService.get(userId,(error,users)=>{
         if(error) next (error);
-    if (users) { 
-            res.render('users', {users: users});
-        }
-        
-    })
-   // logger.debug('info', 'Hello again distributed logs');
-    },
-    delete:(req,res,next)=>{
-        let userId = req.params.userId;
-    userService.delete(userId,(error,result)=>{
-        if(error) next (error);
-    if (result) { 
-            res.render('users', {users: users});
+        if (users){
+            userId == undefined
+                ? res.render('users/table', {user:users})
+                : res.render('users/details', {user:users[0]});
         }
     });
+
     },
+
+    update:(req,res,next)=>{
+        let userId = req.params.userId;
+        userService.get(userId,(error,users)=>{
+            if (error) next (error);
+            if (users) res.render('users/users', {user: users[0]});
+        });
+
+    },
+
+    delete:(req,res,next)=>{
+        let userId = req.params.userId;
+        userService.delete(userId,(error,result)=>{
+            if(error) next (error);
+            if (result){
+                res.render("users/users",{users:users})
+            }
+        })
+    },
+    
     post:(req,res,next)=>{
         let user = req.body;
     userService.post(user,(error,result)=>{
         if(error) next (error);
     if (result) { 
-            res.render('users', {users: users});
+            res.render('users/users', {users: users});
         }
     });
     },
@@ -36,9 +48,11 @@ const usersController={
     userService.put(userId,user,(error,result)=>{
         if(error) next (error);
     if (result) { 
-            res.render('users', {users: users});
+            res.render('users/users', {users: users});
         }
     });
     },
 };
-module.exports = usersController;
+
+
+module.exports = usersController

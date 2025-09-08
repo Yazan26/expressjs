@@ -1,0 +1,14 @@
+extends ../layout
+
+
+block content
+  h1 Edit User
+    form(method='POST', action=`/users/${user.customer_id}?_method=PUT`)
+      div.mb-3
+        label.form-label(for='first_name') First Name
+        input.form-control(type='text', id='first_name', name='first_name', value=user.first_name, required)
+      div.mb-3
+        label.form-label(for='last_name') Last Name
+        input.form-control(type='text', id='last_name', name='last_name', value=user.last_name, required)
+      button.btn.btn-primary(type='submit') Save Changes
+      a.btn.btn-secondary(href='/users') Cancel

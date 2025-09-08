@@ -6,8 +6,8 @@ var httplogger = require('morgan');
 var favicon = require('serve-favicon');
 
 
-var indexRouter = require('./src/routes/index');
-var usersRouter = require('./src/routes/users');
+var indexRouter = require('./src/routes/index.route');
+var usersRouter = require('./src/routes/users.route');
 
 var app = express();
 
