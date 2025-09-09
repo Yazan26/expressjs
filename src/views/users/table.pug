@@ -1,19 +1,20 @@
 extends ../layout
 
-block content
-  table.table.table-success.table-striped
-    thead
-      tr.table-active
-        th.col ID
-        th.col First Name
-        th.col Last Name
-        th.col Details
-
-    tbody
-      each user in users
+block content 
+    table(class="table table-striped")
+      thead
         tr
-          th= user.customer_id
-          td= user.first_name
-          td= user.last_name
-          td
-            a.btn.btn-primary(href=`/users/${user.customer_id}/details`) View Details
+          th.col ID
+          th.col Firstname
+          th.col lastname
+
+      tbody
+        each user in users
+            tr
+                th #{user.customer_id}
+                td #{user.first_name}
+                td #{user.last_name}
+                td #{user.email}
+                td 
+                    a.btn.btn-dark(href=`/users/${user.customer_id}/details`) details
+                

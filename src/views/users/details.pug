@@ -1,20 +1,17 @@
 extends ../layout
 
-block content
-  h1 User Details
+block content 
   if user
-    ul.list-group
-      li.list-group-item
-        strong ID: 
-        | #{user.customer_id}
-      li.list-group-item
-        strong First Name: 
-        | #{user.first_name}
-      li.list-group-item
-        strong Last Name: 
-        | #{user.last_name}
-    a.btn.btn-secondary.mt-3(href='/users') Back to User List
-    a.btn.btn-primary.mt-3(href=`/users/${user.customer_id}/edit`) Edit User
+    div(class="card")
+      div(class="card-body") 
+        h5(class="card-title") Name: #{user.first_name} #{user.last_name}
+        p(class="card-text") Customer Id:#{user.customer_id}
+    ul(class="list-group list-group-flush")
+        li(class="list-group-item") Email: #{user.email}
+        
+        
+    div.card-body
+      a(href="/users/"+ user.customer_id +"/edit" class="btn btn-primary") Edit User
+      a(href="#" class="btn btn-primary") Delete User
   else
-    p User not found or data unavailable.
-    a.btn.btn-secondary.mt-3(href='/users') Back to User List
+    p User niet gevonden.
