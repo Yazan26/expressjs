@@ -46,17 +46,18 @@ const usersController={
 
   delete: (req, res, next) => {
     let userId = req.params.userId;
-    userService.delete(userId, (error, result) => {
+    userService.delete(userId, (error, users) => {
       if (error) return next(error);
-      if (result) {
-        // hier was 'users' niet gedefinieerd, dus je moet opnieuw alle users ophalen
-        userService.get(undefined, (error, users) => {
-          if (error) return next(error);
-          return res.render("users/users", { users: users });
+      if (users) {
+        res.json({
+          status: 200,
+          message: `user with id ${userId} deleted successfully`,
+          data: [],
         });
       }
     });
   },
+  
 };
 
 
