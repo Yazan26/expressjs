@@ -7,6 +7,8 @@ block content
           th.col ID
           th.col Firstname
           th.col lastname
+          th.col Email
+          th.col Status
 
       tbody
         each user in users
@@ -15,6 +17,7 @@ block content
                 td #{user.first_name}
                 td #{user.last_name}
                 td #{user.email}
+                td #{user.active}
                 td 
                     a.btn.btn-dark(href=`/users/${user.customer_id}/details`) details
                 

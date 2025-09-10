@@ -1,7 +1,25 @@
+const { expect } = require("chai");
 const { update } = require("../controllers/users.controller");
 const usersDao = require("../dao/users.dao");
 
 const userService={
+    validate:(email, first_name, last_name, active, callback)=>{
+        try{
+            expect(first_name).to.be.a('string','first name moet een waarde hebben');
+            expect(last_name).to.be.a('string','last name moet een waarde hebben');
+            expect(email).to.be.a('string','email moet een waarde hebben');
+            expect(email).to.include('@','email moet een geldig email adres zijn');
+            expect(active).to.be.a('number','active moet 1 of 0 zijn');
+
+            callback(undefined);
+        }
+        catch(error){
+        return callback(error);
+        }
+
+    },
+
+
     get:(userId,callback)=>{
 usersDao.get(userId,(error,users)=>{
     if(error) return callback(error,undefined);
@@ -12,10 +30,10 @@ usersDao.get(userId,(error,users)=>{
         return callback(undefined,[user])};
 });
     },
-    update:(email,userId,first_name,last_name,callback)=>{
-            usersDao.update(email,userId,first_name,last_name,(error,result)=>{
+    update:(email,userId,first_name,last_name, active, callback)=>{
+            usersDao.update(email,userId,first_name,last_name,active,(error,result)=>{
                 if(error) return callback(error,undefined);
-                if(result) return callback(userId,(undefined,result));
+                if(result) return callback(undefined,result);
 
             });
         },

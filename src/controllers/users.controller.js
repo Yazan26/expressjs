@@ -1,6 +1,19 @@
 const userService = require("../services/users.service")
+const logger = require("../util/logger")
+const {expect} = require("chai")
 
 const usersController={
+
+    validate:(req,res,next)=>{
+      let userId = req.params.userId;
+      let {email, first_name, last_name, active} = req.body;
+      active = parseInt(active)
+      userService.validate(email, first_name, last_name, active, (error) => {
+        if (error) next(error);
+        next();
+      });
+    },
+
     get:(req,res,next)=>{
         let userId = req.params.userId;
     userService.get(userId,(error,users)=>{
@@ -15,10 +28,8 @@ const usersController={
     },
 
      update: (req, res, next) => {
-    let userId = req.params.userId;
-    let email = req.body.email;
-    let first_name = req.body.first_name;
-    let last_name = req.body.last_name;
+      let userId = req.params.userId;
+      let {email, first_name, last_name, active} = req.body;
 
     if (req.method === "GET") {
       userService.get(userId, (error, users) => {
@@ -26,7 +37,7 @@ const usersController={
         if (users) return res.render("users/edit", { user: users[0] });
       });
     } else {
-      userService.update(email, userId, first_name, last_name, (error, result) => {
+      userService.update(email, userId, first_name, last_name, active, (error, result) => {
         if (error) return next(error);
         if (result) return res.redirect(301, `/users/${userId}/details`);
       });
