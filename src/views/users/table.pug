@@ -1,6 +1,6 @@
 extends ../layout
 
-block content 
+block content
     table(class="table table-striped")
       thead
         tr
@@ -21,6 +21,6 @@ block content
                 td 
                     a.btn.btn-dark(href=`/users/${user.customer_id}/details`) details
                 td 
-                    a.btn.btn-danger(href=`/users/${user.customer_id}/delete`) delete
+                    a.btn.btn-danger(onclick=`deleteButtonClicked('${user.customer_id}', this)`) delete
 
                 

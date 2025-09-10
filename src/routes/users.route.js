@@ -10,7 +10,7 @@ router.get("/:userId/details",usersController.get)
 router.get("/:userId/edit",usersController.update)
 router.post("/:userId/edit", usersController.validate, usersController.update)
 
-router.delete('/:userId',usersController.delete)
+router.delete('/:userId/delete',usersController.delete)
 
 
 
