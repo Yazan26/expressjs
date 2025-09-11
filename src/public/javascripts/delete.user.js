@@ -1,8 +1,8 @@
 function deleteFetch(userId, callback) {
-  fetch(`/users/${userId}/delete`, {method: 'DELETE'})
-  .then((res) => res.json())
+  fetch(`/users/${userId}`, {method: 'DELETE'})
   .then((data) => {
-    callback(undefined, data);
+    console.log(data);
+    return callback(undefined, data);
   })
   .catch((err) => {
     callback(err, undefined);
@@ -15,7 +15,10 @@ function deleteButtonClicked(userId, buttonElement) {
       if (error) {
         console.error(error);
         return error;
-      } if (result) {
+      } else {
+        alert('customer deleted!')
+        let row = buttonElement.closest('tr')
+        if (row) row.remove();
         console.log("User deleted successfully");
         return result;
       }

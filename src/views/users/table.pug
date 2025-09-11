@@ -1,7 +1,7 @@
 extends ../layout
 
 block content
-    table(class="table table-striped")
+    table.table.table-striped
       thead
         tr
           th.col ID
@@ -22,5 +22,4 @@ block content
                     a.btn.btn-dark(href=`/users/${user.customer_id}/details`) details
                 td 
                     a.btn.btn-danger(onclick=`deleteButtonClicked('${user.customer_id}', this)`) delete
-
                 

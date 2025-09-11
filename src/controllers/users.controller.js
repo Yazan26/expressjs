@@ -46,18 +46,21 @@ const usersController={
 
   delete: (req, res, next) => {
     let userId = req.params.userId;
-    userService.delete(userId, (error, users) => {
-      if (error) return next(error);
-      if (users) {
-        res.json({
-          status: 200,
-          message: `user with id ${userId} deleted successfully`,
-          data: [],
-        });
+    userService.delete(userId, (error, result) => {
+      if (error) {
+        return res.status(500).json({
+            status: 500,
+            message: error.message || "Delete failed" });
       }
+      return res.json({
+          status: 200,
+          message: "User deleted",
+          result });
     });
   },
-  
+
+
+
 };
 
 
