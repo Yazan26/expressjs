@@ -1,0 +1,25 @@
+extends ../layout
+
+block content
+    table.table.table-striped
+      thead
+        tr
+          th.col ID
+          th.col Firstname
+          th.col lastname
+          th.col Email
+          th.col Status
+
+      tbody
+        each user in users
+            tr
+                th #{user.customer_id}
+                td #{user.first_name}
+                td #{user.last_name}
+                td #{user.email}
+                td #{user.active == 1 ? 'active' : 'inactive'}
+                td 
+                    a.btn.btn-dark(href=`/users/${user.customer_id}/details`) details
+                td 
+                    a.btn.btn-danger(onclick=`deleteButtonClicked('${user.customer_id}', this)`) delete
+                

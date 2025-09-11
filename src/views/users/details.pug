@@ -1,0 +1,18 @@
+extends ../layout
+
+block content 
+  if user
+    div(class="card")
+      div(class="card-body") 
+        h5(class="card-title") Name: #{user.first_name} #{user.last_name}
+        p(class="card-text") Customer Id:#{user.customer_id}
+        p(class="card-text") Status: #{user.active == 1 ? 'active' : 'inactive'}
+    ul(class="list-group list-group-flush")
+        li(class="list-group-item") Email: #{user.email}
+        
+        
+    div.card-body
+      a(href="/users/"+ user.customer_id +"/edit" class="btn btn-primary") Edit User
+      a(href="#" class="btn btn-primary") Delete User
+  else
+    p User niet gevonden.

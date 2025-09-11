@@ -1,10 +1,9 @@
-extends layout
-
+extends ../layout
 
 //- block content
-//-   ul
-//-     each user in users
-//-       li= user.firstname
+//-     ul 
+//-         each user in users
+//-           li= user.id + user.firstName + user.yob + user.lastName
 
 block content
   table(class="table table-success table-striped")
@@ -13,11 +12,10 @@ block content
         th(scope="col") ID
         th(scope="col") First Name
         th(scope="col") Last Name
-        th(scope="col") Social
+        
     tbody
       each user in users
         tr
           th(scope="row")= user.customer_id
           td= user.first_name
           td= user.last_name
-          td= user.social

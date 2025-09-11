@@ -1,21 +1,50 @@
-const usersDao = require('../dao/users.dao');
-//const logger = require('../util/logger');
- 
- 
-const usersService = {
- 
-    get:(userId, callback)=>{
-        usersDao.get(userId, (error, users)=>{
-            if(error){
-                return callback(error, undefined);
-            }
-            if(users) {
-               // logger.debug(users);
-                return callback(undefined, users);
-            }
-        })
- 
-    },
-};
+const { expect } = require("chai");
+const { update } = require("../controllers/users.controller");
+const usersDao = require("../dao/users.dao");
 
-module.exports = usersService;
+const userService={
+    validate:(email, first_name, last_name, active, callback)=>{
+        try{
+            expect(first_name).to.be.a('string','first name moet een waarde hebben');
+            expect(last_name).to.be.a('string','last name moet een waarde hebben');
+            expect(email).to.be.a('string','email moet een waarde hebben');
+            expect(email).to.include('@','email moet een geldig email adres zijn');
+            expect(active).to.be.a('number','active moet 1 of 0 zijn');
+
+            callback(undefined);
+        }
+        catch(error){
+        return callback(error);
+        }
+
+    },
+
+
+    get:(userId,callback)=>{
+usersDao.get(userId,(error,users)=>{
+    if(error) return callback(error,undefined);
+    if(users) {
+        if(userId==undefined) return callback(undefined,users);
+        let user = users.filter((user)=>user.customer_id == userId)[0];
+        console.log(user)
+        return callback(undefined,[user])};
+});
+    },
+    update:(email,userId,first_name,last_name, active, callback)=>{
+            usersDao.update(email,userId,first_name,last_name,active,(error,result)=>{
+                if(error) return callback(error,undefined);
+                if(result) return callback(undefined,result);
+
+            });
+        },
+
+    
+    delete: (userId, callback) => {
+    usersDao.delete(userId, (error, result) => {
+      if (error) return callback(error, undefined);
+      if (result) return callback(undefined, result);
+    });
+  },
+}
+
+module.exports = userService;

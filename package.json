@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "bootstrap": "^5.3.8",
+    "chai": "~4.0.3",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "ejs": "^3.1.10",
@@ -17,6 +18,7 @@
     "morgan": "~1.9.1",
     "mysql2": "^3.14.4",
     "pug": "^3.0.3",
+    "serve-favicon": "^2.5.1",
     "winston": "^3.17.0"
   },
   "devDependencies": {
