@@ -58,8 +58,20 @@ const usersController={
           result });
     });
   },
-
-
+  CheckRentals: (req, res, next) => {
+    let userId = req.params.userId;
+    userService.CheckRentals(userId, (error, rentals) => {
+      if (error) return next(error);
+      expect(rentals).to.be.an("array");
+      if (rentals.length > 0) {
+        return res.status(400).json({
+          status: 400,
+          message: "User has active rentals",
+        });
+      }
+      next();
+    });
+  },
 
 };
 

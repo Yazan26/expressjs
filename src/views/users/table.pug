@@ -24,5 +24,18 @@ block content
                     a.btn.btn-danger(onclick=`deleteButtonClicked('${user.customer_id}', this)`) delete
                     
       div#deleteAlert.alert.alert-danger.alert-dismissible.fade.d-none(role="alert")
-          | Customer deleted successfully!
+          span.alert-message Customer deleted successfully!
           button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Close")
+
+      // Bootstrap Delete Confirmation Modal
+      div#deleteConfirmModal.modal.fade(tabindex="-1", aria-labelledby="deleteConfirmModalLabel", aria-hidden="true")
+          div.modal-dialog
+              div.modal-content
+                  div.modal-header
+                      h5#deleteConfirmModalLabel.modal-title Confirm Delete
+                      button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+                  div.modal-body
+                      | Are you sure you want to delete this user?
+                  div.modal-footer
+                      button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
+                      button#confirmDeleteBtn.btn.btn-danger(type="button") Delete
