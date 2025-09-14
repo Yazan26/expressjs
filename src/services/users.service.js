@@ -39,10 +39,22 @@ usersDao.get(userId,(error,users)=>{
         },
 
     
-    delete: (userId, callback) => {
-    usersDao.delete(userId, (error, result) => {
+    delete: function(userId, callback) {
+    // First, check for active rentals
+    usersDao.HasActiveRentals(userId, (error, hasRentals) => {
       if (error) return callback(error, undefined);
-      if (result) return callback(undefined, result);
+      if (hasRentals) return callback(new Error("User has active rentals and cannot be deleted."), undefined);
+      // If no active rentals, proceed with deletion
+      usersDao.deletePayments(userId, (error) => {
+        if (error) return callback(error, undefined);
+        usersDao.deleteRentals(userId, (error) => {
+          if (error) return callback(error, undefined);
+          usersDao.deleteCustomer(userId, (error) => {
+            if (error) return callback(error, undefined);
+            callback(undefined, { message: "User deleted successfully." });
+          });
+        });
+      });
     });
   },
   

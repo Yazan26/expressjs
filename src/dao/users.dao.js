@@ -14,15 +14,34 @@ const usersDao = {
            if (results) return callback(undefined, results);
        });
     },
-       delete: (userId, callback) => {
+
+
+    // check ff voor verhuurde items voordat een klant verwijderd wordt, zodat mensen niet kunnen stelen aub
+  HasActiveRentals: function(userId, callback) {
     database.query(
-      "DELETE FROM ?? WHERE ?? = ?",
-      ["customer", "customer_id", userId],
+      "SELECT COUNT(*) AS ?? FROM ?? WHERE ?? = ? AND ?? IS NULL",
+      ["active_rentals", "rental", "customer_id", userId, "return_date"],
       (error, results) => {
         if (error) return callback(error, undefined);
-        if (results) return callback(undefined, results);
+        if (results) return callback(undefined, results[0].active_rentals > 0);
       }
     );
+  },
+  // delete data in de juiste volgorde om foreign key constraints te respecteren
+  deletePayments: function(userId, callback) {
+    database.query(
+      "DELETE FROM ?? WHERE ?? = ?",
+      ["payment", "customer_id", userId], callback);
+  },
+  deleteRentals: function(userId, callback) {
+    database.query(
+      "DELETE FROM ?? WHERE ?? = ?",
+      ["rental", "customer_id", userId], callback);
+  },
+  deleteCustomer: function(userId, callback) {
+    database.query(
+      "DELETE FROM ?? WHERE ?? = ?",
+      ["customer", "customer_id", userId], callback);
   },
 
   update: (email, userId, first_name, last_name, active, callback) => {
