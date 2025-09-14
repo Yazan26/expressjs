@@ -45,6 +45,7 @@ usersDao.get(userId,(error,users)=>{
       if (result) return callback(undefined, result);
     });
   },
+  
 }
 
 module.exports = userService;
