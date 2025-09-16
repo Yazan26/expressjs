@@ -22,10 +22,10 @@ block content
                     a.btn.btn-dark(href=`/users/${user.customer_id}/details`) details
                 td 
                     a.btn.btn-danger(onclick=`deleteButtonClicked('${user.customer_id}', this)`) delete
-                    
-      div#deleteAlert.alert.alert-danger.alert-dismissible.fade.d-none(role="alert")
-          span.alert-message Customer deleted successfully!
-          button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Close")
+      div#deleteAlertContainer
+        div#deleteAlert.alert.alert-danger.alert-dismissible.fade.d-none(role="alert")
+            span.alert-message Customer deleted successfully!
+            button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Close")
 
       // Bootstrap Delete Confirmation Modal
       div#deleteConfirmModal.modal.fade(tabindex="-1", aria-labelledby="deleteConfirmModalLabel", aria-hidden="true")
