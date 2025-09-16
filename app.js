@@ -5,9 +5,12 @@ var cookieParser = require('cookie-parser');
 var httplogger = require('morgan');
 var favicon = require('serve-favicon');
 var dotenv = require('dotenv').config();
+const session = require('express-session');
+
 
 var indexRouter = require('./src/routes/index.route');
 var usersRouter = require('./src/routes/users.route');
+var authRouter = require('./src/routes/auth.route');
 
 var app = express();
 
@@ -22,8 +25,26 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'src', 'public')));
 app.use('/bootstrap', express.static(require('path').join(__dirname, 'node_modules/bootstrap/dist')));
+
+app.use(
+  session({
+    secret: 'secret_key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1 * 60 * 1000 }
+  })
+);
+
+app.use((req, res, next) => {
+  res.locals.user = req.session.user;
+  res.locals.authenticated = !!req.session.user;
+  next();
+});
+
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
