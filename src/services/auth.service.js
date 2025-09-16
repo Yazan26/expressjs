@@ -1,4 +1,5 @@
 const authService = {
+
   login: (email, password) => {
     auth.Dao.Login(email, (error, user) => {
         if (error) return callback(error, undefined);
@@ -8,5 +9,21 @@ const authService = {
         }
 
     });
-    }
+    },
+
+    register: (email, password, callback) => {
+        auth.Dao.register(email, password, (error, user) => {
+            if (error) return callback(error, undefined);
+            return callback(undefined, user);
+        }
+        );
+    },
+
+    validate: (code, callback) => {
+        auth.Dao.validate(code, (error, user) => {
+            if (error) return callback(error, undefined);
+            return callback(undefined, user);
+        }
+        );
+    },
 }
