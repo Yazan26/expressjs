@@ -7,6 +7,8 @@ var favicon = require('serve-favicon');
 var dotenv = require('dotenv').config();
 const session = require('express-session');
 
+// Import error handling middleware
+const { globalErrorHandler, notFoundHandler } = require('./src/middleware/errorHandler');
 
 var indexRouter = require('./src/routes/index.route');
 var usersRouter = require('./src/routes/users.route');
@@ -18,7 +20,7 @@ var app = express();
 app.set('views', path.join(__dirname, 'src', 'views'));
 app.set('view engine', 'pug');
 
-app.use(httplogger('dev'));
+app.use(httplogger('combined'));
 app.use(favicon(path.join(__dirname, 'favicon.ico')));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -26,40 +28,36 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'src', 'public')));
 app.use('/bootstrap', express.static(require('path').join(__dirname, 'node_modules/bootstrap/dist')));
 
+// Session configuration
 app.use(
   session({
-    secret: 'secret_key',
+    secret: process.env.SESSION_SECRET || 'sakila-video-store-secret-key',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 1 * 60 * 1000 }
+    cookie: { 
+      maxAge: 24 * 60 * 60 * 1000,
+      httpOnly: true
+    },
+    name: 'sakila.session.id'
   })
 );
 
+// User session middleware
 app.use((req, res, next) => {
   res.locals.user = req.session.user;
   res.locals.authenticated = !!req.session.user;
   next();
 });
 
-
+// Route handlers
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/auth', authRouter);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
-});
+// 404 handler
+app.use(notFoundHandler);
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+// Global error handler
+app.use(globalErrorHandler);
 
 module.exports = app;

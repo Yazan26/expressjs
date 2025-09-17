@@ -1,15 +1,67 @@
-const database = require('../db/sql/connection');
-const hash = require('../util/hash');
+const pool = require('../db/sql/connection');
 
+/**
+ * Auth DAO - Simple database access with minimal error handling
+ */
 const authDao = {
+
+  getUserByUsername: function(username, callback) {
+    const sql = `
+      SELECT 
+        auth_id as id, username, password_hash, user_type, user_id,
+        CASE 
+          WHEN user_type = 'staff' THEN 'staff'
+          ELSE 'customer' 
+        END as role
+      FROM user_auth 
+      WHERE username = ? AND is_active = TRUE
+    `;
     
-    findByUsername: async (username) => {
-        const db = await database.getDb();
-        const sql = 'SELECT * FROM ?? WHERE ?? = ?';
-        const [rows] = await db.execute(sql, ['customer', 'username', username]);
-        return rows[0];
-    },
+    pool.query(sql, [username], function(err, rows) {
+      if (err) {
+        console.error('Database error getting user:', err.message);
+        return callback(err);
+      }
+      callback(null, rows.length > 0 ? rows[0] : null);
+    });
+  },
+
+  registerCustomer: function(data, callback) {
+    const { firstName, lastName, email, username, passwordHash } = data;
+
+    // Insert customer first
+    const customerSql = `
+      INSERT INTO customer (store_id, first_name, last_name, email, address_id, active, create_date) 
+      VALUES (1, ?, ?, ?, 1, 1, NOW())
+    `;
     
-    
-}
+    pool.query(customerSql, [firstName, lastName, email], function(err, result) {
+      if (err) {
+        console.error('Database error creating customer:', err.message);
+        if (err.code === 'ER_DUP_ENTRY') {
+          return callback(new Error('Email already registered'));
+        }
+        return callback(err);
+      }
+      
+      const customerId = result.insertId;
+      
+      // Insert auth record
+      const authSql = `INSERT INTO user_auth (user_type, user_id, username, password_hash) VALUES ('customer', ?, ?, ?)`;
+      
+      pool.query(authSql, [customerId, username, passwordHash], function(authErr, authResult) {
+        if (authErr) {
+          console.error('Database error creating auth:', authErr.message);
+          if (authErr.code === 'ER_DUP_ENTRY') {
+            return callback(new Error('Username already taken'));
+          }
+          return callback(authErr);
+        }
+        
+        callback(null, { customerId, authId: authResult.insertId });
+      });
+    });
+  }
+};
+
 module.exports = authDao;

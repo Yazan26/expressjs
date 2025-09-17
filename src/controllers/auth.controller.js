@@ -1,37 +1,95 @@
-const AuthController = {
+const authService = require('../services/auth.service');
 
-validate: (req, res, next) => {
- next();
-},
+/**
+ * Auth Controller - Clean HTTP handlers
+ */
+const authController = {
 
-  login: (req, res, next) => {
-    let {email, password} = req.body;
-    req.method == 'GET'
-    ? res.render('auth/login')
-    : auth.Service.login(email, password, (error, user) => {
-        if (error) return next(error);
-        req.session.authenticated = true;
-        req.session.user = user;
-        res.redirect('/users');
-      });
-  },
-  logout: (req, res, next) => {
-    req.session.destroy((err) => {
-    res.redirect('/auth/login');
+  getLogin: (req, res) => {
+    if (req.session.user) {
+      return res.redirect('/');
+    }
+    
+    const error = req.session.error;
+    delete req.session.error;
+
+    res.render('auth/login', { 
+      error,
+      title: 'Login'
     });
-
   },
-  register: (req, res, next) => {
-    let { email, password } = req.body;
-    auth.Service.register(email, password, (error, user) => {
-      if (error) return next(error);
-      req.session.isLoggedIn = true;
+
+  postLogin: (req, res) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      req.session.error = 'Username and password required';
+      return res.redirect('/auth/login');
+    }
+
+    authService.verifyLogin(username, password, function(err, user) {
+      if (err || !user) {
+        req.session.error = 'Invalid username or password';
+        return res.redirect('/auth/login');
+      }
+
       req.session.user = user;
-      res.redirect('/users');
+      res.redirect('/');
     });
   },
 
+  getRegister: (req, res) => {
+    if (req.session.user) {
+      return res.redirect('/');
+    }
+    
+    const error = req.session.error;
+    delete req.session.error;
 
+    res.render('auth/register', { 
+      error,
+      title: 'Register'
+    });
+  },
+
+  postRegister: (req, res) => {
+    const { firstName, lastName, email, username, password, confirmPassword } = req.body;
+    
+    if (!firstName || !lastName || !email || !username || !password) {
+      req.session.error = 'All fields required';
+      return res.redirect('/auth/register');
+    }
+
+    if (password !== confirmPassword) {
+      req.session.error = 'Passwords do not match';
+      return res.redirect('/auth/register');
+    }
+
+    const data = { firstName, lastName, email, username, password };
+
+    authService.registerCustomer(data, function(err, user) {
+      if (err) {
+        req.session.error = err.message;
+        return res.redirect('/auth/register');
+      }
+      
+      // Auto-login after registration
+      req.session.user = {
+        id: user.id || user.authId,
+        username: user.username,
+        role: 'customer'
+      };
+      
+      res.redirect('/');
+    });
+  },
+
+  postLogout: (req, res) => {
+    req.session.destroy(function(err) {
+      res.clearCookie('sakila.session.id');
+      res.redirect('/auth/login');
+    });
+  }
 };
 
-module.exports = AuthController;
+module.exports = authController;

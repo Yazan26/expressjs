@@ -1,0 +1,44 @@
+extends ../layout
+
+block content
+  .container.mt-5
+    .row.justify-content-center
+      .col-md-6
+        .card
+          .card-header
+            h3 Register
+          .card-body
+            if error
+              .alert.alert-danger= error
+            
+            form(action="/auth/register" method="POST")
+              .mb-3
+                label.form-label(for="firstName") First Name
+                input.form-control(type="text" id="firstName" name="firstName" required)
+              
+              .mb-3
+                label.form-label(for="lastName") Last Name
+                input.form-control(type="text" id="lastName" name="lastName" required)
+              
+              .mb-3
+                label.form-label(for="email") Email
+                input.form-control(type="email" id="email" name="email" required)
+              
+              .mb-3
+                label.form-label(for="username") Username
+                input.form-control(type="text" id="username" name="username" required)
+              
+              .mb-3
+                label.form-label(for="password") Password
+                input.form-control(type="password" id="password" name="password" required)
+              
+              .mb-3
+                label.form-label(for="confirmPassword") Confirm Password
+                input.form-control(type="password" id="confirmPassword" name="confirmPassword" required)
+              
+              .d-grid
+                button.btn.btn-primary(type="submit") Register
+            
+            .text-center.mt-3
+              p Already have an account? 
+                a(href="/auth/login") Login here

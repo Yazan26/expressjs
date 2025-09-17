@@ -1,15 +1,22 @@
 var express = require('express');
 var router = express.Router();
 
-const authController = require("../controllers/auth.controller")
+const authController = require('../controllers/auth.controller');
+const { redirectAuthenticated } = require('../middleware/requireAuth');
 
-// GET /auth/login
-router.get('/login', authController.validate, authController.login);
+/**
+ * Auth Routes
+ */
 
-// POST /auth/login
-router.post('/login', authController.validate, authController.login);
+// Login routes
+router.get('/login', redirectAuthenticated, authController.getLogin);
+router.post('/login', authController.postLogin);
 
+// Register routes
+router.get('/register', redirectAuthenticated, authController.getRegister);
+router.post('/register', authController.postRegister);
 
-router.get('/logout', authController.logout);
+// Logout route
+router.post('/logout', authController.postLogout);
 
 module.exports = router;
