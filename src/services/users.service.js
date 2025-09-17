@@ -1,6 +1,6 @@
 const { expect } = require("chai");
-const { update } = require("../controllers/users.controller");
 const usersDao = require("../dao/users.dao");
+const logger = require("../util/logger");
 
 const userService={
     validate:(email, first_name, last_name, active, callback)=>{
@@ -26,7 +26,12 @@ usersDao.get(userId,(error,users)=>{
     if(users) {
         if(userId==undefined) return callback(undefined,users);
         let user = users.filter((user)=>user.customer_id == userId)[0];
-        console.log(user)
+        logger.debug('User filtered from results', {
+          service: 'USERS',
+          action: 'GET_USER_FILTERED',
+          userId: userId,
+          found: !!user
+        });
         return callback(undefined,[user])};
 });
     },

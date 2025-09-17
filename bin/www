@@ -7,6 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('expressjs:server');
 var http = require('http');
+var logger = require('../src/util/logger');
 
 /**
  * Get port from environment and store in Express.
@@ -55,6 +56,7 @@ function normalizePort(val) {
 
 function onError(error) {
   if (error.syscall !== 'listen') {
+    logger.error('Server error occurred', error, { service: 'SERVER' });
     throw error;
   }
 
@@ -65,14 +67,15 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      logger.error(`${bind} requires elevated privileges`, error);
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      logger.error(`${bind} is already in use`, error);
       process.exit(1);
       break;
     default:
+      logger.error('Unknown server error', error);
       throw error;
   }
 }
@@ -86,5 +89,11 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
+  
+  logger.lifecycle('start', {
+    port: addr.port || addr,
+    environment: process.env.NODE_ENV || 'development'
+  });
+  
   debug('Listening on ' + bind);
 }

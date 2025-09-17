@@ -1,4 +1,5 @@
 const authService = require('../services/auth.service');
+const logger = require('../util/logger');
 
 /**
  * Auth Controller - Clean HTTP handlers
@@ -23,15 +24,33 @@ const authController = {
     const { username, password } = req.body;
     
     if (!username || !password) {
+      logger.warn('Login attempt with missing credentials', null, {
+        service: 'AUTH',
+        action: 'LOGIN_VALIDATION_FAILED',
+        ip: req.ip,
+        userAgent: req.get('User-Agent')?.substring(0, 100)
+      });
+      
       req.session.error = 'Username and password required';
       return res.redirect('/auth/login');
     }
 
     authService.verifyLogin(username, password, function(err, user) {
       if (err || !user) {
+        logger.auth('login', username, false, err, {
+          ip: req.ip,
+          userAgent: req.get('User-Agent')?.substring(0, 100)
+        });
+        
         req.session.error = 'Invalid username or password';
         return res.redirect('/auth/login');
       }
+
+      logger.auth('login', username, true, null, {
+        userId: user.id,
+        role: user.role,
+        ip: req.ip
+      });
 
       req.session.user = user;
       res.redirect('/');

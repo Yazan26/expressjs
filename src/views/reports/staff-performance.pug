@@ -1,0 +1,328 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-chart-line.me-2.text-info
+          | Staff Performance Report
+        p.text-muted Monitor and analyze staff performance metrics
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-primary(href="/reports")
+            i.fas.fa-arrow-left.me-2
+            | All Reports
+          if user && (user.role === 'admin')
+            a.btn.btn-outline-success(href="/admin/staff")
+              i.fas.fa-users.me-2
+              | Manage Staff
+
+    // Error Messages
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    // Filters and Date Range
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-filter.me-2
+              | Report Filters
+          
+          .card-body
+            form.row.g-3(method="GET", action="/reports/staff-performance")
+              .col-md-3
+                label.form-label Staff Member
+                select.form-select(name="staffId")
+                  option(value="", selected=!selectedStaffId) All Staff
+                  if staffList
+                    each staff in staffList
+                      option(value=staff.staffId, selected=selectedStaffId == staff.staffId) #{staff.firstName} #{staff.lastName}
+              
+              .col-md-2
+                label.form-label From Date
+                input.form-control(type="date", name="fromDate", value=selectedFromDate || '')
+              
+              .col-md-2
+                label.form-label To Date
+                input.form-control(type="date", name="toDate", value=selectedToDate || '')
+              
+              .col-md-2
+                label.form-label Sort By
+                select.form-select(name="sort")
+                  option(value="performance", selected=selectedSort === 'performance') Performance Score
+                  option(value="rentals", selected=selectedSort === 'rentals') Total Rentals
+                  option(value="revenue", selected=selectedSort === 'revenue') Revenue Generated
+                  option(value="name", selected=selectedSort === 'name') Staff Name
+              
+              .col-md-3.d-flex.align-items-end
+                button.btn.btn-primary.w-100(type="submit")
+                  i.fas.fa-search.me-2
+                  | Generate Report
+
+    // Report Summary
+    if reportSummary
+      .row.mb-4
+        .col-md-3.mb-3
+          .card.border-primary.text-center.h-100
+            .card-body
+              .display-6.text-primary.mb-2
+                i.fas.fa-users
+              h4.card-title #{reportSummary.totalStaff || 0}
+              p.card-text.text-muted Staff Members
+        
+        .col-md-3.mb-3
+          .card.border-success.text-center.h-100
+            .card-body
+              .display-6.text-success.mb-2
+                i.fas.fa-shopping-cart
+              h4.card-title #{reportSummary.totalRentals || 0}
+              p.card-text.text-muted Total Rentals
+        
+        .col-md-3.mb-3
+          .card.border-info.text-center.h-100
+            .card-body
+              .display-6.text-info.mb-2
+                i.fas.fa-dollar-sign
+              h4.card-title $#{parseFloat(reportSummary.totalRevenue || 0).toFixed(2)}
+              p.card-text.text-muted Revenue Generated
+        
+        .col-md-3.mb-3
+          .card.border-warning.text-center.h-100
+            .card-body
+              .display-6.text-warning.mb-2
+                i.fas.fa-calculator
+              h4.card-title #{reportSummary.averageRentals || 0}
+              p.card-text.text-muted Avg per Staff
+
+    // Staff Performance Table
+    if staffPerformance && staffPerformance.length > 0
+      .row
+        .col-12
+          .card
+            .card-header.d-flex.justify-content-between.align-items-center
+              h5.card-title.mb-0
+                i.fas.fa-table.me-2
+                | Performance Details
+                if selectedFromDate && selectedToDate
+                  span.badge.bg-primary.ms-2 #{selectedFromDate} to #{selectedToDate}
+                else if selectedFromDate
+                  span.badge.bg-primary.ms-2 From #{selectedFromDate}
+                else if selectedToDate
+                  span.badge.bg-primary.ms-2 Up to #{selectedToDate}
+              
+              .btn-group.btn-group-sm
+                button.btn.btn-outline-secondary(onclick="printReport()")
+                  i.fas.fa-print.me-1
+                  | Print
+                button.btn.btn-outline-success(onclick="exportReport()")
+                  i.fas.fa-download.me-1
+                  | Export
+            
+            .card-body.p-0
+              .table-responsive
+                table.table.table-hover.table-striped.mb-0
+                  thead.table-light
+                    tr
+                      th Staff Member
+                      th Role
+                      th Rentals Handled
+                      th Revenue Generated
+                      th Avg per Rental
+                      th Performance Score
+                      th Status
+                  
+                  tbody
+                    each staff in staffPerformance
+                      tr(class=!staff.active ? 'table-secondary' : '')
+                        td
+                          .d-flex.flex-column
+                            .fw-bold #{staff.firstName} #{staff.lastName}
+                            .small.text-muted #{staff.email}
+                        
+                        td
+                          span.badge(class=staff.role === 'manager' ? 'bg-warning' : staff.role === 'admin' ? 'bg-danger' : 'bg-info') #{staff.role}
+                        
+                        td
+                          .fw-bold.text-primary #{staff.rentalsHandled || 0}
+                          if staff.previousPeriodRentals
+                            .small.text-muted
+                              if staff.rentalsHandled > staff.previousPeriodRentals
+                                span.text-success ↑ +#{staff.rentalsHandled - staff.previousPeriodRentals}
+                              else if staff.rentalsHandled < staff.previousPeriodRentals
+                                span.text-danger ↓ -#{staff.previousPeriodRentals - staff.rentalsHandled}
+                              else
+                                span.text-muted → Same
+                        
+                        td
+                          .fw-bold.text-success $#{parseFloat(staff.revenueGenerated || 0).toFixed(2)}
+                          if staff.previousPeriodRevenue
+                            .small.text-muted
+                              - var revChange = parseFloat(staff.revenueGenerated || 0) - parseFloat(staff.previousPeriodRevenue || 0)
+                              if revChange > 0
+                                span.text-success ↑ $#{revChange.toFixed(2)}
+                              else if revChange < 0
+                                span.text-danger ↓ $#{Math.abs(revChange).toFixed(2)}
+                              else
+                                span.text-muted → Same
+                        
+                        td
+                          if staff.rentalsHandled > 0
+                            .fw-bold $#{(parseFloat(staff.revenueGenerated || 0) / staff.rentalsHandled).toFixed(2)}
+                          else
+                            .text-muted $0.00
+                        
+                        td
+                          - var score = staff.performanceScore || 0
+                          - var scoreClass = score >= 85 ? 'success' : score >= 70 ? 'warning' : score >= 50 ? 'info' : 'danger'
+                          .progress(style="width: 60px; height: 20px;")
+                            .progress-bar(class=`bg-${scoreClass}`, style=`width: ${score}%`)
+                          .small.text-center.mt-1 #{score}%
+                        
+                        td
+                          if staff.active
+                            .badge.bg-success Active
+                          else
+                            .badge.bg-secondary Inactive
+
+      // Performance Insights
+      if performanceInsights && performanceInsights.length > 0
+        .row.mt-4
+          .col-12
+            .card
+              .card-header
+                h5.card-title.mb-0
+                  i.fas.fa-lightbulb.me-2.text-warning
+                  | Performance Insights
+              
+              .card-body
+                .row
+                  each insight in performanceInsights
+                    .col-md-6.col-lg-4.mb-3
+                      .card(class=insight.type === 'positive' ? 'border-success bg-light' : insight.type === 'warning' ? 'border-warning bg-light' : 'border-info bg-light')
+                        .card-body
+                          .d-flex.align-items-start
+                            .me-3
+                              if insight.type === 'positive'
+                                i.fas.fa-thumbs-up.text-success.fa-2x
+                              else if insight.type === 'warning'
+                                i.fas.fa-exclamation-triangle.text-warning.fa-2x
+                              else
+                                i.fas.fa-info-circle.text-info.fa-2x
+                            .flex-grow-1
+                              h6.card-title #{insight.title}
+                              p.card-text.small #{insight.description}
+
+    else
+      // Empty State
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-chart-line.fa-4x.text-muted
+              h4.text-muted No Performance Data
+              p.text-muted.mb-4
+                if selectedStaffId || selectedFromDate || selectedToDate
+                  | No performance data found for the selected criteria.
+                else
+                  | No staff performance data is currently available.
+              
+              .d-flex.gap-2.justify-content-center
+                if selectedStaffId || selectedFromDate || selectedToDate
+                  a.btn.btn-outline-primary(href="/reports/staff-performance") View All Performance Data
+                
+                a.btn.btn-primary(href="/reports")
+                  i.fas.fa-chart-bar.me-2
+                  | View Other Reports
+
+    // Quick Actions
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            h6.card-title
+              i.fas.fa-bolt.me-2
+              | Quick Actions
+            .row
+              .col-md-3.mb-2
+                a.btn.btn-outline-primary.w-100(href="/reports/staff-performance")
+                  i.fas.fa-refresh.me-2
+                  | Refresh Report
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-info.w-100(href="/reports")
+                  i.fas.fa-chart-bar.me-2
+                  | Other Reports
+              
+              if user && user.role === 'admin'
+                .col-md-3.mb-2
+                  a.btn.btn-outline-success.w-100(href="/admin/staff")
+                    i.fas.fa-users.me-2
+                    | Manage Staff
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-warning.w-100(href="/reports/staff-performance?sort=performance")
+                  i.fas.fa-sort-amount-down.me-2
+                  | Top Performers
+
+script.
+  function printReport() {
+    window.print();
+  }
+
+  function exportReport() {
+    // Create CSV content
+    let csvContent = "Staff Member,Role,Rentals Handled,Revenue Generated,Performance Score,Status\n";
+    
+    // Get table rows
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      if (cells.length >= 6) {
+        const name = cells[0].querySelector('.fw-bold').textContent.trim();
+        const role = cells[1].textContent.trim();
+        const rentals = cells[2].querySelector('.fw-bold').textContent.trim();
+        const revenue = cells[3].querySelector('.fw-bold').textContent.trim();
+        const score = cells[5].querySelector('.small').textContent.trim();
+        const status = cells[6].textContent.trim();
+        
+        csvContent += `"${name}","${role}","${rentals}","${revenue}","${score}","${status}"\n`;
+      }
+    });
+    
+    // Download CSV
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'staff-performance-report.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+  }
+  .table th {
+    border-top: none;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .progress {
+    background-color: #e9ecef;
+  }
+  @media print {
+    .btn-group, .card.bg-light {
+      display: none !important;
+    }
+  }

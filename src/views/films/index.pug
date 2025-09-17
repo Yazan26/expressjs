@@ -1,0 +1,186 @@
+extends ../layout
+
+block content
+  .container-fluid
+    .row
+      .col-lg-3.mb-4
+        // Search and Filter Panel
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-search.me-2
+              | Search & Filters
+          .card-body
+            form(method="GET", action="/films")
+              .mb-3
+                label.form-label(for="q") Search Title
+                input.form-control(type="text", name="q", id="q", value=searchQuery, placeholder="Enter film title...")
+              
+              .mb-3
+                label.form-label(for="category") Category
+                select.form-select(name="category", id="category")
+                  option(value="") All Categories
+                  each category in categories
+                    option(value=category.category_id, selected=currentCategory == category.category_id) #{category.name}
+              
+              .mb-3
+                label.form-label(for="rating") Rating
+                select.form-select(name="rating", id="rating")
+                  option(value="") All Ratings
+                  each rating in ratings
+                    option(value=rating, selected=currentRating == rating) #{rating}
+              
+              .d-grid
+                button.btn.btn-primary(type="submit")
+                  i.fas.fa-search.me-2
+                  | Search Films
+        
+        // Quick Stats
+        if pagination
+          .card.mt-3
+            .card-body.text-center
+              h6.card-title Results
+              p.card-text.mb-0
+                strong #{pagination.total}
+                |  films found
+              if currentSearch || currentCategory != 'all' || currentRating != 'all'
+                p.card-text.small.text-muted
+                  | Showing page #{pagination.currentPage} of #{pagination.totalPages}
+
+      .col-lg-9
+        // Error/Success Messages
+        if error
+          .alert.alert-danger.alert-dismissible.fade.show
+            i.fas.fa-exclamation-triangle.me-2
+            | #{error}
+            button.btn-close(type="button", data-bs-dismiss="alert")
+
+        // Page Header
+        .d-flex.justify-content-between.align-items-center.mb-4
+          div
+            h1.h2.mb-1 Browse Films
+            if searchQuery
+              p.text-muted.mb-0 Search results for "#{searchQuery}"
+            else
+              p.text-muted.mb-0 Discover and explore our film collection
+          
+          // View Toggle (could be added later)
+          .btn-group(role="group")
+            button.btn.btn-outline-secondary.active(type="button")
+              i.fas.fa-th-large.me-1
+              | Grid
+            button.btn.btn-outline-secondary(type="button")
+              i.fas.fa-list.me-1  
+              | List
+
+        // Films Grid
+        if films && films.length > 0
+          .row
+            each film in films
+              .col-md-6.col-xl-4.mb-4
+                .card.film-card.h-100
+                  .card-body
+                    .d-flex.justify-content-between.align-items-start.mb-2
+                      h5.card-title.mb-0
+                        a.text-decoration-none(href=`/films/${film.filmId}`) #{film.title}
+                      span.badge.bg-secondary #{film.rating}
+                    
+                    if film.category
+                      p.card-text.small.text-muted.mb-2
+                        i.fas.fa-tags.me-1
+                        | #{film.category}
+                    
+                    if film.releaseYear
+                      p.card-text.small.text-muted.mb-2
+                        i.fas.fa-calendar.me-1
+                        | #{film.releaseYear}
+                    
+                    if film.description
+                      p.card-text.small #{film.description.substring(0, 120)}#{film.description.length > 120 ? '...' : ''}
+                    
+                    if film.rentalRate
+                      .d-flex.justify-content-between.align-items-center.mt-3
+                        .text-muted.small Rental Rate
+                        .fw-bold.text-success $#{parseFloat(film.rentalRate).toFixed(2)}
+                  
+                  .card-footer.bg-transparent
+                    a.btn.btn-primary.btn-sm.w-100(href=`/films/${film.filmId}`)
+                      i.fas.fa-eye.me-2
+                      | View Details
+        else
+          // Empty State
+          .text-center.py-5
+            .mb-4
+              i.fas.fa-film.fa-4x.text-muted
+            h3.text-muted No Films Found
+            p.text-muted.mb-4
+              | #{searchQuery ? `No films match your search for "${searchQuery}"` : 'No films available to display'}
+            if searchQuery || filters.categoryId || filters.rating
+              a.btn.btn-outline-primary(href="/films") Clear Filters
+
+        // Pagination
+        if pagination && pagination.totalPages > 1
+          nav.mt-4(aria-label="Films pagination")
+            .row.align-items-center
+              .col-md-4
+                p.text-muted.small.mb-0
+                  | Showing #{((pagination.page - 1) * pagination.limit) + 1} - #{Math.min(pagination.page * pagination.limit, pagination.total)} of #{pagination.total} results
+              
+              .col-md-8.text-md-end
+                ul.pagination.justify-content-center.justify-content-md-end.mb-0
+                  if pagination.hasPrev
+                    li.page-item
+                      a.page-link(href=`/films?${new URLSearchParams({...req.query, page: pagination.page - 1}).toString()}`)
+                        i.fas.fa-chevron-left.me-1
+                        | Previous
+                  else
+                    li.page-item.disabled
+                      span.page-link
+                        i.fas.fa-chevron-left.me-1
+                        | Previous
+                  
+                  // Page numbers (simplified)
+                  - var startPage = Math.max(1, pagination.page - 2)
+                  - var endPage = Math.min(pagination.totalPages, pagination.page + 2)
+                  
+                  if startPage > 1
+                    li.page-item
+                      a.page-link(href=`/films?${new URLSearchParams({...req.query, page: 1}).toString()}`) 1
+                    if startPage > 2
+                      li.page-item.disabled
+                        span.page-link ...
+                  
+                  - for (var p = startPage; p <= endPage; p++)
+                    li.page-item(class=p === pagination.page ? 'active' : '')
+                      a.page-link(href=`/films?${new URLSearchParams({...req.query, page: p}).toString()}`) #{p}
+                  
+                  if endPage < pagination.totalPages
+                    if endPage < pagination.totalPages - 1
+                      li.page-item.disabled
+                        span.page-link ...
+                    li.page-item
+                      a.page-link(href=`/films?${new URLSearchParams({...req.query, page: pagination.totalPages}).toString()}`) #{pagination.totalPages}
+                  
+                  if pagination.hasNext
+                    li.page-item
+                      a.page-link(href=`/films?${new URLSearchParams({...req.query, page: pagination.page + 1}).toString()}`)
+                        | Next
+                        i.fas.fa-chevron-right.ms-1
+                  else
+                    li.page-item.disabled
+                      span.page-link
+                        | Next
+                        i.fas.fa-chevron-right.ms-1
+
+  // Custom styles for this page
+  style.
+    .film-card {
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .film-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .card-title a:hover {
+      color: #0d6efd !important;
+    }

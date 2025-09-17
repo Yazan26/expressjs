@@ -1,0 +1,263 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Back Navigation
+    .mb-3
+      a.btn.btn-outline-secondary(href="/admin/films")
+        i.fas.fa-arrow-left.me-2
+        | Back to Film Management
+
+    // Page Header
+    .row.mb-4
+      .col-12
+        h1.h2.mb-1
+          i.fas.fa-plus-circle.me-2.text-success
+          | Add New Film
+        p.text-muted Add a new film to the library inventory
+
+    // Success/Error Messages
+    if success
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if errors && errors.length > 0
+      .alert.alert-warning.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | Please correct the following errors:
+        ul.mb-0.mt-2
+          each error in errors
+            li #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    .row
+      .col-lg-8
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-film.me-2
+              | Film Information
+          
+          .card-body
+            form(method="POST", action="/admin/films/new")
+              // Basic Information
+              h6.mb-3
+                i.fas.fa-info-circle.me-2
+                | Basic Information
+              
+              .row.mb-3
+                .col-md-8
+                  label.form-label Title *
+                  input.form-control(type="text", name="title", value=(formData && formData.title) || '', required, maxlength="255")
+                  .form-text.text-muted The main title of the film
+                .col-md-4
+                  label.form-label Release Year
+                  input.form-control(type="number", name="releaseYear", value=(formData && formData.releaseYear) || '', min="1900", max=new Date().getFullYear() + 2)
+              
+              .mb-3
+                label.form-label Description
+                textarea.form-control(name="description", rows="3", maxlength="1000") #{(formData && formData.description) || ''}
+                .form-text.text-muted Brief synopsis or plot summary (optional)
+              
+              // Classification
+              h6.mb-3.mt-4
+                i.fas.fa-certificate.me-2
+                | Classification & Details
+              
+              .row.mb-3
+                .col-md-4
+                  label.form-label Category *
+                  select.form-select(name="categoryId", required)
+                    option(value="") Select Category
+                    if categories
+                      each category in categories
+                        option(value=category.categoryId, selected=(formData && formData.categoryId == category.categoryId)) #{category.name}
+                
+                .col-md-4
+                  label.form-label Rating *
+                  select.form-select(name="rating", required)
+                    option(value="") Select Rating
+                    option(value="G", selected=(formData && formData.rating === 'G')) G - General Audiences
+                    option(value="PG", selected=(formData && formData.rating === 'PG')) PG - Parental Guidance
+                    option(value="PG-13", selected=(formData && formData.rating === 'PG-13')) PG-13 - Parents Strongly Cautioned
+                    option(value="R", selected=(formData && formData.rating === 'R')) R - Restricted
+                    option(value="NC-17", selected=(formData && formData.rating === 'NC-17')) NC-17 - Adults Only
+                
+                .col-md-4
+                  label.form-label Language
+                  select.form-select(name="languageId")
+                    option(value="1", selected=(!formData || formData.languageId == '1')) English
+                    if languages
+                      each language in languages
+                        if language.languageId !== 1
+                          option(value=language.languageId, selected=(formData && formData.languageId == language.languageId)) #{language.name}
+              
+              // Technical Details
+              h6.mb-3.mt-4
+                i.fas.fa-cog.me-2
+                | Technical Details
+              
+              .row.mb-3
+                .col-md-4
+                  label.form-label Runtime (minutes)
+                  input.form-control(type="number", name="length", value=(formData && formData.length) || '', min="1", max="999")
+                  .form-text.text-muted Total runtime in minutes
+                
+                .col-md-4
+                  label.form-label Rental Rate *
+                  .input-group
+                    span.input-group-text $
+                    input.form-control(type="number", name="rentalRate", value=(formData && formData.rentalRate) || '2.99', step="0.01", min="0.01", max="99.99", required)
+                  .form-text.text-muted Price per rental
+                
+                .col-md-4
+                  label.form-label Rental Duration (days)
+                  input.form-control(type="number", name="rentalDuration", value=(formData && formData.rentalDuration) || '3', min="1", max="30")
+                  .form-text.text-muted How many days customer can keep it
+              
+              .row.mb-3
+                .col-md-6
+                  label.form-label Replacement Cost *
+                  .input-group
+                    span.input-group-text $
+                    input.form-control(type="number", name="replacementCost", value=(formData && formData.replacementCost) || '19.99', step="0.01", min="0.01", max="999.99", required)
+                  .form-text.text-muted Cost to replace if lost/damaged
+                
+                .col-md-6
+                  label.form-label Initial Copies *
+                  input.form-control(type="number", name="initialCopies", value=(formData && formData.initialCopies) || '3', min="1", max="99", required)
+                  .form-text.text-muted Number of copies to create initially
+              
+              // Special Features
+              h6.mb-3.mt-4
+                i.fas.fa-star.me-2
+                | Special Features
+              
+              .row.mb-3
+                .col-12
+                  .form-text.text-muted.mb-2 Select all applicable special features (optional)
+                  .row
+                    .col-md-6
+                      .form-check
+                        input.form-check-input(type="checkbox", name="specialFeatures", value="Trailers", id="trailers", checked=(formData && formData.specialFeatures && formData.specialFeatures.includes('Trailers')))
+                        label.form-check-label(for="trailers") Trailers
+                      .form-check
+                        input.form-check-input(type="checkbox", name="specialFeatures", value="Commentaries", id="commentaries", checked=(formData && formData.specialFeatures && formData.specialFeatures.includes('Commentaries')))
+                        label.form-check-label(for="commentaries") Commentaries
+                      .form-check
+                        input.form-check-input(type="checkbox", name="specialFeatures", value="Deleted Scenes", id="deleted", checked=(formData && formData.specialFeatures && formData.specialFeatures.includes('Deleted Scenes')))
+                        label.form-check-label(for="deleted") Deleted Scenes
+                    .col-md-6
+                      .form-check
+                        input.form-check-input(type="checkbox", name="specialFeatures", value="Behind the Scenes", id="behind", checked=(formData && formData.specialFeatures && formData.specialFeatures.includes('Behind the Scenes')))
+                        label.form-check-label(for="behind") Behind the Scenes
+                      .form-check
+                        input.form-check-input(type="checkbox", name="specialFeatures", value="Bloopers", id="bloopers", checked=(formData && formData.specialFeatures && formData.specialFeatures.includes('Bloopers')))
+                        label.form-check-label(for="bloopers") Bloopers
+                      .form-check
+                        input.form-check-input(type="checkbox", name="specialFeatures", value="Director Commentary", id="director", checked=(formData && formData.specialFeatures && formData.specialFeatures.includes('Director Commentary')))
+                        label.form-check-label(for="director") Director Commentary
+              
+              // Submit Buttons
+              .d-flex.gap-3.mt-4
+                button.btn.btn-success.btn-lg(type="submit")
+                  i.fas.fa-save.me-2
+                  | Add Film
+                
+                a.btn.btn-outline-secondary.btn-lg(href="/admin/films")
+                  i.fas.fa-times.me-2
+                  | Cancel
+                
+                button.btn.btn-outline-info.btn-lg(type="submit", name="saveAndAddAnother", value="true")
+                  i.fas.fa-plus.me-2
+                  | Save & Add Another
+
+      // Help Panel
+      .col-lg-4
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-question-circle.me-2
+              | Help & Guidelines
+          
+          .card-body
+            h6
+              i.fas.fa-lightbulb.me-2
+              | Tips for Adding Films
+            
+            ul.small
+              li
+                strong Title: 
+                | Use the official film title as it appears on promotional materials
+              li
+                strong Description: 
+                | Keep it concise but informative - focus on plot and key features
+              li
+                strong Category: 
+                | Choose the most appropriate primary genre
+              li
+                strong Rating: 
+                | Use the official MPAA rating if available
+              li
+                strong Rental Rate: 
+                | Consider film popularity and newness when setting price
+              li
+                strong Initial Copies: 
+                | Start with 3-5 copies for new releases, 1-2 for older films
+            
+            hr
+            
+            h6
+              i.fas.fa-info-circle.me-2
+              | Required Fields
+            
+            ul.small.text-muted
+              li Title (must be unique)
+              li Category selection
+              li MPAA rating
+              li Rental rate (minimum $0.01)
+              li Replacement cost
+              li Initial number of copies (minimum 1)
+
+        if recentFilms && recentFilms.length > 0
+          .card.mt-3
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-clock.me-2
+                | Recently Added Films
+            
+            .card-body.p-0
+              .list-group.list-group-flush
+                each film in recentFilms
+                  .list-group-item.d-flex.justify-content-between.align-items-center
+                    .d-flex.flex-column
+                      .fw-bold #{film.title}
+                      .small.text-muted #{film.categoryName} • #{film.rating}
+                    .small.text-muted #{new Date(film.createDate).toLocaleDateString()}
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+  }
+  .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+  }
+  h6 {
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+  }

@@ -2,7 +2,7 @@ doctype html
 html
   head
     link(rel="icon", type="image/x-icon", href="/favicon.ico")
-    title= title || 'Sakila Video Store'
+    title= title || 'Movies Express Rentals'
     link(rel="stylesheet", href="/bootstrap/css/bootstrap.min.css")
     link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
     script(src="/bootstrap/js/bootstrap.bundle.min.js")
@@ -13,7 +13,7 @@ html
       .container-fluid
         a.navbar-brand(href='/') 
           i.fas.fa-video.me-2
-          | Sakila Video Store
+          | Movies Express Rentals
         button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
           span.navbar-toggler-icon
         
@@ -24,36 +24,64 @@ html
                 i.fas.fa-home.me-1
                 | Home
             
+            li.nav-item
+              a.nav-link(href='/films' class=req && req.path.includes('/films') ? 'active' : '')
+                i.fas.fa-film.me-1
+                | Films
+            
             //- Show different navigation based on user role
             if authenticated && user
-              if user.role === 'staff' || user.role === 'manager'
-                li.nav-item
-                  a.nav-link(href='/reports/staff-performance' class=req && req.path.includes('/reports') ? 'active' : '')
-                    i.fas.fa-chart-bar.me-1
-                    | Staff Reports
-                li.nav-item
-                  a.nav-link(href='/users' class=req && req.path.includes('/users') ? 'active' : '')
-                    i.fas.fa-users.me-1
-                    | Users
-                if user.role === 'manager'
-                  li.nav-item
-                    a.nav-link(href='/inventory' class=req && req.path.includes('/inventory') ? 'active' : '')
-                      i.fas.fa-boxes.me-1
-                      | Inventory
-              else if user.role === 'customer'
+              if user.role === 'customer'
                 li.nav-item
                   a.nav-link(href='/customer/dashboard' class=req && req.path.includes('/customer') ? 'active' : '')
                     i.fas.fa-tachometer-alt.me-1
-                    | My Dashboard
+                    | Customer Dashboard
+              else if user.role === 'staff'
                 li.nav-item
-                  a.nav-link(href='/search' class=req && req.path.includes('/search') ? 'active' : '')
-                    i.fas.fa-search.me-1
-                    | Search Movies
+                  a.nav-link(href='/staff/offers' class=req && req.path.includes('/staff') ? 'active' : '')
+                    i.fas.fa-tags.me-1
+                    | Staff Offers
+              else if user.role === 'manager'
+                li.nav-item
+                  a.nav-link(href='/staff/offers' class=req && req.path.includes('/staff') ? 'active' : '')
+                    i.fas.fa-tags.me-1
+                    | Staff Offers
+                li.nav-item
+                  a.nav-link(href='/reports' class=req && req.path.includes('/reports') ? 'active' : '')
+                    i.fas.fa-chart-bar.me-1
+                    | Reports
+              else if user.role === 'admin'
+                li.nav-item.dropdown
+                  a.nav-link.dropdown-toggle(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false' class=req && req.path.includes('/admin') ? 'active' : '')
+                    i.fas.fa-user-shield.me-1
+                    | Admin
+                  ul.dropdown-menu
+                    li
+                      a.dropdown-item(href='/admin/films')
+                        i.fas.fa-film.me-1
+                        | Films
+                    li
+                      a.dropdown-item(href='/admin/staff')
+                        i.fas.fa-users.me-1
+                        | Staff
+                    li
+                      a.dropdown-item(href='/admin/offers')
+                        i.fas.fa-tags.me-1
+                        | Offers
+                li.nav-item
+                  a.nav-link(href='/reports' class=req && req.path.includes('/reports') ? 'active' : '')
+                    i.fas.fa-chart-bar.me-1
+                    | Reports
+              
+              li.nav-item
+                a.nav-link(href='/about' class=req && req.path === '/about' ? 'active' : '')
+                  i.fas.fa-info-circle.me-1
+                  | About
             else
               li.nav-item
-                a.nav-link(href='/users' class=req && req.path.includes('/users') ? 'active' : '')
-                  i.fas.fa-users.me-1
-                  | Users
+                a.nav-link(href='/about' class=req && req.path === '/about' ? 'active' : '')
+                  i.fas.fa-info-circle.me-1
+                  | About
           
           //- Search form (always show)
           form.d-flex.me-3(role='search' action='/search' method='GET')
@@ -101,11 +129,11 @@ html
           .col-md-6
             h5
               i.fas.fa-video.me-2
-              | Sakila Video Store
-            p.small System for managing video rentals and customer relationships.
+              | Movies Express Rentals
+            p.small Enterprise film rental management system with role-based access control.
           .col-md-6.text-md-end
             p.small
-              | © 2024 Sakila Video Store. Demo application using Sakila sample database.
+              | © 2024 Movies Express Rentals. Professional film rental management system.
             if authenticated && user
               p.small
                 i.fas.fa-user-check.me-1

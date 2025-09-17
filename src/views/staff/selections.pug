@@ -1,0 +1,327 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-star.me-2.text-warning
+          | My Film Selections
+        p.text-muted Your selected film offers and recommendations
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-primary(href="/staff/offers")
+            i.fas.fa-tags.me-2
+            | Browse Offers
+          a.btn.btn-outline-info(href="/reports") 
+            i.fas.fa-chart-bar.me-2
+            | Reports
+
+    // Success/Error Messages
+    if success
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    // Selection Summary
+    if selectionStats
+      .row.mb-4
+        .col-md-3.mb-3
+          .card.border-primary.text-center.h-100
+            .card-body
+              .display-6.text-primary.mb-2
+                i.fas.fa-star
+              h4.card-title #{selectionStats.totalSelections || 0}
+              p.card-text.text-muted Total Selections
+        
+        .col-md-3.mb-3
+          .card.border-success.text-center.h-100
+            .card-body
+              .display-6.text-success.mb-2
+                i.fas.fa-dollar-sign
+              h4.card-title $#{parseFloat(selectionStats.totalSavings || 0).toFixed(2)}
+              p.card-text.text-muted Total Savings
+        
+        .col-md-3.mb-3
+          .card.border-info.text-center.h-100
+            .card-body
+              .display-6.text-info.mb-2
+                i.fas.fa-calendar-check
+              h4.card-title #{selectionStats.activeSelections || 0}
+              p.card-text.text-muted Active Offers
+        
+        .col-md-3.mb-3
+          .card.border-warning.text-center.h-100
+            .card-body
+              .display-6.text-warning.mb-2
+                i.fas.fa-clock
+              h4.card-title #{selectionStats.expiringSoon || 0}
+              p.card-text.text-muted Expiring Soon
+
+    // Filter Options
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-filter.me-2
+              | Filter Selections
+          
+          .card-body
+            form.row.g-3(method="GET", action="/staff/selections")
+              .col-md-3
+                label.form-label Status
+                select.form-select(name="status")
+                  option(value="", selected=!selectedStatus) All Status
+                  option(value="active", selected=selectedStatus === 'active') Active
+                  option(value="expired", selected=selectedStatus === 'expired') Expired
+                  option(value="expiring", selected=selectedStatus === 'expiring') Expiring Soon
+              
+              .col-md-3
+                label.form-label Category
+                select.form-select(name="category")
+                  option(value="", selected=!selectedCategory) All Categories
+                  if categories
+                    each category in categories
+                      option(value=category.name, selected=selectedCategory === category.name) #{category.name}
+              
+              .col-md-3
+                label.form-label Sort By
+                select.form-select(name="sort")
+                  option(value="newest", selected=selectedSort === 'newest') Newest First
+                  option(value="expiring", selected=selectedSort === 'expiring') Expiring Soonest
+                  option(value="savings", selected=selectedSort === 'savings') Highest Savings
+                  option(value="title", selected=selectedSort === 'title') Title A-Z
+              
+              .col-md-3.d-flex.align-items-end
+                button.btn.btn-primary.w-100(type="submit")
+                  i.fas.fa-search.me-2
+                  | Apply Filters
+
+    // My Selections
+    if selections && selections.length > 0
+      .row
+        each selection in selections
+          .col-lg-6.col-xl-4.mb-4
+            - var isExpiring = new Date(selection.endDate) - new Date() < (7 * 24 * 60 * 60 * 1000)
+            - var isExpired = new Date(selection.endDate) < new Date()
+            .card.h-100(class=isExpired ? 'border-danger' : isExpiring ? 'border-warning' : 'border-success')
+              // Status Badge
+              .position-relative
+                if isExpired
+                  .position-absolute.top-0.end-0.m-2
+                    .badge.bg-danger Expired
+                else if isExpiring
+                  .position-absolute.top-0.end-0.m-2
+                    .badge.bg-warning Expiring Soon
+                else
+                  .position-absolute.top-0.end-0.m-2
+                    .badge.bg-success Active
+
+              .card-header
+                .d-flex.justify-content-between.align-items-start
+                  h5.card-title.mb-1 #{selection.filmTitle}
+                  if selection.discountPercent
+                    .badge.bg-primary.fs-6 #{selection.discountPercent}% OFF
+              
+              .card-body
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Category
+                    .fw-bold #{selection.categoryName}
+                  .col-6
+                    .small.text-muted Rating  
+                    .fw-bold #{selection.rating}
+                
+                // Pricing Information
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Original Price
+                    .text-decoration-line-through $#{parseFloat(selection.originalPrice || 0).toFixed(2)}
+                  .col-6
+                    .small.text-muted Your Price
+                    .fw-bold.text-success $#{parseFloat(selection.offerPrice || 0).toFixed(2)}
+                
+                if selection.savingsAmount
+                  .mb-3
+                    .small.text-muted You Save
+                    .fw-bold.text-success $#{parseFloat(selection.savingsAmount).toFixed(2)}
+                
+                // Important Dates
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Selected On
+                    .small #{new Date(selection.selectedDate).toLocaleDateString()}
+                  .col-6
+                    .small.text-muted Expires On
+                    .small(class=isExpiring || isExpired ? 'text-danger fw-bold' : '') #{new Date(selection.endDate).toLocaleDateString()}
+                
+                // Action Buttons
+                .d-flex.gap-2
+                  a.btn.btn-outline-info.btn-sm(href=`/films/${selection.filmId}`)
+                    i.fas.fa-eye.me-1
+                    | View Film
+                  
+                  if !isExpired
+                    a.btn.btn-success.btn-sm(href=`/films/${selection.filmId}`)
+                      i.fas.fa-shopping-cart.me-1
+                      | Rent Now
+                  
+                  form(method="POST", action="/staff/offers/unselect", style="display:inline;")
+                    input(type="hidden", name="offerId", value=selection.offerId)
+                    button.btn.btn-outline-danger.btn-sm(type="submit")
+                      i.fas.fa-times.me-1
+                      | Remove
+
+      // Pagination
+      if pagination && pagination.totalPages > 1
+        .row.mt-4
+          .col-12
+            .d-flex.justify-content-center
+              nav
+                ul.pagination
+                  if pagination.currentPage > 1
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.currentPage - 1}&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`)
+                        i.fas.fa-chevron-left
+                  
+                  - var startPage = Math.max(1, pagination.currentPage - 2)
+                  - var endPage = Math.min(pagination.totalPages, pagination.currentPage + 2)
+                  
+                  if startPage > 1
+                    li.page-item
+                      a.page-link(href=`?page=1&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`) 1
+                    if startPage > 2
+                      li.page-item.disabled
+                        span.page-link ...
+                  
+                  - for (var i = startPage; i <= endPage; i++)
+                    li.page-item(class=i === pagination.currentPage ? 'active' : '')
+                      if i === pagination.currentPage
+                        span.page-link #{i}
+                      else
+                        a.page-link(href=`?page=${i}&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`) #{i}
+                  
+                  if endPage < pagination.totalPages
+                    if endPage < pagination.totalPages - 1
+                      li.page-item.disabled
+                        span.page-link ...
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.totalPages}&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`) #{pagination.totalPages}
+                  
+                  if pagination.currentPage < pagination.totalPages
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.currentPage + 1}&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`)
+                        i.fas.fa-chevron-right
+
+    else
+      // Empty State
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-star-o.fa-4x.text-muted
+              h4.text-muted No Selections Found
+              p.text-muted.mb-4
+                if selectedStatus || selectedCategory
+                  | No selections found matching your filter criteria.
+                else
+                  | You haven't selected any film offers yet.
+              
+              .d-flex.gap-2.justify-content-center
+                if selectedStatus || selectedCategory
+                  a.btn.btn-outline-primary(href="/staff/selections") View All Selections
+                
+                a.btn.btn-primary(href="/staff/offers")
+                  i.fas.fa-tags.me-2
+                  | Browse Offers
+
+    // Recommendations
+    if recommendations && recommendations.length > 0
+      .row.mt-5
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-lightbulb.me-2.text-info
+                | Recommended for You
+                .small.text-muted Based on your selections
+            
+            .card-body
+              .row
+                each rec in recommendations
+                  .col-md-6.col-lg-4.mb-3
+                    .card.border-info.bg-light
+                      .card-body
+                        .d-flex.justify-content-between.align-items-start.mb-2
+                          h6.card-title.mb-0 #{rec.filmTitle}
+                          .badge.bg-info Recommended
+                        
+                        .d-flex.justify-content-between.align-items-center.mb-2
+                          .small.text-muted #{rec.categoryName}
+                          .small.text-warning
+                            i.fas.fa-star
+                            | #{rec.rating}
+                        
+                        if rec.description
+                          p.card-text.small.text-muted #{rec.description.substring(0, 80)}...
+                        
+                        .d-flex.gap-1
+                          a.btn.btn-outline-info.btn-sm(href=`/films/${rec.filmId}`)
+                            i.fas.fa-eye.me-1
+                            | View Film
+
+    // Quick Actions
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            h6.card-title
+              i.fas.fa-bolt.me-2
+              | Quick Actions
+            .row
+              .col-md-3.mb-2
+                a.btn.btn-outline-primary.w-100(href="/staff/offers")
+                  i.fas.fa-tags.me-2
+                  | Browse Offers
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-success.w-100(href="/films")
+                  i.fas.fa-film.me-2
+                  | Browse Films
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-info.w-100(href="/staff/selections?status=expiring")
+                  i.fas.fa-clock.me-2
+                  | Expiring Soon
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-warning.w-100(href="/reports")
+                  i.fas.fa-chart-bar.me-2
+                  | View Reports
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  .badge {
+    font-size: 0.75em;
+  }
+  .text-decoration-line-through {
+    text-decoration: line-through;
+  }

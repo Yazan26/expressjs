@@ -1,0 +1,357 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-chart-bar.me-2.text-info
+          | Reports Dashboard
+        p.text-muted Access business intelligence and performance metrics
+      
+      .col-lg-4.text-lg-end
+        if user && (user.role === 'admin')
+          .btn-group
+            a.btn.btn-outline-primary(href="/admin/films") Film Management
+            a.btn.btn-outline-success(href="/admin/staff") Staff Management
+
+    // Quick Report Access
+    .row.mb-4
+      .col-md-6.col-lg-4.mb-4
+        .card.border-primary.h-100
+          .card-header.bg-primary.text-white
+            h5.card-title.mb-0
+              i.fas.fa-users.me-2
+              | Staff Performance
+          
+          .card-body
+            p.card-text Monitor staff productivity, rental handling, and revenue generation over time periods.
+            
+            .row.mb-3
+              .col-6
+                .small.text-muted What's Included
+                ul.small
+                  li Rentals handled
+                  li Revenue generated
+                  li Performance scores
+                  li Trend analysis
+              .col-6
+                .small.text-muted Available For
+                ul.small
+                  li Individual staff
+                  li Department view
+                  li Date ranges
+                  li Comparison periods
+            
+            .d-grid
+              a.btn.btn-primary(href="/reports/staff-performance")
+                i.fas.fa-chart-line.me-2
+                | View Staff Report
+
+      .col-md-6.col-lg-4.mb-4
+        .card.border-success.h-100
+          .card-header.bg-success.text-white
+            h5.card-title.mb-0
+              i.fas.fa-film.me-2
+              | Film Analytics
+          
+          .card-body
+            p.card-text Analyze film popularity, rental patterns, and inventory performance metrics.
+            
+            .row.mb-3
+              .col-6
+                .small.text-muted What's Included
+                ul.small
+                  li Rental frequency
+                  li Revenue per film
+                  li Popular categories
+                  li Inventory turnover
+              .col-6
+                .small.text-muted Available For
+                ul.small
+                  li Top performing films
+                  li Category analysis
+                  li Seasonal trends
+                  li Underperforming titles
+            
+            .d-grid
+              a.btn.btn-success(href="/reports/film-analytics")
+                i.fas.fa-chart-pie.me-2
+                | View Film Report
+
+      .col-md-6.col-lg-4.mb-4
+        .card.border-info.h-100
+          .card-header.bg-info.text-white
+            h5.card-title.mb-0
+              i.fas.fa-dollar-sign.me-2
+              | Revenue Reports
+          
+          .card-body
+            p.card-text Track financial performance, payment trends, and revenue forecasting.
+            
+            .row.mb-3
+              .col-6
+                .small.text-muted What's Included
+                ul.small
+                  li Daily/monthly revenue
+                  li Payment methods
+                  li Late fee tracking
+                  li Profit margins
+              .col-6
+                .small.text-muted Available For
+                ul.small
+                  li Time period analysis
+                  li Store comparisons
+                  li Customer segments
+                  li Forecasting
+            
+            .d-grid
+              a.btn.btn-info(href="/reports/revenue")
+                i.fas.fa-money-bill-wave.me-2
+                | View Revenue Report
+
+      .col-md-6.col-lg-4.mb-4
+        .card.border-warning.h-100
+          .card-header.bg-warning.text-dark
+            h5.card-title.mb-0
+              i.fas.fa-users-cog.me-2
+              | Customer Insights
+          
+          .card-body
+            p.card-text Understand customer behavior, preferences, and lifetime value analytics.
+            
+            .row.mb-3
+              .col-6
+                .small.text-muted What's Included
+                ul.small
+                  li Customer segments
+                  li Rental patterns
+                  li Preferences
+                  li Lifetime value
+              .col-6
+                .small.text-muted Available For
+                ul.small
+                  li Top customers
+                  li Churn analysis
+                  li Geographic data
+                  li Engagement metrics
+            
+            .d-grid
+              a.btn.btn-warning(href="/reports/customer-insights")
+                i.fas.fa-user-chart.me-2
+                | View Customer Report
+
+      .col-md-6.col-lg-4.mb-4
+        .card.border-secondary.h-100
+          .card-header.bg-secondary.text-white
+            h5.card-title.mb-0
+              i.fas.fa-boxes.me-2
+              | Inventory Reports
+          
+          .card-body
+            p.card-text Manage inventory levels, track utilization, and optimize stock management.
+            
+            .row.mb-3
+              .col-6
+                .small.text-muted What's Included
+                ul.small
+                  li Stock levels
+                  li Utilization rates
+                  li Reorder alerts
+                  li Damage tracking
+              .col-6
+                .small.text-muted Available For
+                ul.small
+                  li Low stock alerts
+                  li High demand items
+                  li Seasonal patterns
+                  li Cost analysis
+            
+            .d-grid
+              a.btn.btn-secondary(href="/reports/inventory")
+                i.fas.fa-warehouse.me-2
+                | View Inventory Report
+
+      .col-md-6.col-lg-4.mb-4
+        .card.border-danger.h-100
+          .card-header.bg-danger.text-white
+            h5.card-title.mb-0
+              i.fas.fa-tags.me-2
+              | Offers Performance
+          
+          .card-body
+            p.card-text Track staff offer selections, discount effectiveness, and promotion ROI.
+            
+            .row.mb-3
+              .col-6
+                .small.text-muted What's Included
+                ul.small
+                  li Selection rates
+                  li Discount effectiveness
+                  li Staff engagement
+                  li Revenue impact
+              .col-6
+                .small.text-muted Available For
+                ul.small
+                  li Offer campaigns
+                  li Staff preferences
+                  li Success rates
+                  li ROI analysis
+            
+            .d-grid
+              a.btn.btn-danger(href="/reports/offers")
+                i.fas.fa-percentage.me-2
+                | View Offers Report
+
+    // Recent Activity Summary
+    if recentActivity
+      .row.mb-4
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-clock.me-2
+                | Recent Activity Summary
+                span.badge.bg-primary.ms-2 Last 7 Days
+            
+            .card-body
+              .row
+                .col-md-3.mb-3
+                  .card.border-primary.text-center.h-100
+                    .card-body
+                      .display-6.text-primary.mb-2
+                        i.fas.fa-shopping-cart
+                      h4.card-title #{recentActivity.totalRentals || 0}
+                      p.card-text.text-muted New Rentals
+                
+                .col-md-3.mb-3
+                  .card.border-success.text-center.h-100
+                    .card-body
+                      .display-6.text-success.mb-2
+                        i.fas.fa-dollar-sign
+                      h4.card-title $#{parseFloat(recentActivity.totalRevenue || 0).toFixed(2)}
+                      p.card-text.text-muted Revenue Generated
+                
+                .col-md-3.mb-3
+                  .card.border-info.text-center.h-100
+                    .card-body
+                      .display-6.text-info.mb-2
+                        i.fas.fa-user-plus
+                      h4.card-title #{recentActivity.newCustomers || 0}
+                      p.card-text.text-muted New Customers
+                
+                .col-md-3.mb-3
+                  .card.border-warning.text-center.h-100
+                    .card-body
+                      .display-6.text-warning.mb-2
+                        i.fas.fa-star
+                      h4.card-title #{recentActivity.offerSelections || 0}
+                      p.card-text.text-muted Offer Selections
+
+    // Quick Filters for Common Reports
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-filter.me-2
+              | Quick Report Filters
+          
+          .card-body
+            .row
+              .col-md-4.mb-3
+                h6
+                  i.fas.fa-calendar.me-2
+                  | Time Periods
+                .d-flex.flex-wrap.gap-2
+                  a.btn.btn-outline-primary.btn-sm(href="/reports/staff-performance?days=7") Last 7 Days
+                  a.btn.btn-outline-primary.btn-sm(href="/reports/staff-performance?days=30") Last 30 Days
+                  a.btn.btn-outline-primary.btn-sm(href="/reports/staff-performance?days=90") Last 90 Days
+              
+              .col-md-4.mb-3
+                h6
+                  i.fas.fa-trophy.me-2
+                  | Top Performers
+                .d-flex.flex-wrap.gap-2
+                  a.btn.btn-outline-success.btn-sm(href="/reports/staff-performance?sort=performance&limit=5") Top 5 Staff
+                  a.btn.btn-outline-success.btn-sm(href="/reports/film-analytics?sort=popular&limit=10") Top 10 Films
+                  a.btn.btn-outline-success.btn-sm(href="/reports/customer-insights?sort=value&limit=20") Top 20 Customers
+              
+              .col-md-4.mb-3
+                h6
+                  i.fas.fa-exclamation-triangle.me-2
+                  | Alerts & Issues
+                .d-flex.flex-wrap.gap-2
+                  a.btn.btn-outline-warning.btn-sm(href="/reports/inventory?status=low") Low Inventory
+                  a.btn.btn-outline-danger.btn-sm(href="/reports/staff-performance?status=underperforming") Underperforming
+                  a.btn.btn-outline-info.btn-sm(href="/reports/offers?status=expiring") Expiring Offers
+
+    // Export and Scheduling Options
+    .row.mt-4
+      .col-md-6.mb-4
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-download.me-2
+              | Export Options
+          
+          .card-body
+            p.card-text.text-muted Download reports in various formats for external analysis or sharing.
+            
+            .d-flex.flex-wrap.gap-2
+              button.btn.btn-outline-success.btn-sm(onclick="exportAllReports('csv')")
+                i.fas.fa-file-csv.me-1
+                | Export as CSV
+              button.btn.btn-outline-danger.btn-sm(onclick="exportAllReports('pdf')")
+                i.fas.fa-file-pdf.me-1
+                | Export as PDF
+              button.btn.btn-outline-primary.btn-sm(onclick="exportAllReports('excel')")
+                i.fas.fa-file-excel.me-1
+                | Export as Excel
+
+      .col-md-6.mb-4
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-clock.me-2
+              | Report Scheduling
+          
+          .card-body
+            p.card-text.text-muted Set up automated report delivery to your email address.
+            
+            .d-flex.flex-wrap.gap-2
+              button.btn.btn-outline-info.btn-sm(onclick="scheduleReport('daily')")
+                i.fas.fa-calendar-day.me-1
+                | Daily Reports
+              button.btn.btn-outline-warning.btn-sm(onclick="scheduleReport('weekly')")
+                i.fas.fa-calendar-week.me-1
+                | Weekly Summary
+              button.btn.btn-outline-secondary.btn-sm(onclick="scheduleReport('monthly')")
+                i.fas.fa-calendar-alt.me-1
+                | Monthly Report
+
+script.
+  function exportAllReports(format) {
+    alert(`Exporting reports in ${format.toUpperCase()} format... (Feature coming soon)`);
+  }
+
+  function scheduleReport(frequency) {
+    alert(`Setting up ${frequency} report schedule... (Feature coming soon)`);
+  }
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  .btn-sm {
+    font-size: 0.875rem;
+  }
+  .display-6 {
+    font-size: 2.5rem;
+  }

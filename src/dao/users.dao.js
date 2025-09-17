@@ -1,18 +1,34 @@
 const database = require('../db/sql/connection');
 
-
 const usersDao = {
-    get: (userId, callback) => {
-       database.query(
-           userId == undefined
-               ? `SELECT * FROM ??`
-               : `SELECT * FROM ?? WHERE ?? = ?`,
-
-        userId == undefined ? ['customer'] : ['customer', 'customer_id', userId],
-         (error, results) => {
-           if (error) return callback(error, undefined);
-           if (results) return callback(undefined, results);
-       });
+    
+    // Get user by ID
+    getUserById: function(userId, callback) {
+        database.query(
+            'SELECT customer_id as id, first_name, last_name, email FROM customer WHERE customer_id = ?',
+            [userId],
+            (error, results) => {
+                if (error) return callback(error, undefined);
+                if (results && results.length > 0) {
+                    return callback(undefined, results[0]);
+                }
+                return callback(new Error('User not found'), undefined);
+            }
+        );
+    },
+    
+    // Get all users or user by ID
+    get: function(userId, callback) {
+        if (userId == undefined) {
+            database.query('SELECT customer_id as id, first_name, last_name, email, active FROM customer LIMIT 50', callback);
+        } else {
+            this.getUserById(userId, callback);
+        }
+    },
+    
+    // Direct query method for custom queries
+    query: function(sql, params, callback) {
+        database.query(sql, params, callback);
     },
 
 
