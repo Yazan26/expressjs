@@ -1,0 +1,324 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-tags.me-2.text-warning
+          | Offer Management
+        p.text-muted Create and manage film offers for staff
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-success(href="/admin/offers/new")
+            i.fas.fa-plus.me-2
+            | Create New Offer
+          a.btn.btn-outline-primary(href="/admin/films") Film Management
+          a.btn.btn-outline-info(href="/admin/staff") Staff Management
+
+    // Success/Error Messages
+    if success
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    // Search and Filters
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-filter.me-2
+              | Filter Offers
+          
+          .card-body
+            form.row.g-3(method="GET", action="/admin/offers")
+              .col-md-3
+                label.form-label Search Film Title
+                input.form-control(type="text", name="search", value=searchTerm || '', placeholder="Film title...")
+              
+              .col-md-2
+                label.form-label Status
+                select.form-select(name="status")
+                  option(value="", selected=!selectedStatus) All Status
+                  option(value="active", selected=selectedStatus === 'active') Active
+                  option(value="expired", selected=selectedStatus === 'expired') Expired
+                  option(value="coming_soon", selected=selectedStatus === 'coming_soon') Coming Soon
+              
+              .col-md-2
+                label.form-label Sort By
+                select.form-select(name="sort")
+                  option(value="newest", selected=selectedSort === 'newest') Newest First
+                  option(value="ending", selected=selectedSort === 'ending') Ending Soon
+                  option(value="popular", selected=selectedSort === 'popular') Most Selected
+                  option(value="discount", selected=selectedSort === 'discount') Highest Discount
+              
+              .col-md-2
+                label.form-label Min Discount %
+                input.form-control(type="number", name="minDiscount", value=minDiscount || '', min="0", max="100", placeholder="0")
+              
+              .col-md-3.d-flex.align-items-end
+                button.btn.btn-primary.w-100(type="submit")
+                  i.fas.fa-search.me-2
+                  | Apply Filters
+
+    // Offers List
+    if offers && offers.length > 0
+      .row
+        each offer in offers
+          .col-lg-6.col-xl-4.mb-4
+            - var isExpired = new Date(offer.endDate) < new Date()
+            - var isExpiring = !isExpired && (new Date(offer.endDate) - new Date()) < (3 * 24 * 60 * 60 * 1000)
+            - var isComingSoon = new Date(offer.startDate) > new Date()
+            .card.h-100(class=isExpired ? 'border-danger' : isExpiring ? 'border-warning' : isComingSoon ? 'border-info' : 'border-success')
+              
+              // Status Badge
+              .position-relative
+                if isExpired
+                  .position-absolute.top-0.end-0.m-2
+                    .badge.bg-danger Expired
+                else if isExpiring
+                  .position-absolute.top-0.end-0.m-2
+                    .badge.bg-warning Expires Soon
+                else if isComingSoon
+                  .position-absolute.top-0.end-0.m-2
+                    .badge.bg-info Coming Soon
+                else
+                  .position-absolute.top-0.end-0.m-2
+                    .badge.bg-success Active
+
+              .card-header
+                .d-flex.justify-content-between.align-items-start
+                  h5.card-title.mb-1 #{offer.filmTitle}
+                  .badge.bg-primary.fs-6 #{offer.discountPercent}% OFF
+              
+              .card-body
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Category
+                    .fw-bold #{offer.categoryName}
+                  .col-6
+                    .small.text-muted Rating
+                    .fw-bold #{offer.rating}
+                
+                if offer.description && offer.description.trim()
+                  p.card-text.small.text-muted #{offer.description.substring(0, 100)}#{offer.description.length > 100 ? '...' : ''}
+                
+                // Pricing
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Original Price
+                    .text-decoration-line-through $#{parseFloat(offer.originalPrice || 0).toFixed(2)}
+                  .col-6
+                    .small.text-muted Offer Price
+                    .fw-bold.text-success $#{parseFloat(offer.offerPrice || 0).toFixed(2)}
+                
+                .mb-3
+                  .small.text-muted Savings Amount
+                  .fw-bold.text-success $#{(parseFloat(offer.originalPrice || 0) - parseFloat(offer.offerPrice || 0)).toFixed(2)}
+                
+                // Dates
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Valid From
+                    .small #{new Date(offer.startDate).toLocaleDateString()}
+                  .col-6
+                    .small.text-muted Valid Until
+                    .small(class=isExpiring || isExpired ? 'text-danger fw-bold' : '') #{new Date(offer.endDate).toLocaleDateString()}
+                
+                // Selection Stats
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Staff Selections
+                    .fw-bold.text-info #{offer.selectedCount || 0}
+                  .col-6
+                    .small.text-muted Created By
+                    .small #{offer.createdBy || 'System'}
+                
+                // Action Buttons
+                .d-flex.gap-2.flex-wrap
+                  a.btn.btn-outline-info.btn-sm(href=`/films/${offer.filmId}`)
+                    i.fas.fa-eye.me-1
+                    | View Film
+                  
+                  a.btn.btn-outline-primary.btn-sm(href=`/admin/offers/edit/${offer.offerId}`)
+                    i.fas.fa-edit.me-1
+                    | Edit Offer
+                  
+                  if !isExpired
+                    form.d-inline(method="POST", action="/admin/offers/extend")
+                      input(type="hidden", name="offerId", value=offer.offerId)
+                      button.btn.btn-outline-success.btn-sm(type="submit")
+                        i.fas.fa-calendar-plus.me-1
+                        | Extend
+                  
+                  form.d-inline(method="POST", action="/admin/offers/delete", onsubmit="return confirm('Are you sure you want to delete this offer? This action cannot be undone.')")
+                    input(type="hidden", name="offerId", value=offer.offerId)
+                    button.btn.btn-outline-danger.btn-sm(type="submit")
+                      i.fas.fa-trash.me-1
+                      | Delete
+
+      // Pagination
+      if pagination && pagination.totalPages > 1
+        .row.mt-4
+          .col-12
+            .d-flex.justify-content-center
+              nav
+                ul.pagination
+                  if pagination.currentPage > 1
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.currentPage - 1}&search=${searchTerm || ''}&status=${selectedStatus || ''}&sort=${selectedSort || ''}&minDiscount=${minDiscount || ''}`)
+                        i.fas.fa-chevron-left
+                  
+                  - var startPage = Math.max(1, pagination.currentPage - 2)
+                  - var endPage = Math.min(pagination.totalPages, pagination.currentPage + 2)
+                  
+                  if startPage > 1
+                    li.page-item
+                      a.page-link(href=`?page=1&search=${searchTerm || ''}&status=${selectedStatus || ''}&sort=${selectedSort || ''}&minDiscount=${minDiscount || ''}`) 1
+                    if startPage > 2
+                      li.page-item.disabled
+                        span.page-link ...
+                  
+                  - for (var i = startPage; i <= endPage; i++)
+                    li.page-item(class=i === pagination.currentPage ? 'active' : '')
+                      if i === pagination.currentPage
+                        span.page-link #{i}
+                      else
+                        a.page-link(href=`?page=${i}&search=${searchTerm || ''}&status=${selectedStatus || ''}&sort=${selectedSort || ''}&minDiscount=${minDiscount || ''}`) #{i}
+                  
+                  if endPage < pagination.totalPages
+                    if endPage < pagination.totalPages - 1
+                      li.page-item.disabled
+                        span.page-link ...
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.totalPages}&search=${searchTerm || ''}&status=${selectedStatus || ''}&sort=${selectedSort || ''}&minDiscount=${minDiscount || ''}`) #{pagination.totalPages}
+                  
+                  if pagination.currentPage < pagination.totalPages
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.currentPage + 1}&search=${searchTerm || ''}&status=${selectedStatus || ''}&sort=${selectedSort || ''}&minDiscount=${minDiscount || ''}`)
+                        i.fas.fa-chevron-right
+
+    else
+      // Empty State
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-tags.fa-4x.text-muted
+              h4.text-muted No Offers Found
+              p.text-muted.mb-4
+                if searchTerm || selectedStatus
+                  | No offers found matching your search criteria.
+                else
+                  | No offers are currently available in the system.
+              
+              .d-flex.gap-2.justify-content-center
+                if searchTerm || selectedStatus
+                  a.btn.btn-outline-primary(href="/admin/offers") View All Offers
+                
+                a.btn.btn-success(href="/admin/offers/new")
+                  i.fas.fa-plus.me-2
+                  | Create New Offer
+
+    // Offer Statistics
+    if offerStats
+      .row.mt-5
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-chart-pie.me-2
+                | Offer Statistics
+            
+            .card-body
+              .row
+                .col-md-3.mb-3
+                  .card.border-primary.text-center.h-100
+                    .card-body
+                      .display-6.text-primary.mb-2
+                        i.fas.fa-tags
+                      h4.card-title #{offerStats.totalOffers || 0}
+                      p.card-text.text-muted Total Offers
+                
+                .col-md-3.mb-3
+                  .card.border-success.text-center.h-100
+                    .card-body
+                      .display-6.text-success.mb-2
+                        i.fas.fa-check-circle
+                      h4.card-title #{offerStats.activeOffers || 0}
+                      p.card-text.text-muted Active Offers
+                
+                .col-md-3.mb-3
+                  .card.border-info.text-center.h-100
+                    .card-body
+                      .display-6.text-info.mb-2
+                        i.fas.fa-star
+                      h4.card-title #{offerStats.totalSelections || 0}
+                      p.card-text.text-muted Staff Selections
+                
+                .col-md-3.mb-3
+                  .card.border-warning.text-center.h-100
+                    .card-body
+                      .display-6.text-warning.mb-2
+                        i.fas.fa-dollar-sign
+                      h4.card-title $#{parseFloat(offerStats.totalSavings || 0).toFixed(2)}
+                      p.card-text.text-muted Total Staff Savings
+
+    // Quick Actions
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            h6.card-title
+              i.fas.fa-bolt.me-2
+              | Quick Actions
+            .row
+              .col-md-3.mb-2
+                a.btn.btn-success.w-100(href="/admin/offers/new")
+                  i.fas.fa-plus.me-2
+                  | Create New Offer
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-warning.w-100(href="/admin/offers?sort=ending")
+                  i.fas.fa-clock.me-2
+                  | Expiring Soon
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-info.w-100(href="/admin/offers?sort=popular")
+                  i.fas.fa-star.me-2
+                  | Most Popular
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-primary.w-100(href="/staff/offers")
+                  i.fas.fa-eye.me-2
+                  | Staff View
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  .badge {
+    font-size: 0.75em;
+  }
+  .text-decoration-line-through {
+    text-decoration: line-through;
+  }
+  .btn-group .btn:focus {
+    box-shadow: none;
+  }

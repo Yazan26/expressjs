@@ -1,0 +1,225 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Back Navigation
+    .mb-3
+      a.btn.btn-outline-secondary(href="/customer/dashboard")
+        i.fas.fa-arrow-left.me-2
+        | Back to Dashboard
+
+    // Error Messages
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-chart-line.me-2.text-success
+          | My Spending Analysis
+        p.text-muted Here's a breakdown of your rental spending over time
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-primary(href="/customer/dashboard") Dashboard
+          a.btn.btn-outline-info(href="/films") Browse Films
+
+    // Period Selector
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-calendar.me-2
+              | Select Time Period
+          
+          .card-body
+            .row
+              .col-md-6
+                h6 Monthly View
+                form.mb-3(method="GET", action="/customer/spending")
+                  .input-group
+                    input.form-control(type="month", name="period", value=selectedPeriod || '')
+                    button.btn.btn-primary(type="submit")
+                      i.fas.fa-search.me-2
+                      | View Month
+              
+              .col-md-6
+                h6 Date Range
+                form(method="GET", action="/customer/spending")
+                  .row.mb-2
+                    .col-6
+                      input.form-control(type="date", name="from", value=selectedFromDate || '', placeholder="From date")
+                    .col-6
+                      input.form-control(type="date", name="to", value=selectedToDate || '', placeholder="To date")
+                  .d-grid
+                    button.btn.btn-success(type="submit")
+                      i.fas.fa-calendar-alt.me-2
+                      | View Range
+
+    // Spending Data
+    if spending && spending.length > 0
+      // Summary Card
+      if summary
+        .row.mb-4
+          .col-md-4.mb-3
+            .card.border-success.h-100
+              .card-body.text-center
+                .display-6.text-success.mb-2
+                  i.fas.fa-dollar-sign
+                h4.card-title $#{parseFloat(summary.totalSpent || 0).toFixed(2)}
+                p.card-text.text-muted Total Spent
+          
+          .col-md-4.mb-3
+            .card.border-info.h-100
+              .card-body.text-center
+                .display-6.text-info.mb-2
+                  i.fas.fa-shopping-bag
+                h4.card-title #{summary.transactionCount || summary.periodsCount || 0}
+                p.card-text.text-muted #{summary.transactionCount ? 'Transactions' : 'Periods'}
+          
+          .col-md-4.mb-3
+            .card.border-warning.h-100
+              .card-body.text-center
+                .display-6.text-warning.mb-2
+                  i.fas.fa-calculator
+                h4.card-title 
+                  if summary.averageTransaction
+                    | $#{parseFloat(summary.averageTransaction).toFixed(2)}
+                  else
+                    | $#{summary.periodsCount > 0 ? parseFloat(summary.totalSpent / summary.periodsCount).toFixed(2) : '0.00'}
+                p.card-text.text-muted Average per #{summary.transactionCount ? 'Transaction' : 'Period'}
+
+      // Spending Details
+      .row
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-list-alt.me-2
+                | Spending Details
+                if summary && summary.period
+                  span.badge.bg-primary.ms-2 #{summary.period}
+
+            .card-body
+              if selectedFromDate && selectedToDate
+                // Date Range View - Transaction Details
+                .table-responsive
+                  table.table.table-hover
+                    thead.table-light
+                      tr
+                        th Date
+                        th Film Title
+                        th Amount
+                        th Rental Date
+                    
+                    tbody
+                      - var totalAmount = 0
+                      each transaction in spending
+                        - totalAmount += parseFloat(transaction.amount)
+                        tr
+                          td #{new Date(transaction.paymentDate).toLocaleDateString()}
+                          td
+                            a.text-decoration-none(href=`/films/${transaction.filmId || '#'}`) #{transaction.filmTitle}
+                          td.text-success.fw-bold $#{parseFloat(transaction.amount).toFixed(2)}
+                          td.text-muted #{new Date(transaction.rentalDate).toLocaleDateString()}
+                    
+                    tfoot.table-light
+                      tr
+                        th(colspan="2") Total
+                        th.text-success $#{totalAmount.toFixed(2)}
+                        th
+              else
+                // Monthly View - Period Breakdown
+                .table-responsive
+                  table.table.table-hover
+                    thead.table-light
+                      tr
+                        th Period
+                        th Total Spent
+                        th Transactions
+                        th Films Rented
+                    
+                    tbody
+                      each period in spending
+                        tr
+                          td
+                            strong #{period.period}
+                          td.text-success.fw-bold $#{parseFloat(period.totalSpent).toFixed(2)}
+                          td
+                            span.badge.bg-info #{period.transactionCount}
+                          td.small.text-muted
+                            if period.filmsRented
+                              | #{period.filmsRented.split(';').slice(0, 3).join(', ')}
+                              if period.filmsRented.split(';').length > 3
+                                | ... and #{period.filmsRented.split(';').length - 3} more
+                            else
+                              | No details
+
+    else
+      // Empty State
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-chart-line.fa-4x.text-muted
+              h4.text-muted No Spending Data
+              p.text-muted.mb-4
+                if selectedPeriod || (selectedFromDate && selectedToDate)
+                  | No transactions found for the selected time period.
+                else
+                  | You haven't made any rental payments yet.
+              
+              .d-flex.gap-2.justify-content-center
+                if selectedPeriod || (selectedFromDate && selectedToDate)
+                  a.btn.btn-outline-primary(href="/customer/spending") View All Time
+                a.btn.btn-primary(href="/films")
+                  i.fas.fa-film.me-2
+                  | Browse Films
+
+    // Quick Actions
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            h6.card-title
+              i.fas.fa-bolt.me-2
+              | Quick Actions
+            .row
+              .col-md-3.mb-2
+                a.btn.btn-outline-primary.w-100(href="/customer/dashboard")
+                  i.fas.fa-tachometer-alt.me-2
+                  | Dashboard
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-success.w-100(href="/films")
+                  i.fas.fa-film.me-2
+                  | Browse Films
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-info.w-100(href="/customer/spending")
+                  i.fas.fa-refresh.me-2
+                  | Refresh Data
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-secondary.w-100(href="/customer/profile")
+                  i.fas.fa-user.me-2
+                  | My Profile
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+  }
+  .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.2s;
+  }
+  .table th {
+    border-top: none;
+    font-weight: 600;
+  }

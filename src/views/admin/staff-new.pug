@@ -1,0 +1,270 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Back Navigation
+    .mb-3
+      a.btn.btn-outline-secondary(href="/admin/staff")
+        i.fas.fa-arrow-left.me-2
+        | Back to Staff Management
+
+    // Page Header
+    .row.mb-4
+      .col-12
+        h1.h2.mb-1
+          i.fas.fa-user-plus.me-2.text-success
+          | Add New Staff Member
+        p.text-muted Create a new staff account with company email domain
+
+    // Success/Error Messages
+    if success
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if errors && errors.length > 0
+      .alert.alert-warning.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | Please correct the following errors:
+        ul.mb-0.mt-2
+          each error in errors
+            li #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    .row
+      .col-lg-8
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-user.me-2
+              | Staff Member Information
+          
+          .card-body
+            form(method="POST", action="/admin/staff/new")
+              // Basic Information
+              h6.mb-3
+                i.fas.fa-id-card.me-2
+                | Personal Information
+              
+              .row.mb-3
+                .col-md-6
+                  label.form-label First Name *
+                  input.form-control(type="text", name="firstName", value=(formData && formData.firstName) || '', required, maxlength="45")
+                  .form-text.text-muted Enter the staff member's first name
+                
+                .col-md-6
+                  label.form-label Last Name *
+                  input.form-control(type="text", name="lastName", value=(formData && formData.lastName) || '', required, maxlength="45")
+                  .form-text.text-muted Enter the staff member's last name
+              
+              .row.mb-3
+                .col-md-8
+                  label.form-label Email Address *
+                  .input-group
+                    input.form-control(type="text", name="emailPrefix", value=(formData && formData.emailPrefix) || '', required, maxlength="30", placeholder="username")
+                    span.input-group-text @moviesexpressrentals.com
+                  .form-text.text-muted Company email will be created automatically
+                
+                .col-md-4
+                  label.form-label Phone Number
+                  input.form-control(type="tel", name="phone", value=(formData && formData.phone) || '', maxlength="20")
+                  .form-text.text-muted Optional contact number
+              
+              // Address Information
+              h6.mb-3.mt-4
+                i.fas.fa-home.me-2
+                | Address Information
+              
+              .mb-3
+                label.form-label Address Line 1 *
+                input.form-control(type="text", name="address", value=(formData && formData.address) || '', required, maxlength="50")
+              
+              .row.mb-3
+                .col-md-4
+                  label.form-label City *
+                  input.form-control(type="text", name="city", value=(formData && formData.city) || '', required, maxlength="50")
+                
+                .col-md-4
+                  label.form-label Postal Code
+                  input.form-control(type="text", name="postalCode", value=(formData && formData.postalCode) || '', maxlength="10")
+                
+                .col-md-4
+                  label.form-label Country
+                  input.form-control(type="text", name="country", value=(formData && formData.country) || 'United States', maxlength="50")
+              
+              // Role and Access
+              h6.mb-3.mt-4
+                i.fas.fa-user-cog.me-2
+                | Role & Access Level
+              
+              .row.mb-3
+                .col-md-6
+                  label.form-label Role *
+                  select.form-select(name="role", required)
+                    option(value="") Select Role
+                    option(value="staff", selected=(formData && formData.role === 'staff')) Staff Member
+                    option(value="manager", selected=(formData && formData.role === 'manager')) Manager
+                    if user && user.role === 'admin'
+                      option(value="admin", selected=(formData && formData.role === 'admin')) Administrator
+                  .form-text.text-muted Choose the appropriate access level
+                
+                .col-md-6
+                  label.form-label Store Assignment
+                  select.form-select(name="storeId")
+                    if stores
+                      each store in stores
+                        option(value=store.storeId, selected=(formData && formData.storeId == store.storeId)) Store #{store.storeId} - #{store.address}, #{store.city}
+                    else
+                      option(value="1", selected=(!formData || formData.storeId == '1')) Main Store
+                  .form-text.text-muted Assign to a store location
+              
+              // Account Settings
+              h6.mb-3.mt-4
+                i.fas.fa-key.me-2
+                | Account Settings
+              
+              .row.mb-3
+                .col-md-6
+                  label.form-label Initial Password *
+                  input.form-control(type="password", name="password", required, minlength="6")
+                  .form-text.text-muted Minimum 6 characters - user can change later
+                
+                .col-md-6
+                  label.form-label Confirm Password *
+                  input.form-control(type="password", name="confirmPassword", required, minlength="6")
+                  .form-text.text-muted Must match the password above
+              
+              .mb-3
+                .form-check
+                  input.form-check-input(type="checkbox", name="active", value="true", id="active", checked=(formData ? formData.active : true))
+                  label.form-check-label(for="active")
+                    | Account is active
+                  .form-text.text-muted Uncheck to create an inactive account
+              
+              .mb-3
+                .form-check
+                  input.form-check-input(type="checkbox", name="sendWelcomeEmail", value="true", id="welcome", checked=(formData ? formData.sendWelcomeEmail : true))
+                  label.form-check-label(for="welcome")
+                    | Send welcome email with login credentials
+                  .form-text.text-muted Email will be sent to the new staff member
+              
+              // Submit Buttons
+              .d-flex.gap-3.mt-4
+                button.btn.btn-success.btn-lg(type="submit")
+                  i.fas.fa-user-plus.me-2
+                  | Create Staff Member
+                
+                a.btn.btn-outline-secondary.btn-lg(href="/admin/staff")
+                  i.fas.fa-times.me-2
+                  | Cancel
+                
+                button.btn.btn-outline-info.btn-lg(type="submit", name="createAndAddAnother", value="true")
+                  i.fas.fa-plus.me-2
+                  | Create & Add Another
+
+      // Help Panel
+      .col-lg-4
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-question-circle.me-2
+              | Help & Guidelines
+          
+          .card-body
+            h6
+              i.fas.fa-lightbulb.me-2
+              | Staff Creation Tips
+            
+            ul.small
+              li
+                strong Email: 
+                | Only enter the username part - @moviesexpressrentals.com will be added automatically
+              li
+                strong Role Levels: 
+                | Staff (basic access), Manager (reports + staff features), Admin (full access)
+              li
+                strong Password: 
+                | Use a temporary secure password - staff can change it on first login
+              li
+                strong Store Assignment: 
+                | Assign staff to the appropriate store location
+              li
+                strong Welcome Email: 
+                | Recommended to send login credentials to new staff
+            
+            hr
+            
+            h6
+              i.fas.fa-info-circle.me-2
+              | Role Permissions
+            
+            .small
+              .mb-2
+                .badge.bg-info.me-2 Staff
+                | Film offers, basic reports
+              .mb-2
+                .badge.bg-warning.me-2 Manager  
+                | All staff features + staff performance reports
+              .mb-2
+                .badge.bg-danger.me-2 Admin
+                | Full system access + user management
+
+        .card.mt-3
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-shield-alt.me-2
+              | Security Notes
+          
+          .card-body.small
+            ul.mb-0
+              li All staff emails use company domain (@moviesexpressrentals.com)
+              li Initial passwords should be shared securely
+              li Staff should change passwords on first login
+              li Inactive accounts cannot access the system
+              li Admin role should be assigned carefully
+
+        if recentStaff && recentStaff.length > 0
+          .card.mt-3
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-clock.me-2
+                | Recently Added Staff
+            
+            .card-body.p-0
+              .list-group.list-group-flush
+                each member in recentStaff
+                  .list-group-item.d-flex.justify-content-between.align-items-center
+                    .d-flex.flex-column
+                      .fw-bold #{member.firstName} #{member.lastName}
+                      .small.text-muted #{member.email} • #{member.role}
+                    .small.text-muted #{new Date(member.createDate).toLocaleDateString()}
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
+  }
+  .form-check-input:checked {
+    background-color: #198754;
+    border-color: #198754;
+  }
+  h6 {
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+  }
+  .input-group-text {
+    background-color: #e9ecef;
+    color: #6c757d;
+  }

@@ -1,4 +1,5 @@
 const pool = require('../db/sql/connection');
+const logger = require('../util/logger');
 
 /**
  * Auth DAO - Simple database access with minimal error handling
@@ -19,9 +20,19 @@ const authDao = {
     
     pool.query(sql, [username], function(err, rows) {
       if (err) {
-        console.error('Database error getting user:', err.message);
+        logger.database('SELECT', 'user_auth', false, err, {
+          action: 'GET_USER_BY_USERNAME',
+          username: username
+        });
         return callback(err);
       }
+      
+      logger.database('SELECT', 'user_auth', true, null, {
+        action: 'GET_USER_BY_USERNAME',
+        username: username,
+        found: rows.length > 0
+      });
+      
       callback(null, rows.length > 0 ? rows[0] : null);
     });
   },

@@ -1,4 +1,5 @@
 const mysql = require('mysql2');
+const logger = require('../../util/logger');
 require('dotenv').config();
 
 const pool = mysql.createPool({
@@ -13,9 +14,35 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-// Simple error logging
+// Enhanced error logging for database connections
 pool.on('error', (err) => {
-    console.error('Database error:', err.code, err.message);
+    logger.error('Database pool error occurred', err, {
+        service: 'DATABASE',
+        action: 'POOL_ERROR'
+    });
+});
+
+pool.on('connection', (connection) => {
+    logger.info('New database connection established', {
+        service: 'DATABASE',
+        action: 'CONNECTION_CREATED',
+        connectionId: connection.threadId,
+    });
+});
+
+pool.on('release', (connection) => {
+    logger.debug('Database connection released', {
+        service: 'DATABASE',
+        action: 'CONNECTION_RELEASED',
+        connectionId: connection.threadId
+    });
+});
+
+// Log initial connection info
+logger.info('Database pool initialized', {
+    service: 'DATABASE',
+    action: 'POOL_INIT',
+    connectionLimit: 10
 });
 
 module.exports = pool;

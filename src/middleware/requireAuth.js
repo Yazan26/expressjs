@@ -121,11 +121,4 @@ const redirectAuthenticated = (req, res, next) => {
   next();
 };
 
-module.exports = {
-  requireAuth,
-  requireRole,
-  requireStaff,
-  requireManager,
-  requireCustomer,
-  redirectAuthenticated
-};
+module.exports = requireAuth;

@@ -1,0 +1,301 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-film.me-2.text-primary
+          | Film Management
+        p.text-muted Manage film inventory, add new films, and edit film details
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-success(href="/admin/films/new")
+            i.fas.fa-plus.me-2
+            | Add New Film
+          a.btn.btn-outline-info(href="/admin/staff") Staff Management
+          a.btn.btn-outline-warning(href="/admin/offers") Offers Management
+
+    // Success/Error Messages
+    if success
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    // Search and Filters
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-search.me-2
+              | Search & Filter Films
+          
+          .card-body
+            form.row.g-3(method="GET", action="/admin/films")
+              .col-md-3
+                label.form-label Search Title
+                input.form-control(type="text", name="search", value=searchTerm || '', placeholder="Film title...")
+              
+              .col-md-2
+                label.form-label Category
+                select.form-select(name="category")
+                  option(value="", selected=!selectedCategory) All Categories
+                  if categories
+                    each category in categories
+                      option(value=category.categoryId, selected=selectedCategory == category.categoryId) #{category.name}
+              
+              .col-md-2
+                label.form-label Rating
+                select.form-select(name="rating")
+                  option(value="", selected=!selectedRating) All Ratings
+                  option(value="G", selected=selectedRating === 'G') G
+                  option(value="PG", selected=selectedRating === 'PG') PG
+                  option(value="PG-13", selected=selectedRating === 'PG-13') PG-13
+                  option(value="R", selected=selectedRating === 'R') R
+                  option(value="NC-17", selected=selectedRating === 'NC-17') NC-17
+              
+              .col-md-2
+                label.form-label Sort By
+                select.form-select(name="sort")
+                  option(value="title", selected=selectedSort === 'title') Title A-Z
+                  option(value="year", selected=selectedSort === 'year') Release Year
+                  option(value="length", selected=selectedSort === 'length') Runtime
+                  option(value="copies", selected=selectedSort === 'copies') Copies Available
+              
+              .col-md-3.d-flex.align-items-end
+                button.btn.btn-primary.w-100(type="submit")
+                  i.fas.fa-search.me-2
+                  | Search Films
+
+    // Films List
+    if films && films.length > 0
+      .row
+        each film in films
+          .col-lg-6.col-xl-4.mb-4
+            .card.h-100
+              .card-header
+                .d-flex.justify-content-between.align-items-start
+                  h5.card-title.mb-1 #{film.title}
+                  .badge.bg-info #{film.rating}
+              
+              .card-body
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Category
+                    .fw-bold #{film.categoryName}
+                  .col-6
+                    .small.text-muted Release Year
+                    .fw-bold #{film.releaseYear || 'N/A'}
+                
+                if film.description
+                  p.card-text.small.text-muted #{film.description.substring(0, 100)}#{film.description.length > 100 ? '...' : ''}
+                
+                // Film Details
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Runtime
+                    .fw-bold #{film.length} min
+                  .col-6
+                    .small.text-muted Rental Rate
+                    .fw-bold $#{parseFloat(film.rentalRate || 0).toFixed(2)}
+                
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Language
+                    .fw-bold #{film.languageName || 'English'}
+                  .col-6
+                    .small.text-muted Special Features
+                    .fw-bold #{film.specialFeatures ? film.specialFeatures.split(',').length : 0}
+                
+                // Inventory Information
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Total Copies
+                    .fw-bold.text-primary #{film.totalCopies || 0}
+                  .col-6
+                    .small.text-muted Available Now
+                    .fw-bold.text-success #{film.availableCopies || 0}
+                
+                // Action Buttons
+                .d-flex.gap-2.flex-wrap
+                  a.btn.btn-outline-primary.btn-sm(href=`/films/${film.filmId}`)
+                    i.fas.fa-eye.me-1
+                    | View Details
+                  
+                  a.btn.btn-outline-info.btn-sm(href=`/admin/films/edit/${film.filmId}`)
+                    i.fas.fa-edit.me-1
+                    | Edit Film
+                  
+                  a.btn.btn-outline-success.btn-sm(href=`/admin/films/inventory/${film.filmId}`)
+                    i.fas.fa-boxes.me-1
+                    | Manage Copies
+                  
+                  if film.totalCopies === 0 || film.totalCopies < 3
+                    form.d-inline(method="POST", action="/admin/films/add-copy")
+                      input(type="hidden", name="filmId", value=film.filmId)
+                      button.btn.btn-success.btn-sm(type="submit")
+                        i.fas.fa-plus.me-1
+                        | Add Copy
+
+      // Pagination
+      if pagination && pagination.totalPages > 1
+        .row.mt-4
+          .col-12
+            .d-flex.justify-content-center
+              nav
+                ul.pagination
+                  if pagination.currentPage > 1
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.currentPage - 1}&search=${searchTerm || ''}&category=${selectedCategory || ''}&rating=${selectedRating || ''}&sort=${selectedSort || ''}`)
+                        i.fas.fa-chevron-left
+                  
+                  - var startPage = Math.max(1, pagination.currentPage - 2)
+                  - var endPage = Math.min(pagination.totalPages, pagination.currentPage + 2)
+                  
+                  if startPage > 1
+                    li.page-item
+                      a.page-link(href=`?page=1&search=${searchTerm || ''}&category=${selectedCategory || ''}&rating=${selectedRating || ''}&sort=${selectedSort || ''}`) 1
+                    if startPage > 2
+                      li.page-item.disabled
+                        span.page-link ...
+                  
+                  - for (var i = startPage; i <= endPage; i++)
+                    li.page-item(class=i === pagination.currentPage ? 'active' : '')
+                      if i === pagination.currentPage
+                        span.page-link #{i}
+                      else
+                        a.page-link(href=`?page=${i}&search=${searchTerm || ''}&category=${selectedCategory || ''}&rating=${selectedRating || ''}&sort=${selectedSort || ''}`) #{i}
+                  
+                  if endPage < pagination.totalPages
+                    if endPage < pagination.totalPages - 1
+                      li.page-item.disabled
+                        span.page-link ...
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.totalPages}&search=${searchTerm || ''}&category=${selectedCategory || ''}&rating=${selectedRating || ''}&sort=${selectedSort || ''}`) #{pagination.totalPages}
+                  
+                  if pagination.currentPage < pagination.totalPages
+                    li.page-item
+                      a.page-link(href=`?page=${pagination.currentPage + 1}&search=${searchTerm || ''}&category=${selectedCategory || ''}&rating=${selectedRating || ''}&sort=${selectedSort || ''}`)
+                        i.fas.fa-chevron-right
+
+    else
+      // Empty State
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-film.fa-4x.text-muted
+              h4.text-muted No Films Found
+              p.text-muted.mb-4
+                if searchTerm || selectedCategory || selectedRating
+                  | No films found matching your search criteria.
+                else
+                  | No films are currently available in the system.
+              
+              .d-flex.gap-2.justify-content-center
+                if searchTerm || selectedCategory || selectedRating
+                  a.btn.btn-outline-primary(href="/admin/films") View All Films
+                
+                a.btn.btn-success(href="/admin/films/new")
+                  i.fas.fa-plus.me-2
+                  | Add New Film
+
+    // Quick Stats
+    if filmStats
+      .row.mt-5
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-chart-pie.me-2
+                | Film Library Statistics
+            
+            .card-body
+              .row
+                .col-md-3.mb-3
+                  .card.border-primary.text-center.h-100
+                    .card-body
+                      .display-6.text-primary.mb-2
+                        i.fas.fa-film
+                      h4.card-title #{filmStats.totalFilms || 0}
+                      p.card-text.text-muted Total Films
+                
+                .col-md-3.mb-3
+                  .card.border-success.text-center.h-100
+                    .card-body
+                      .display-6.text-success.mb-2
+                        i.fas.fa-boxes
+                      h4.card-title #{filmStats.totalCopies || 0}
+                      p.card-text.text-muted Total Copies
+                
+                .col-md-3.mb-3
+                  .card.border-info.text-center.h-100
+                    .card-body
+                      .display-6.text-info.mb-2
+                        i.fas.fa-check-circle
+                      h4.card-title #{filmStats.availableCopies || 0}
+                      p.card-text.text-muted Available Now
+                
+                .col-md-3.mb-3
+                  .card.border-warning.text-center.h-100
+                    .card-body
+                      .display-6.text-warning.mb-2
+                        i.fas.fa-list
+                      h4.card-title #{filmStats.totalCategories || 0}
+                      p.card-text.text-muted Categories
+
+    // Quick Actions
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            h6.card-title
+              i.fas.fa-bolt.me-2
+              | Quick Actions
+            .row
+              .col-md-3.mb-2
+                a.btn.btn-success.w-100(href="/admin/films/new")
+                  i.fas.fa-plus.me-2
+                  | Add New Film
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-primary.w-100(href="/admin/films?sort=copies")
+                  i.fas.fa-sort-amount-down.me-2
+                  | Low Inventory
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-info.w-100(href="/admin/staff")
+                  i.fas.fa-users.me-2
+                  | Manage Staff
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-warning.w-100(href="/admin/offers")
+                  i.fas.fa-tags.me-2
+                  | Manage Offers
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    transition: box-shadow 0.2s;
+  }
+  .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  .btn-group .btn:focus {
+    box-shadow: none;
+  }
+  .badge {
+    font-size: 0.75em;
+  }

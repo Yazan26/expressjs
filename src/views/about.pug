@@ -1,0 +1,325 @@
+extends layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-12.text-center
+        h1.h2.mb-1
+          i.fas.fa-info-circle.me-2.text-primary
+          | About Movies Express Rentals
+        p.lead.text-muted Your premier destination for film entertainment
+
+    // Company Overview
+    .row.mb-5
+      .col-lg-8.mx-auto
+        .card.border-primary
+          .card-header.bg-primary.text-white.text-center
+            h4.card-title.mb-0
+              i.fas.fa-film.me-2
+              | Our Mission
+          
+          .card-body.text-center
+            p.card-text.lead Movies Express Rentals is committed to providing exceptional film entertainment experiences through our comprehensive rental service, personalized staff recommendations, and customer-focused approach.
+            
+            .row.mt-4
+              .col-md-4.mb-3
+                .d-flex.flex-column.align-items-center
+                  i.fas.fa-star.fa-3x.text-warning.mb-2
+                  h5 Quality Selection
+                  p.text-muted Curated collection of films across all genres and eras
+              
+              .col-md-4.mb-3
+                .d-flex.flex-column.align-items-center
+                  i.fas.fa-users.fa-3x.text-info.mb-2
+                  h5 Expert Staff
+                  p.text-muted Knowledgeable team providing personalized recommendations
+              
+              .col-md-4.mb-3
+                .d-flex.flex-column.align-items-center
+                  i.fas.fa-heart.fa-3x.text-danger.mb-2
+                  h5 Customer Focus
+                  p.text-muted Dedicated to exceptional customer service and satisfaction
+
+    // User Stories Section
+    .row.mb-5
+      .col-12
+        .card
+          .card-header
+            h4.card-title.mb-0
+              i.fas.fa-book-open.me-2
+              | User Stories & Features
+          
+          .card-body
+            // Customer Stories
+            .mb-4
+              h5.text-primary
+                i.fas.fa-user.me-2
+                | Customer Experience
+              
+              .row
+                .col-lg-6.mb-4
+                  .card.border-success.h-100
+                    .card-header.bg-success.text-white
+                      h6.card-title.mb-0
+                        i.fas.fa-search.me-2
+                        | Film Discovery
+                    .card-body
+                      h6 User Story
+                      p.fst-italic "As a customer, I want to easily browse and search for films so that I can find movies that match my interests and mood."
+                      
+                      h6 Acceptance Criteria
+                      ul.small
+                        li Search films by title, category, or rating
+                        li Filter results by multiple criteria simultaneously
+                        li View detailed film information including cast, plot, and ratings
+                        li See film availability and rental pricing
+                        li Access personalized recommendations based on rental history
+                
+                .col-lg-6.mb-4
+                  .card.border-info.h-100
+                    .card-header.bg-info.text-white
+                      h6.card-title.mb-0
+                        i.fas.fa-tachometer-alt.me-2
+                        | Account Management
+                    .card-body
+                      h6 User Story
+                      p.fst-italic "As a customer, I want to manage my account and track my rental activity so that I can stay informed about my movie-watching habits and expenses."
+                      
+                      h6 Acceptance Criteria
+                      ul.small
+                        li View current active rentals with due dates
+                        li Access rental history and spending analysis
+                        li Receive alerts for overdue items and fees
+                        li Update personal information and preferences
+                        li Track spending patterns over time
+
+            // Staff Stories
+            .mb-4
+              h5.text-info
+                i.fas.fa-user-tie.me-2
+                | Staff Experience
+              
+              .row
+                .col-lg-6.mb-4
+                  .card.border-warning.h-100
+                    .card-header.bg-warning.text-dark
+                      h6.card-title.mb-0
+                        i.fas.fa-tags.me-2
+                        | Film Offers
+                    .card-body
+                      h6 User Story
+                      p.fst-italic "As a staff member, I want to access and select from available film offers so that I can benefit from employee discounts and discover new movies."
+                      
+                      h6 Acceptance Criteria
+                      ul.small
+                        li Browse current film offers with discount information
+                        li Filter offers by category, discount percentage, and availability
+                        li Select offers for personal use at discounted rates
+                        li View selected offers and expiration dates
+                        li Remove selections before expiration if desired
+                
+                .col-lg-6.mb-4
+                  .card.border-secondary.h-100
+                    .card-header.bg-secondary.text-white
+                      h6.card-title.mb-0
+                        i.fas.fa-chart-line.me-2
+                        | Performance Tracking
+                    .card-body
+                      h6 User Story
+                      p.fst-italic "As a manager, I want to monitor staff performance and generate reports so that I can recognize top performers and identify areas for improvement."
+                      
+                      h6 Acceptance Criteria
+                      ul.small
+                        li View staff performance metrics and rankings
+                        li Generate reports for specific time periods
+                        li Track rental handling and revenue generation
+                        li Compare performance across different staff members
+                        li Export performance data for analysis
+
+            // Administrator Stories
+            .mb-4
+              h5.text-danger
+                i.fas.fa-user-shield.me-2
+                | Administrator Experience
+              
+              .row
+                .col-lg-6.mb-4
+                  .card.border-primary.h-100
+                    .card-header.bg-primary.text-white
+                      h6.card-title.mb-0
+                        i.fas.fa-film.me-2
+                        | Film Management
+                    .card-body
+                      h6 User Story
+                      p.fst-italic "As an administrator, I want to manage the film inventory and add new titles so that customers have access to a current and diverse selection."
+                      
+                      h6 Acceptance Criteria
+                      ul.small
+                        li Add new films with complete metadata
+                        li Edit existing film information and pricing
+                        li Manage film copies and inventory levels
+                        li Set rental rates and special features
+                        li Monitor film popularity and performance
+                
+                .col-lg-6.mb-4
+                  .card.border-dark.h-100
+                    .card-header.bg-dark.text-white
+                      h6.card-title.mb-0
+                        i.fas.fa-users-cog.me-2
+                        | Staff Administration
+                    .card-body
+                      h6 User Story
+                      p.fst-italic "As an administrator, I want to manage staff accounts and permissions so that the right people have appropriate access to system features."
+                      
+                      h6 Acceptance Criteria
+                      ul.small
+                        li Create new staff accounts with company email domain
+                        li Assign appropriate roles and permissions
+                        li Activate/deactivate user accounts as needed
+                        li Monitor staff activity and access logs
+                        li Send welcome emails with login credentials
+
+    // Technical Features
+    .row.mb-5
+      .col-12
+        .card
+          .card-header
+            h4.card-title.mb-0
+              i.fas.fa-cogs.me-2
+              | Technical Implementation
+          
+          .card-body
+            .row
+              .col-lg-4.mb-4
+                .card.border-success.h-100
+                  .card-header.bg-success.text-white
+                    h6.card-title.mb-0
+                      i.fas.fa-shield-alt.me-2
+                      | Security & Authentication
+                  .card-body
+                    ul.small
+                      li Role-based access control (Customer, Staff, Manager, Admin)
+                      li Secure session management with express-session
+                      li Company email domain enforcement (@moviesexpressrentals.com)
+                      li Password hashing and protection
+                      li Protected routes with middleware authorization
+              
+              .col-lg-4.mb-4
+                .card.border-info.h-100
+                  .card-header.bg-info.text-white
+                    h6.card-title.mb-0
+                      i.fas.fa-database.me-2
+                      | Database Architecture
+                  .card-body
+                    ul.small
+                      li MySQL with Sakila database schema
+                      li Parameterized queries for SQL injection prevention
+                      li Layered architecture: Controller → Service → DAO → Database
+                      li Callback-based pattern (no async/await)
+                      li Connection pooling for optimal performance
+              
+              .col-lg-4.mb-4
+                .card.border-warning.h-100
+                  .card-header.bg-warning.text-dark
+                    h6.card-title.mb-0
+                      i.fas.fa-palette.me-2
+                      | User Interface
+                  .card-body
+                    ul.small
+                      li Server-side rendering with Pug templates
+                      li Bootstrap 5 for responsive design
+                      li FontAwesome icons for visual consistency
+                      li Role-based navigation and content display
+                      li Progressive enhancement with minimal JavaScript
+
+    // Development Standards
+    .row.mb-5
+      .col-12
+        .card
+          .card-header
+            h4.card-title.mb-0
+              i.fas.fa-code.me-2
+              | Development Standards
+          
+          .card-body
+            .row
+              .col-md-6
+                h6
+                  i.fas.fa-check-circle.me-2.text-success
+                  | Code Quality Standards
+                
+                ul
+                  li Layered architecture with clear separation of concerns
+                  li Consistent error handling and logging throughout
+                  li Parameterized SQL queries for security
+                  li Callback-only pattern (no promises or async/await)
+                  li Comprehensive input validation and sanitization
+                  li Role-based authorization on all protected endpoints
+              
+              .col-md-6
+                h6
+                  i.fas.fa-flask.me-2.text-info
+                  | Testing & Quality Assurance
+                
+                ul
+                  li Cypress end-to-end testing for critical user flows
+                  li Authentication and authorization testing
+                  li Database interaction testing
+                  li Role-based feature access validation
+                  li Cross-browser compatibility testing
+                  li Performance and load testing coverage
+
+    // Contact Information
+    .row.mb-4
+      .col-md-6.mx-auto
+        .card.border-primary
+          .card-header.bg-primary.text-white.text-center
+            h5.card-title.mb-0
+              i.fas.fa-envelope.me-2
+              | Contact Information
+          
+          .card-body.text-center
+            p.card-text For questions, support, or business inquiries, please contact our team:
+            
+            .row
+              .col-md-6.mb-3
+                .d-flex.flex-column.align-items-center
+                  i.fas.fa-phone.fa-2x.text-primary.mb-2
+                  h6 Phone Support
+                  p.text-muted 1-800-MOVIES-1
+                  p.small.text-muted Mon-Fri 9AM-6PM PST
+              
+              .col-md-6.mb-3
+                .d-flex.flex-column.align-items-center
+                  i.fas.fa-envelope.fa-2x.text-info.mb-2
+                  h6 Email Support
+                  p.text-muted support@moviesexpressrentals.com
+                  p.small.text-muted 24-48 hour response time
+
+    // Version Information
+    .row.mt-5
+      .col-12.text-center
+        .card.bg-light
+          .card-body
+            p.card-text.text-muted.mb-0
+              | Movies Express Rentals System v2.0.0 | Built with Node.js, Express.js, MySQL, and Pug
+            .small.text-muted
+              | © 2024 Movies Express Rentals. All rights reserved. | Last updated: #{new Date().toLocaleDateString()}
+
+  // Custom styles for this page
+  style.
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+      transition: box-shadow 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .fst-italic {
+      font-style: italic;
+    }
+    ul.small li {
+      margin-bottom: 0.25rem;
+    }

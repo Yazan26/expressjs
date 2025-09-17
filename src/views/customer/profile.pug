@@ -1,0 +1,244 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Back Navigation
+    .mb-3
+      a.btn.btn-outline-secondary(href="/customer/dashboard")
+        i.fas.fa-arrow-left.me-2
+        | Back to Dashboard
+
+    // Success/Error Messages
+    if success
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-user-circle.me-2.text-primary
+          | My Profile
+        p.text-muted Manage your account information and preferences
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-primary(href="/customer/dashboard") Dashboard
+          a.btn.btn-outline-info(href="/customer/spending") My Spending
+
+    if customer
+      .row
+        // Profile Information
+        .col-lg-8.mb-4
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-id-card.me-2
+                | Personal Information
+            
+            .card-body
+              form(method="POST", action="/customer/profile")
+                .row.mb-3
+                  .col-md-6
+                    label.form-label First Name *
+                    input.form-control(type="text", name="firstName", value=customer.firstName || '', required, maxlength="45")
+                  .col-md-6
+                    label.form-label Last Name *
+                    input.form-control(type="text", name="lastName", value=customer.lastName || '', required, maxlength="45")
+                
+                .row.mb-3
+                  .col-md-6
+                    label.form-label Email Address *
+                    input.form-control(type="email", name="email", value=customer.email || '', required, maxlength="50")
+                    .form-text.text-muted We'll use this for important notifications
+                  .col-md-6
+                    label.form-label Phone Number
+                    input.form-control(type="tel", name="phone", value=customer.phone || '', maxlength="20")
+                
+                .mb-3
+                  label.form-label Address Line 1 *
+                  input.form-control(type="text", name="address", value=customer.address || '', required, maxlength="50")
+                
+                .row.mb-3
+                  .col-md-4
+                    label.form-label City *
+                    input.form-control(type="text", name="city", value=customer.city || '', required, maxlength="50")
+                  .col-md-4
+                    label.form-label Postal Code
+                    input.form-control(type="text", name="postalCode", value=customer.postalCode || '', maxlength="10")
+                  .col-md-4
+                    label.form-label Country
+                    input.form-control(type="text", name="country", value=customer.country || '', maxlength="50")
+                
+                .d-flex.gap-2
+                  button.btn.btn-primary(type="submit")
+                    i.fas.fa-save.me-2
+                    | Update Profile
+                  button.btn.btn-outline-secondary(type="reset")
+                    i.fas.fa-undo.me-2
+                    | Reset Changes
+
+        // Account Status & Stats
+        .col-lg-4.mb-4
+          // Account Status
+          .card.mb-3
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-user-check.me-2
+                | Account Status
+            
+            .card-body
+              .d-flex.align-items-center.mb-3
+                .me-3
+                  if customer.active
+                    .badge.bg-success.fs-6.p-2
+                      i.fas.fa-check-circle.me-1
+                      | Active
+                  else
+                    .badge.bg-danger.fs-6.p-2
+                      i.fas.fa-times-circle.me-1
+                      | Inactive
+                .flex-grow-1
+                  .small.text-muted Account Status
+              
+              .mb-3
+                .small.text-muted Member Since
+                .fw-bold #{customer.createDate ? new Date(customer.createDate).toLocaleDateString() : 'Unknown'}
+              
+              if customer.lastUpdate
+                .mb-0
+                  .small.text-muted Last Updated
+                  .fw-bold #{new Date(customer.lastUpdate).toLocaleDateString()}
+
+          // Quick Stats
+          if accountStats
+            .card
+              .card-header
+                h5.card-title.mb-0
+                  i.fas.fa-chart-bar.me-2
+                  | Quick Stats
+              
+              .card-body.p-0
+                .list-group.list-group-flush
+                  .list-group-item.d-flex.justify-content-between.align-items-center
+                    .d-flex.align-items-center
+                      i.fas.fa-film.me-2.text-primary
+                      span Active Rentals
+                    span.badge.bg-primary.rounded-pill #{accountStats.activeRentals || 0}
+                  
+                  .list-group-item.d-flex.justify-content-between.align-items-center
+                    .d-flex.align-items-center
+                      i.fas.fa-dollar-sign.me-2.text-success
+                      span Total Spent
+                    span.fw-bold $#{parseFloat(accountStats.totalSpent || 0).toFixed(2)}
+                  
+                  .list-group-item.d-flex.justify-content-between.align-items-center
+                    .d-flex.align-items-center
+                      i.fas.fa-shopping-bag.me-2.text-info
+                      span Total Rentals
+                    span.badge.bg-info.rounded-pill #{accountStats.totalRentals || 0}
+                  
+                  if accountStats.overdueFees > 0
+                    .list-group-item.d-flex.justify-content-between.align-items-center.bg-warning-subtle
+                      .d-flex.align-items-center
+                        i.fas.fa-exclamation-triangle.me-2.text-warning
+                        span Outstanding Fees
+                      span.fw-bold.text-warning $#{parseFloat(accountStats.overdueFees).toFixed(2)}
+
+      // Additional Information
+      .row.mt-4
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-info-circle.me-2
+                | Account Information
+            
+            .card-body
+              .row
+                .col-md-6
+                  h6
+                    i.fas.fa-shield-alt.me-2
+                    | Privacy & Security
+                  p.text-muted.small
+                    | Your personal information is protected and only used for account management and service delivery. We don't share your data with third parties.
+                
+                .col-md-6
+                  h6
+                    i.fas.fa-question-circle.me-2
+                    | Need Help?
+                  p.text-muted.small
+                    | If you need assistance updating your profile or have account questions, please contact our support team.
+
+    else
+      // Error Loading Profile
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-user-times.fa-4x.text-muted
+              h4.text-muted Profile Not Found
+              p.text-muted.mb-4 We couldn't load your profile information. Please try again or contact support.
+              
+              .d-flex.gap-2.justify-content-center
+                a.btn.btn-primary(href="/customer/dashboard")
+                  i.fas.fa-tachometer-alt.me-2
+                  | Go to Dashboard
+                button.btn.btn-outline-secondary(onclick="window.location.reload()")
+                  i.fas.fa-refresh.me-2
+                  | Try Again
+
+    // Quick Actions
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            h6.card-title
+              i.fas.fa-bolt.me-2
+              | Quick Actions
+            .row
+              .col-md-3.mb-2
+                a.btn.btn-outline-primary.w-100(href="/customer/dashboard")
+                  i.fas.fa-tachometer-alt.me-2
+                  | Dashboard
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-success.w-100(href="/customer/spending")
+                  i.fas.fa-chart-line.me-2
+                  | My Spending
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-info.w-100(href="/films")
+                  i.fas.fa-film.me-2
+                  | Browse Films
+              
+              .col-md-3.mb-2
+                form(method="POST", action="/auth/logout", style="display:inline;")
+                  button.btn.btn-outline-danger.w-100(type="submit")
+                    i.fas.fa-sign-out-alt.me-2
+                    | Logout
+
+style.
+  .card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+  }
+  .card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.2s;
+  }
+  .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+  }
+  .list-group-item {
+    padding: 0.75rem 1rem;
+  }

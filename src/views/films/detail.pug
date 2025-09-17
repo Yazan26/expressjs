@@ -1,0 +1,210 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Back Navigation
+    .mb-3
+      a.btn.btn-outline-secondary(href="/films")
+        i.fas.fa-arrow-left.me-2
+        | Back to Films
+
+    // Error Messages
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    .row
+      .col-lg-8
+        // Film Details Card
+        .card.mb-4
+          .card-body
+            .row
+              .col-md-4.mb-3.mb-md-0
+                // Film Poster Placeholder
+                .bg-light.rounded.d-flex.align-items-center.justify-content-center(style="height: 300px; background: linear-gradient(45deg, #f8f9fa, #e9ecef);")
+                  .text-center.text-muted
+                    i.fas.fa-film.fa-3x.mb-2
+                    br
+                    | #{film.title}
+              
+              .col-md-8
+                .d-flex.justify-content-between.align-items-start.mb-3
+                  div
+                    h1.h2.mb-1 #{film.title}
+                    if film.releaseYear
+                      p.text-muted.mb-0 #{film.releaseYear}
+                  
+                  span.badge.bg-primary.fs-6 #{film.rating}
+
+                .row.mb-3
+                  if film.category
+                    .col-sm-6.mb-2
+                      strong.text-muted.small Category:
+                      br
+                      span.badge.bg-secondary #{film.category}
+                  
+                  if film.language
+                    .col-sm-6.mb-2
+                      strong.text-muted.small Language:
+                      br
+                      | #{film.language}
+                  
+                  if film.length
+                    .col-sm-6.mb-2
+                      strong.text-muted.small Runtime:
+                      br
+                      | #{film.length} minutes
+                  
+                  if film.rentalDuration
+                    .col-sm-6.mb-2
+                      strong.text-muted.small Rental Period:
+                      br
+                      | #{film.rentalDuration} days
+
+                if film.rentalRate || film.replacementCost
+                  .row.mb-3
+                    if film.rentalRate
+                      .col-sm-6.mb-2
+                        strong.text-muted.small Rental Rate:
+                        br
+                        .text-success.fw-bold $#{parseFloat(film.rentalRate).toFixed(2)}
+                    
+                    if film.replacementCost
+                      .col-sm-6.mb-2
+                        strong.text-muted.small Replacement Cost:
+                        br
+                        .text-warning.fw-bold $#{parseFloat(film.replacementCost).toFixed(2)}
+
+                if film.description
+                  .mb-3
+                    h6.fw-bold Description
+                    p.text-muted #{film.description}
+
+                if film.specialFeatures
+                  .mb-3
+                    h6.fw-bold Special Features
+                    p.small.text-muted #{film.specialFeatures}
+
+      .col-lg-4
+        // Film Cast
+        if actors && actors.length > 0
+          .card.mb-4
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-users.me-2
+                | Cast
+            .card-body
+              .row
+                each actor in actors.slice(0, 8)
+                  .col-6.mb-2
+                    .small #{actor.actorName}
+                if actors.length > 8
+                  .col-12
+                    .small.text-muted.text-center
+                      | ... and #{actors.length - 8} more
+
+        // Quick Actions (if user is logged in)
+        if authenticated && user
+          .card.mb-4
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-star.me-2
+                | Actions
+            .card-body
+              if user.role === 'customer'
+                .d-grid.gap-2
+                  button.btn.btn-success.disabled(type="button")
+                    i.fas.fa-shopping-cart.me-2
+                    | Add to Wishlist
+                  .small.text-muted.text-center
+                    | (Feature coming soon)
+              
+              else if user.role === 'admin'
+                .d-grid.gap-2
+                  a.btn.btn-primary(href=`/admin/films`)
+                    i.fas.fa-cog.me-2
+                    | Manage Inventory
+
+    // Recommendations Section
+    if recommendations && (recommendations.byCategory.length > 0 || recommendations.byActor.length > 0)
+      hr.my-5
+      
+      .row
+        .col-12
+          h3.mb-4
+            i.fas.fa-thumbs-up.me-2
+            | You May Also Like
+
+        // Recommendations by Category
+        if recommendations.byCategory && recommendations.byCategory.length > 0
+          .col-12.mb-4
+            h5.text-muted.mb-3
+              i.fas.fa-tags.me-2
+              | More #{film.category} Films
+            
+            .row
+              each rec in recommendations.byCategory.slice(0, 4)
+                .col-md-3.col-sm-6.mb-3
+                  .card.recommendation-card.h-100
+                    .card-body.p-3
+                      h6.card-title
+                        a.text-decoration-none(href=`/films/${rec.filmId}`) #{rec.title}
+                      if rec.releaseYear
+                        .small.text-muted.mb-2 #{rec.releaseYear}
+                      if rec.rating
+                        span.badge.bg-secondary.badge-sm #{rec.rating}
+
+        // Recommendations by Actor
+        if recommendations.byActor && recommendations.byActor.length > 0
+          .col-12.mb-4
+            h5.text-muted.mb-3
+              i.fas.fa-user.me-2
+              | More Films with Same Actors
+            
+            .row
+              each rec in recommendations.byActor.slice(0, 4)
+                .col-md-3.col-sm-6.mb-3
+                  .card.recommendation-card.h-100
+                    .card-body.p-3
+                      h6.card-title
+                        a.text-decoration-none(href=`/films/${rec.filmId}`) #{rec.title}
+                      if rec.releaseYear
+                        .small.text-muted.mb-2 #{rec.releaseYear}
+                      if rec.rating
+                        span.badge.bg-secondary.badge-sm #{rec.rating}
+                      if rec.category
+                        .small.text-muted #{rec.category}
+
+    // Call to Action
+    if !authenticated
+      .card.bg-primary.text-white.mt-4
+        .card-body.text-center
+          h5.card-title
+            i.fas.fa-user-plus.me-2
+            | Want to rent this film?
+          p.card-text Create an account to start renting movies from our collection.
+          .d-flex.gap-2.justify-content-center
+            a.btn.btn-light(href="/auth/register")
+              i.fas.fa-user-plus.me-2
+              | Register
+            a.btn.btn-outline-light(href="/auth/login")
+              i.fas.fa-sign-in-alt.me-2
+              | Login
+
+style.
+  .recommendation-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .recommendation-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  .recommendation-card .card-title a:hover {
+    color: #0d6efd !important;
+  }
+  .badge-sm {
+    font-size: 0.7em;
+  }
