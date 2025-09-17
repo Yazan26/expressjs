@@ -1,17 +1,29 @@
 var express = require('express');
 var router = express.Router();
 
-const usersController = require("../controllers/users.controller")
-/* GET users listing. */
-router.get('/', usersController.get)
+const usersController = require("../controllers/users.controller");
+const { requireAuth, requireStaff } = require('../middleware/requireAuth');
 
-router.get("/:userId/details",usersController.get)
+/**
+ * Users Routes
+ * All routes require authentication
+ * Some routes require staff/manager permissions
+ */
 
-router.get("/:userId/edit",usersController.update)
-router.post("/:userId/edit", usersController.validate, usersController.update)
+// Apply authentication middleware to all users routes
+router.use(requireAuth);
 
-router.delete('/:userId',usersController.delete)
+/* GET users listing - requires staff or manager role */
+router.get('/', requireStaff, usersController.get);
 
+/* GET user details - requires staff or manager role */
+router.get("/:userId/details", requireStaff, usersController.get);
 
+/* GET/POST user edit - requires staff or manager role */
+router.get("/:userId/edit", requireStaff, usersController.update);
+router.post("/:userId/edit", requireStaff, usersController.validate, usersController.update);
+
+/* DELETE user - requires staff or manager role */
+router.delete('/:userId', requireStaff, usersController.delete);
 
 module.exports = router;

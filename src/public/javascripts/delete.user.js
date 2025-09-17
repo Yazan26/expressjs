@@ -1,8 +1,14 @@
 function deleteFetch(userId, callback) {
   fetch(`/users/${userId}`, {method: 'DELETE'})
-    .then((data) => {
-      console.log(data);
-      return callback(undefined, data);
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then((data) => {
+          return callback(new Error(data.message || 'Delete failed'), undefined);
+        });
+      }
+      return response.json().then((data) => {
+        return callback(undefined, data);
+      });
     })
     .catch((err) => {
       callback(err, undefined);
@@ -25,20 +31,15 @@ function showAlert(message, type = 'success') {
   }
 }
 
+let pendingDeleteUserId = null;
+let pendingDeleteButton = null;
+
 function deleteButtonClicked(userId, buttonElement) {
-  deleteFetch(userId, (error, result) => {
-    if (error) {
-      console.error(error);
-      showAlert("Error deleting user!", "danger");
-      return error;
-    } else {
-      showAlert("Customer deleted successfully!", "success");
-      let row = buttonElement.closest('tr');
-      if (row) row.remove();
-      console.log("User deleted successfully");
-      return result;
-    }
-  });
+  pendingDeleteUserId = userId;
+  pendingDeleteButton = buttonElement;
+  // Show Bootstrap modal
+  const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+  modal.show();
 }
 
 
@@ -48,6 +49,32 @@ document.addEventListener('DOMContentLoaded', function () {
     alertDiv.addEventListener('closed.bs.alert', function () {
       alertDiv.classList.remove('d-none');
       alertDiv.classList.remove('show');
+    });
+  }
+
+  // Confirm delete button handler
+  const confirmBtn = document.getElementById('confirmDeleteBtn');
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', function () {
+      if (pendingDeleteUserId && pendingDeleteButton) {
+        deleteFetch(pendingDeleteUserId, (error, result) => {
+          if (error) {
+            console.error(error);
+            showAlert(error.message, "danger");
+          } else {
+            showAlert(result.message || "Customer deleted successfully!", "success");
+            let row = pendingDeleteButton.closest('tr');
+            if (row) row.remove();
+            console.log("User deleted successfully");
+          }
+          // Hide modal after action
+          const modalEl = document.getElementById('deleteConfirmModal');
+          const modal = bootstrap.Modal.getInstance(modalEl);
+          if (modal) modal.hide();
+          pendingDeleteUserId = null;
+          pendingDeleteButton = null;
+        });
+      }
     });
   }
 });
