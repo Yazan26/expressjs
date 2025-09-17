@@ -11,7 +11,8 @@
     "test:auth": "cypress run --spec 'cypress/e2e/tests/auth.cy.js'",
     "test:admin": "cypress run --spec 'cypress/e2e/tests/admin.cy.js'",
     "test:registration": "cypress run --spec 'cypress/e2e/tests/registration.cy.js'",
-    "test:home": "cypress run --spec 'cypress/e2e/tests/home.page.cy.js'"
+    "test:home": "cypress run --spec 'cypress/e2e/tests/home.page.cy.js'",
+    "test:ci": "cypress run --record false --config baseUrl=$CYPRESS_BASE_URL"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

@@ -132,6 +132,34 @@ describe('Feature Name', () => {
 - `cypress.config.js` - Cypress configuration
 - `.env` - Environment variables
 
+## Deployment Testing
+
+### CI/CD Integration
+The application includes health check endpoints and CI/CD configuration for running E2E tests against deployed applications.
+
+#### Health Check Endpoint
+- **URL**: `/health`
+- **Purpose**: Verify server readiness for testing
+- **Response**: JSON with status, timestamp, and environment info
+
+#### GitHub Actions Workflow
+- **Build Phase**: Installs dependencies and builds application (no E2E tests)
+- **Deploy Phase**: Deploys to Azure Web App
+- **Test Phase**: Runs Cypress tests against the deployed application
+- **URL Override**: Uses `CYPRESS_BASE_URL` environment variable for deployed URL
+
+#### Environment Variables for CI
+```bash
+# Set before running tests
+export CYPRESS_BASE_URL=https://your-deployed-app.azurewebsites.net
+npm run test:ci
+```
+
+#### Local vs Production Testing
+- **Local Development**: Tests run against `http://localhost:3000`
+- **CI/CD**: Tests run against deployed application URL
+- **Configuration**: Base URL controlled by `CYPRESS_BASE_URL` environment variable
+
 ## Best Practices Applied
 
 1. **DRY (Don't Repeat Yourself)**: Reusable commands
