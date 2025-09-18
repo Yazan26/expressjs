@@ -25,7 +25,7 @@ block content
                       th Movie
                       th Rented Date
                       th Due Date
-                      th Daily Rate
+                      th Pricing Rate
                       th Status
                       th Action
                   tbody
@@ -37,14 +37,18 @@ block content
                           small.text-muted= rental.category
                         td= new Date(rental.rental_date).toLocaleDateString()
                         td= new Date(rental.due_date).toLocaleDateString()
-                        td $#{rental.rental_rate}
+                        td.text-success $#{rental.rental_rate}
                         td
                           if rental.is_overdue
-                            span.badge.badge-danger Overdue
+                            span.text-danger Overdue
                           else
-                            span.badge.badge-success Active
+                            span.text-success Active
                         td
-                          a.btn.btn-sm.btn-outline-primary(href=`/customer/movies/${rental.film_id}`) View Details
+                          .btn-group(role="group")
+                            a.btn.btn-sm.btn-outline-primary(href=`/customer/movies/${rental.film_id}`) View Details
+                            if !rental.is_overdue
+                              form.d-inline(method="POST" action=`/customer/rentals/${rental.rental_id}/cancel` onsubmit="return confirmCancel()")
+                                button.btn.btn-sm.btn-outline-danger(type="submit" id=`cancelBtn-${rental.rental_id}`) Cancel
               
               if summary.total_overdue > 0
                 .alert.alert-warning.mt-3
@@ -88,3 +92,82 @@ block content
               a.btn.btn-outline-info(href='/customer/profile') My Profile
               hr
               a.btn.btn-outline-danger(href='/auth/logout') Logout
+
+  
+
+
+    // Recommendations Section
+    if recommendations && (recommendations.byCategory.length > 0 || recommendations.byActor.length >  0)
+      .row
+        .col-12
+          h4.mb-3 You Might Also Like
+          
+          if recommendations.byCategory.length > 0
+            h5.text-muted.mb-3
+              i.fas.fa-th-large.me-2
+              | More Films in Your Favorite Categories
+            
+            .row.mb-4
+              each rec in recommendations.byCategory.slice(0, 4)
+                .col-md-3.col-sm-6.mb-3
+                  .card.recommendation-card.h-100
+                    .card-body.p-3
+                      h6.card-title
+                        a.text-decoration-none(href=`/films/${rec.film_id}`) #{rec.title}
+                      if rec.release_year
+                        .small.text-muted.mb-2 #{rec.release_year}
+                      if rec.rating
+                        span.badge.bg-secondary.badge-sm #{rec.rating}
+                      if rec.category
+                        .small.text-muted #{rec.category}
+                      .d-flex.justify-content-between.align-items-center.mt-2
+                        span.text-success
+                          strong $#{rec.rental_rate}
+                        if rec.available_copies > 0
+                          small.text-success Available
+                        else
+                          small.text-danger Rented
+          
+          if recommendations.byActor.length > 0
+            h5.text-muted.mb-3.mt-4
+              i.fas.fa-user.me-2
+              | More Films with Same Actors
+            
+            .row
+              each rec in recommendations.byActor.slice(0, 4)
+                .col-md-3.col-sm-6.mb-3
+                  .card.recommendation-card.h-100
+                    .card-body.p-3
+                      h6.card-title
+                        a.text-decoration-none(href=`/films/${rec.film_id}`) #{rec.title}
+                      if rec.release_year
+                        .small.text-muted.mb-2 #{rec.release_year}
+                      if rec.rating
+                        span.badge.bg-secondary.badge-sm #{rec.rating}
+                      if rec.category
+                        .small.text-muted #{rec.category}
+                      .d-flex.justify-content-between.align-items-center.mt-2
+                        span.text-success
+                          strong $#{rec.rental_rate}
+                        if rec.available_copies > 0
+                          small.text-success Available
+                        else
+                          small.text-danger Rented  
+    script.
+        function confirmCancel() {
+          return confirm('Are you sure you want to cancel this rental? This action cannot be undone.');
+        }
+        
+        // Add loading spinners to cancel buttons
+        document.addEventListener('DOMContentLoaded', function() {
+          const cancelForms = document.querySelectorAll('form[action*="/cancel"]');
+          cancelForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+              const button = form.querySelector('button[type="submit"]');
+              if (button) {
+                button.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Canceling...';
+                button.disabled = true;
+              }
+            });
+          });
+        });

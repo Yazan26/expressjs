@@ -99,6 +99,37 @@ const customerService = {
     });
   },
 
+  cancelRental: function(customerId, rentalId, callback) {
+    const customerDao = require('../dao/customer.dao');
+    
+    // Verify the rental belongs to the customer and is active
+    customerDao.getRentalById(rentalId, function(err, rental) {
+      if (err) {
+        return callback(err);
+      }
+      
+      if (!rental) {
+        return callback(new Error('Rental not found'));
+      }
+      
+      if (rental.customer_id !== customerId) {
+        return callback(new Error('Unauthorized: This rental does not belong to you'));
+      }
+      
+      if (rental.return_date) {
+        return callback(new Error('This rental has already been returned'));
+      }
+
+      customerDao.cancelRental(rentalId, function(err, result) {
+        if (err) {
+          return callback(err);
+        }
+
+        callback(null, result);
+      });
+    });
+  },
+
   getSpendingData: function(customerId, period, callback) {
     const customerDao = require('../dao/customer.dao');
     

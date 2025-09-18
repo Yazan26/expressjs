@@ -95,6 +95,26 @@ const customerController = {
     });
   },
 
+  cancelRental: function(req, res, next) {
+    const rentalId = parseInt(req.params.rentalId);
+    const customerId = req.session.user?.id;
+
+    if (!customerId) {
+      req.flash('error', 'You must be logged in to cancel rentals');
+      return res.redirect('/auth/login');
+    }
+
+    customerService.cancelRental(customerId, rentalId, function(err, result) {
+      if (err) {
+        req.flash('error', err.message || 'Failed to cancel rental');
+        return res.redirect('/customer/dashboard');
+      }
+
+      req.flash('success', 'Rental cancelled successfully!');
+      res.redirect('/customer/dashboard');
+    });
+  },
+
   getSpending: function(req, res, next) {
     const customerId = req.session.user?.id;
     const period = req.query.period || 'all';
@@ -111,9 +131,14 @@ const customerController = {
 
       res.render('customer/spending', {
         title: 'Spending History',
+        user: req.session.user,
         spending: data.spending || [],
         summary: data.summary || {},
-        currentPeriod: period
+        currentPeriod: period,
+        messages: {
+          success: req.flash('success') || [],
+          error: req.flash('error') || []
+        }
       });
     });
   }

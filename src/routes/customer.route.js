@@ -17,6 +17,9 @@ router.get('/movies', customerController.getMovies);
 router.get('/movies/:filmId', customerController.getMovieDetails);
 router.post('/movies/:filmId/rent', customerController.rentMovie);
 
+// Rental Management Routes
+router.post('/rentals/:rentalId/cancel', customerController.cancelRental);
+
 // Spending History Route
 router.get('/spending', customerController.getSpending);
 

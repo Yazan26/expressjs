@@ -82,9 +82,38 @@ const filmsController = {
         res.render('films/detail', {
           title: `${film.title} - Film Details`,
           film: transformedFilm,
-          actors: transformedActors
+          actors: transformedActors,
+          authenticated: !!req.session.user,
+          user: req.session.user
         });
       });
+    });
+  },
+
+  /**
+   * POST /films/:id/rent - Rent a film
+   */
+  rentFilm: function(req, res, next) {
+    const filmId = parseInt(req.params.id);
+    const customerId = req.session.user?.id;
+
+    // Check if user is a customer
+    if (req.session.user?.role !== 'customer') {
+      req.flash('error', 'Only customers can rent movies');
+      return res.redirect(`/films/${filmId}`);
+    }
+
+    // Use customer service for rental logic
+    const customerService = require('../services/customer.service');
+    
+    customerService.rentMovie(customerId, filmId, function(err, result) {
+      if (err) {
+        req.flash('error', err.message || 'Failed to rent movie');
+        return res.redirect(`/films/${filmId}`);
+      }
+
+      req.flash('success', 'Movie rented successfully! View your rentals in the dashboard.');
+      res.redirect('/customer/dashboard');
     });
   }
 

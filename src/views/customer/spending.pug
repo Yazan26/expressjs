@@ -3,17 +3,19 @@ extends ../layout
 block content
   .container-fluid
     // Flash Messages
-    if messages.error
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.fas.fa-exclamation-triangle.me-2
-        | #{messages.error}
-        button.btn-close(type="button", data-bs-dismiss="alert")
+    if messages && messages.error && messages.error.length > 0
+      each msg in messages.error
+        .alert.alert-danger.alert-dismissible.fade.show
+          i.fas.fa-exclamation-triangle.me-2
+          | #{msg}
+          button.btn-close(type="button", data-bs-dismiss="alert")
 
-    if messages.success
-      .alert.alert-success.alert-dismissible.fade.show
-        i.fas.fa-check-circle.me-2
-        | #{messages.success}
-        button.btn-close(type="button", data-bs-dismiss="alert")
+    if messages && messages.success && messages.success.length > 0
+      each msg in messages.success
+        .alert.alert-success.alert-dismissible.fade.show
+          i.fas.fa-check-circle.me-2
+          | #{msg}
+          button.btn-close(type="button", data-bs-dismiss="alert")
 
     // Back Navigation
     .mb-3
@@ -186,16 +188,16 @@ block content
                   i.fas.fa-user.me-2
                   | My Profile
 
-style.
-  .card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-  }
-  .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    transition: box-shadow 0.2s;
-  }
-  .table th {
-    border-top: none;
-    font-weight: 600;
-  }
+  style.
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .card:hover {
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      transition: box-shadow 0.2s;
+    }
+    .table th {
+      border-top: none;
+      font-weight: 600;
+    }

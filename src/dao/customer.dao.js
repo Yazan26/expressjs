@@ -5,7 +5,7 @@ const customerDao = {
   getActiveRentals: function(customerId, callback) {
     const query = `
       SELECT r.rental_id, r.rental_date, r.return_date,
-             f.film_id, f.title, f.description, f.rating,
+             f.film_id, f.title, f.description, f.rating, f.rental_rate,
              p.amount
       FROM rental r
       JOIN inventory i ON r.inventory_id = i.inventory_id
@@ -93,6 +93,46 @@ const customerDao = {
           });
         });
       });
+    });
+  },
+
+  getRentalById: function(rentalId, callback) {
+    const query = `
+      SELECT r.rental_id, r.rental_date, r.return_date, r.customer_id,
+             f.film_id, f.title
+      FROM rental r
+      JOIN inventory i ON r.inventory_id = i.inventory_id
+      JOIN film f ON i.film_id = f.film_id
+      WHERE r.rental_id = ?
+    `;
+    
+    db.query(query, [rentalId], function(err, results) {
+      if (err) {
+        return callback(err);
+      }
+      
+      callback(null, results[0] || null);
+    });
+  },
+
+  cancelRental: function(rentalId, callback) {
+    // Set the return_date to now to "return" the movie
+    const query = `
+      UPDATE rental
+      SET return_date = NOW()
+      WHERE rental_id = ? AND return_date IS NULL
+    `;
+    
+    db.query(query, [rentalId], function(err, result) {
+      if (err) {
+        return callback(err);
+      }
+      
+      if (result.affectedRows === 0) {
+        return callback(new Error('Rental not found or already returned'));
+      }
+      
+      callback(null, { rentalId: rentalId, returnedAt: new Date() });
     });
   },
 
