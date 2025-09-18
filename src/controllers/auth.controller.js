@@ -94,8 +94,8 @@ const authController = {
       
       // Auto-login after registration
       req.session.user = {
-        id: user.id || user.authId,
-        username: user.username,
+        id: user.customerId,
+        username: username,
         role: 'customer'
       };
       

@@ -10,44 +10,57 @@
 const bcrypt = require('bcrypt');
 
 const passwords = {
+  admin: 'admin123',
   staff: 'staff123',
   customer: 'customer123'
 };
 
 console.log('🔐 Generating password hashes for Sakila Video Store...\n');
 
-// Generate staff password hash
-bcrypt.hash(passwords.staff, 10, function(err, staffHash) {
+// Generate admin password hash
+bcrypt.hash(passwords.admin, 10, function(err, adminHash) {
   if (err) {
-    console.error('❌ Error generating staff hash:', err);
+    console.error('❌ Error generating admin hash:', err);
     return;
   }
   
-  console.log('👨‍💼 Staff password hash (for "staff123"):');
-  console.log('   ' + staffHash);
+  console.log('🛡️ Admin password hash (for "admin123"):');
+  console.log('   ' + adminHash);
   console.log('');
   
-  // Generate customer password hash
-  bcrypt.hash(passwords.customer, 10, function(err, customerHash) {
+  // Generate staff password hash
+  bcrypt.hash(passwords.staff, 10, function(err, staffHash) {
     if (err) {
-      console.error('❌ Error generating customer hash:', err);
+      console.error('❌ Error generating staff hash:', err);
       return;
     }
     
-    console.log('👤 Customer password hash (for "customer123"):');
-    console.log('   ' + customerHash);
+    console.log('👨‍💼 Staff password hash (for "staff123"):');
+    console.log('   ' + staffHash);
     console.log('');
     
-    console.log('📝 Next Steps:');
-    console.log('1. Copy the staff hash above');
-    console.log('2. Replace "$2b$10$REPLACE_WITH_ACTUAL_HASH_FOR_staff123" in database/auth_setup.sql');
-    console.log('3. If you want pre-created customer accounts, copy the customer hash');
-    console.log('4. Run the SQL script on your Sakila database');
-    console.log('');
-    console.log('🚀 Then you can test with these credentials:');
-    console.log('   Staff: username "mike", password "staff123"');
-    console.log('   Registration: Create new customer accounts via /auth/register');
-    console.log('');
+    // Generate customer password hash
+    bcrypt.hash(passwords.customer, 10, function(err, customerHash) {
+      if (err) {
+        console.error('❌ Error generating customer hash:', err);
+        return;
+      }
+      
+      console.log('👤 Customer password hash (for "customer123"):');
+      console.log('   ' + customerHash);
+      console.log('');
+      
+      console.log('📝 Next Steps:');
+      console.log('1. Copy the admin hash above');
+      console.log('2. Replace "$2b$10$REPLACE_WITH_ADMIN_HASH" in database/migrate_auth_consolidation.sql');
+      console.log('3. Run the SQL migration script on your Sakila database');
+      console.log('4. Update your application code to use the new authentication system');
+      console.log('');
+      console.log('🚀 Then you can test with these credentials:');
+      console.log('   Admin: username "admin", password "admin123"');
+      console.log('   Registration: Create new customer accounts via /auth/register');
+      console.log('');
+    });
   });
 });
 

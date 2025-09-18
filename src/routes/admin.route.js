@@ -17,5 +17,7 @@ router.get('/films', adminController.getFilms);
 
 // Staff management
 router.get('/staff', adminController.getStaff);
+router.get('/staff/new', adminController.getNewStaff);
+router.post('/staff', adminController.postCreateStaff);
 
 module.exports = router;

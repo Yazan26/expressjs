@@ -30,8 +30,15 @@ const adminService = {
    */
   getStaffData: function(callback) {
     const query = `
-      SELECT s.staff_id, s.first_name, s.last_name, s.email, s.active,
-             CONCAT(s.first_name, ' ', s.last_name) as full_name
+      SELECT 
+        s.staff_id, 
+        s.first_name, 
+        s.last_name, 
+        s.email, 
+        s.username,
+        s.role,
+        s.active,
+        CONCAT(s.first_name, ' ', s.last_name) as full_name
       FROM staff s
       ORDER BY s.first_name, s.last_name
     `;

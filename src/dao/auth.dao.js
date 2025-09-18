@@ -7,70 +7,174 @@ const logger = require('../util/logger');
 const authDao = {
 
   getUserByUsername: function(username, callback) {
-    const sql = `
+    // First try to find the user in the staff table
+    const staffSql = `
       SELECT 
-        auth_id as id, username, password_hash, user_type, user_id,
-        CASE 
-          WHEN user_type = 'staff' THEN 'staff'
-          ELSE 'customer' 
-        END as role
-      FROM user_auth 
-      WHERE username = ? AND is_active = TRUE
+        staff_id as id, 
+        username, 
+        password_hash, 
+        role,
+        'staff' as user_type,
+        first_name,
+        last_name,
+        email,
+        active as is_active
+      FROM staff 
+      WHERE username = ? AND active = 1
     `;
     
-    pool.query(sql, [username], function(err, rows) {
+    pool.query(staffSql, [username], function(err, staffRows) {
       if (err) {
-        logger.database('SELECT', 'user_auth', false, err, {
-          action: 'GET_USER_BY_USERNAME',
+        logger.database('SELECT', 'staff', false, err, {
+          action: 'GET_USER_BY_USERNAME_STAFF',
           username: username
         });
         return callback(err);
       }
       
-      logger.database('SELECT', 'user_auth', true, null, {
-        action: 'GET_USER_BY_USERNAME',
-        username: username,
-        found: rows.length > 0
-      });
+      if (staffRows.length > 0) {
+        logger.database('SELECT', 'staff', true, null, {
+          action: 'GET_USER_BY_USERNAME_STAFF',
+          username: username,
+          found: true,
+          role: staffRows[0].role
+        });
+        return callback(null, staffRows[0]);
+      }
       
-      callback(null, rows.length > 0 ? rows[0] : null);
+      // If not found in staff, try customer table
+      const customerSql = `
+        SELECT 
+          customer_id as id, 
+          username, 
+          password_hash, 
+          'customer' as role,
+          'customer' as user_type,
+          first_name,
+          last_name,
+          email,
+          active as is_active
+        FROM customer 
+        WHERE username = ? AND active = 1
+      `;
+      
+      pool.query(customerSql, [username], function(err, customerRows) {
+        if (err) {
+          logger.database('SELECT', 'customer', false, err, {
+            action: 'GET_USER_BY_USERNAME_CUSTOMER',
+            username: username
+          });
+          return callback(err);
+        }
+        
+        logger.database('SELECT', 'customer', true, null, {
+          action: 'GET_USER_BY_USERNAME_CUSTOMER',
+          username: username,
+          found: customerRows.length > 0
+        });
+        
+        callback(null, customerRows.length > 0 ? customerRows[0] : null);
+      });
     });
   },
 
   registerCustomer: function(data, callback) {
     const { firstName, lastName, email, username, passwordHash } = data;
 
-    // Insert customer first
+    // Insert customer with authentication data directly
     const customerSql = `
-      INSERT INTO customer (store_id, first_name, last_name, email, address_id, active, create_date) 
-      VALUES (1, ?, ?, ?, 1, 1, NOW())
+      INSERT INTO customer (
+        store_id, 
+        first_name, 
+        last_name, 
+        email, 
+        username, 
+        password_hash, 
+        address_id, 
+        active, 
+        create_date
+      ) VALUES (1, ?, ?, ?, ?, ?, 1, 1, NOW())
     `;
     
-    pool.query(customerSql, [firstName, lastName, email], function(err, result) {
+    pool.query(customerSql, [firstName, lastName, email, username, passwordHash], function(err, result) {
       if (err) {
-        console.error('Database error creating customer:', err.message);
+        logger.database('INSERT', 'customer', false, err, {
+          action: 'REGISTER_CUSTOMER',
+          username: username,
+          email: email
+        });
+        
         if (err.code === 'ER_DUP_ENTRY') {
-          return callback(new Error('Email already registered'));
+          if (err.message.includes('email')) {
+            return callback(new Error('Email already registered'));
+          } else if (err.message.includes('username')) {
+            return callback(new Error('Username already taken'));
+          }
         }
         return callback(err);
       }
       
       const customerId = result.insertId;
       
-      // Insert auth record
-      const authSql = `INSERT INTO user_auth (user_type, user_id, username, password_hash) VALUES ('customer', ?, ?, ?)`;
+      logger.database('INSERT', 'customer', true, null, {
+        action: 'REGISTER_CUSTOMER',
+        username: username,
+        email: email,
+        customerId: customerId
+      });
       
-      pool.query(authSql, [customerId, username, passwordHash], function(authErr, authResult) {
-        if (authErr) {
-          console.error('Database error creating auth:', authErr.message);
-          if (authErr.code === 'ER_DUP_ENTRY') {
+      callback(null, { customerId: customerId });
+    });
+  },
+
+  // New method to create staff accounts
+  createStaff: function(data, callback) {
+    const { firstName, lastName, email, username, passwordHash, role = 'staff', storeId = 1 } = data;
+
+    const staffSql = `
+      INSERT INTO staff (
+        first_name, 
+        last_name, 
+        address_id, 
+        email, 
+        store_id, 
+        active, 
+        username, 
+        password_hash, 
+        role
+      ) VALUES (?, ?, 1, ?, ?, 1, ?, ?, ?)
+    `;
+    
+    pool.query(staffSql, [firstName, lastName, email, storeId, username, passwordHash, role], function(err, result) {
+      if (err) {
+        logger.database('INSERT', 'staff', false, err, {
+          action: 'CREATE_STAFF',
+          username: username,
+          email: email,
+          role: role
+        });
+        
+        if (err.code === 'ER_DUP_ENTRY') {
+          if (err.message.includes('email')) {
+            return callback(new Error('Email already registered'));
+          } else if (err.message.includes('username')) {
             return callback(new Error('Username already taken'));
           }
-          return callback(authErr);
         }
-        
-        callback(null, { customerId, authId: authResult.insertId });
+        return callback(err);
+      }
+      
+      const staffId = result.insertId;
+      
+      logger.database('INSERT', 'staff', true, null, {
+        action: 'CREATE_STAFF',
+        username: username,
+        email: email,
+        role: role,
+        staffId: staffId
       });
+      
+      callback(null, { staffId: staffId });
     });
   }
 };

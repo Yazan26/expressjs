@@ -2,7 +2,6 @@ extends ../layout
 
 block content
   .container-fluid
-    // Page Header
     .row.mb-4
       .col-lg-8
         h1.h2.mb-1
@@ -16,7 +15,6 @@ block content
             i.fas.fa-user-plus.me-2
             | Add New Staff
           a.btn.btn-outline-primary(href="/admin/films") Film Management
-          a.btn.btn-outline-warning(href="/admin/offers") Offers Management
 
     // Success/Error Messages
     if success
@@ -31,49 +29,12 @@ block content
         | #{error}
         button.btn-close(type="button", data-bs-dismiss="alert")
 
-    // Search and Filters
-    .row.mb-4
-      .col-12
-        .card
-          .card-header
-            h5.card-title.mb-0
-              i.fas.fa-search.me-2
-              | Search & Filter Staff
-          
-          .card-body
-            form.row.g-3(method="GET", action="/admin/staff")
-              .col-md-3
-                label.form-label Search Name
-                input.form-control(type="text", name="search", value=searchTerm || '', placeholder="First or last name...")
-              
-              .col-md-3
-                label.form-label Role
-                select.form-select(name="role")
-                  option(value="", selected=!selectedRole) All Roles
-                  option(value="customer", selected=selectedRole === 'customer') Customer
-                  option(value="staff", selected=selectedRole === 'staff') Staff
-                  option(value="manager", selected=selectedRole === 'manager') Manager
-                  option(value="admin", selected=selectedRole === 'admin') Admin
-              
-              .col-md-3
-                label.form-label Status
-                select.form-select(name="status")
-                  option(value="", selected=!selectedStatus) All Status
-                  option(value="active", selected=selectedStatus === 'active') Active
-                  option(value="inactive", selected=selectedStatus === 'inactive') Inactive
-              
-              .col-md-3.d-flex.align-items-end
-                button.btn.btn-primary.w-100(type="submit")
-                  i.fas.fa-search.me-2
-                  | Search Staff
-
     // Staff List
     if staff && staff.length > 0
       .row
         each member in staff
           .col-lg-6.col-xl-4.mb-4
             .card.h-100(class=member.active ? '' : 'border-secondary')
-              // Status Badge
               .position-relative
                 if !member.active
                   .position-absolute.top-0.end-0.m-2
@@ -81,133 +42,28 @@ block content
                 else if member.role === 'admin'
                   .position-absolute.top-0.end-0.m-2
                     .badge.bg-danger Admin
-                else if member.role === 'manager'
-                  .position-absolute.top-0.end-0.m-2
-                    .badge.bg-warning Manager
                 else if member.role === 'staff'
                   .position-absolute.top-0.end-0.m-2
                     .badge.bg-info Staff
-                else
-                  .position-absolute.top-0.end-0.m-2
-                    .badge.bg-primary Customer
 
               .card-header
-                h5.card-title.mb-1 #{member.firstName} #{member.lastName}
+                h5.card-title.mb-1 #{member.first_name} #{member.last_name}
                 p.card-text.text-muted.small.mb-0 #{member.email}
               
               .card-body
                 .row.mb-3
                   .col-6
                     .small.text-muted Role
-                    .fw-bold.text-capitalize #{member.role}
+                    .fw-bold.text-capitalize #{member.role || 'Staff'}
                   .col-6
-                    .small.text-muted Status
-                    if member.active
-                      .fw-bold.text-success Active
-                    else
-                      .fw-bold.text-secondary Inactive
+                    .small.text-muted Username
+                    .fw-bold #{member.username || 'Not set'}
                 
-                if member.phone
+                if member.created_at
                   .mb-3
-                    .small.text-muted Phone
-                    .fw-bold #{member.phone}
-                
-                if member.address
-                  .mb-3
-                    .small.text-muted Address
-                    .small #{member.address}
-                    if member.city
-                      | , #{member.city}
-                    if member.country
-                      | , #{member.country}
-                
-                // Staff Performance (for staff/manager roles)
-                if member.role === 'staff' || member.role === 'manager'
-                  if member.rentalsHandled
-                    .row.mb-3
-                      .col-6
-                        .small.text-muted Rentals Handled
-                        .fw-bold.text-info #{member.rentalsHandled}
-                      .col-6
-                        .small.text-muted This Month
-                        .fw-bold.text-success #{member.thisMonthRentals || 0}
-                
-                // Dates
-                .row.mb-3
-                  .col-6
-                    .small.text-muted Joined
-                    .small #{member.createDate ? new Date(member.createDate).toLocaleDateString() : 'Unknown'}
-                  .col-6
-                    .small.text-muted Last Update
-                    .small #{member.lastUpdate ? new Date(member.lastUpdate).toLocaleDateString() : 'Never'}
-                
-                // Action Buttons
-                .d-flex.gap-2.flex-wrap
-                  a.btn.btn-outline-info.btn-sm(href=`/admin/staff/edit/${member.staffId || member.customerId}`)
-                    i.fas.fa-edit.me-1
-                    | Edit
-                  
-                  if member.role === 'staff' || member.role === 'manager'
-                    a.btn.btn-outline-success.btn-sm(href=`/reports/staff-performance?staffId=${member.staffId}`)
-                      i.fas.fa-chart-line.me-1
-                      | Performance
-                  
-                  form.d-inline(method="POST", action="/admin/staff/toggle-status")
-                    input(type="hidden", name="userId", value=member.staffId || member.customerId)
-                    input(type="hidden", name="userType", value=member.staffId ? 'staff' : 'customer')
-                    input(type="hidden", name="currentStatus", value=member.active)
-                    if member.active
-                      button.btn.btn-outline-warning.btn-sm(type="submit", onclick="return confirm('Are you sure you want to deactivate this user?')")
-                        i.fas.fa-pause.me-1
-                        | Deactivate
-                    else
-                      button.btn.btn-outline-success.btn-sm(type="submit")
-                        i.fas.fa-play.me-1
-                        | Activate
-
-      // Pagination
-      if pagination && pagination.totalPages > 1
-        .row.mt-4
-          .col-12
-            .d-flex.justify-content-center
-              nav
-                ul.pagination
-                  if pagination.currentPage > 1
-                    li.page-item
-                      a.page-link(href=`?page=${pagination.currentPage - 1}&search=${searchTerm || ''}&role=${selectedRole || ''}&status=${selectedStatus || ''}`)
-                        i.fas.fa-chevron-left
-                  
-                  - var startPage = Math.max(1, pagination.currentPage - 2)
-                  - var endPage = Math.min(pagination.totalPages, pagination.currentPage + 2)
-                  
-                  if startPage > 1
-                    li.page-item
-                      a.page-link(href=`?page=1&search=${searchTerm || ''}&role=${selectedRole || ''}&status=${selectedStatus || ''}`) 1
-                    if startPage > 2
-                      li.page-item.disabled
-                        span.page-link ...
-                  
-                  - for (var i = startPage; i <= endPage; i++)
-                    li.page-item(class=i === pagination.currentPage ? 'active' : '')
-                      if i === pagination.currentPage
-                        span.page-link #{i}
-                      else
-                        a.page-link(href=`?page=${i}&search=${searchTerm || ''}&role=${selectedRole || ''}&status=${selectedStatus || ''}`) #{i}
-                  
-                  if endPage < pagination.totalPages
-                    if endPage < pagination.totalPages - 1
-                      li.page-item.disabled
-                        span.page-link ...
-                    li.page-item
-                      a.page-link(href=`?page=${pagination.totalPages}&search=${searchTerm || ''}&role=${selectedRole || ''}&status=${selectedStatus || ''}`) #{pagination.totalPages}
-                  
-                  if pagination.currentPage < pagination.totalPages
-                    li.page-item
-                      a.page-link(href=`?page=${pagination.currentPage + 1}&search=${searchTerm || ''}&role=${selectedRole || ''}&status=${selectedStatus || ''}`)
-                        i.fas.fa-chevron-right
-
+                    .small.text-muted Created
+                    .small #{new Date(member.created_at).toLocaleDateString()}
     else
-      // Empty State
       .row
         .col-12
           .card
@@ -215,105 +71,8 @@ block content
               .mb-4
                 i.fas.fa-users.fa-4x.text-muted
               h4.text-muted No Staff Found
-              p.text-muted.mb-4
-                if searchTerm || selectedRole || selectedStatus
-                  | No staff members found matching your search criteria.
-                else
-                  | No staff members are currently in the system.
+              p.text-muted.mb-4 No staff members are currently in the system.
               
-              .d-flex.gap-2.justify-content-center
-                if searchTerm || selectedRole || selectedStatus
-                  a.btn.btn-outline-primary(href="/admin/staff") View All Staff
-                
-                a.btn.btn-success(href="/admin/staff/new")
-                  i.fas.fa-user-plus.me-2
-                  | Add New Staff
-
-    // Staff Statistics
-    if staffStats
-      .row.mt-5
-        .col-12
-          .card
-            .card-header
-              h5.card-title.mb-0
-                i.fas.fa-chart-bar.me-2
-                | Staff Statistics
-            
-            .card-body
-              .row
-                .col-md-3.mb-3
-                  .card.border-info.text-center.h-100
-                    .card-body
-                      .display-6.text-info.mb-2
-                        i.fas.fa-users
-                      h4.card-title #{staffStats.totalStaff || 0}
-                      p.card-text.text-muted Total Staff
-                
-                .col-md-3.mb-3
-                  .card.border-success.text-center.h-100
-                    .card-body
-                      .display-6.text-success.mb-2
-                        i.fas.fa-user-check
-                      h4.card-title #{staffStats.activeStaff || 0}
-                      p.card-text.text-muted Active Staff
-                
-                .col-md-3.mb-3
-                  .card.border-warning.text-center.h-100
-                    .card-body
-                      .display-6.text-warning.mb-2
-                        i.fas.fa-user-tie
-                      h4.card-title #{staffStats.managers || 0}
-                      p.card-text.text-muted Managers
-                
-                .col-md-3.mb-3
-                  .card.border-danger.text-center.h-100
-                    .card-body
-                      .display-6.text-danger.mb-2
-                        i.fas.fa-user-shield
-                      h4.card-title #{staffStats.admins || 0}
-                      p.card-text.text-muted Administrators
-
-    // Quick Actions
-    .row.mt-4
-      .col-12
-        .card.bg-light
-          .card-body
-            h6.card-title
-              i.fas.fa-bolt.me-2
-              | Quick Actions
-            .row
-              .col-md-3.mb-2
-                a.btn.btn-success.w-100(href="/admin/staff/new")
-                  i.fas.fa-user-plus.me-2
-                  | Add New Staff
-              
-              .col-md-3.mb-2
-                a.btn.btn-outline-info.w-100(href="/admin/staff?role=staff")
-                  i.fas.fa-filter.me-2
-                  | View Staff Only
-              
-              .col-md-3.mb-2
-                a.btn.btn-outline-warning.w-100(href="/admin/staff?role=manager")
-                  i.fas.fa-user-tie.me-2
-                  | View Managers
-              
-              .col-md-3.mb-2
-                a.btn.btn-outline-primary.w-100(href="/reports/staff-performance")
-                  i.fas.fa-chart-line.me-2
-                  | Staff Reports
-
-style.
-  .card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    transition: box-shadow 0.2s;
-  }
-  .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  }
-  .badge {
-    font-size: 0.75em;
-  }
-  .btn-group .btn:focus {
-    box-shadow: none;
-  }
+              a.btn.btn-success(href="/admin/staff/new")
+                i.fas.fa-user-plus.me-2
+                | Add New Staff

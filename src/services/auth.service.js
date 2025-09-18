@@ -53,6 +53,39 @@ const authService = {
       
       authDao.registerCustomer(customerData, callback);
     });
+  },
+
+  createStaff: (data, callback) => {
+    const { firstName, lastName, email, username, password, role = 'staff', storeId = 1 } = data;
+    
+    // Basic validation
+    if (!firstName || !lastName || !email || !username || !password) {
+      return callback(new Error('All fields required'));
+    }
+
+    if (password.length < 6) {
+      return callback(new Error('Password must be at least 6 characters'));
+    }
+
+    if (!['staff', 'admin'].includes(role)) {
+      return callback(new Error('Invalid role specified'));
+    }
+
+    hash.create(password, function(err, passwordHash) {
+      if (err) return callback(err);
+
+      const staffData = { 
+        firstName: firstName.trim(), 
+        lastName: lastName.trim(), 
+        email: email.toLowerCase().trim(), 
+        username: username.trim(), 
+        passwordHash,
+        role,
+        storeId
+      };
+      
+      authDao.createStaff(staffData, callback);
+    });
   }
 };
 

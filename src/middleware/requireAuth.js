@@ -1,6 +1,15 @@
 /**
  * Authentication Middleware
- * Blocks unauthenticated access to protected routes
+ * Blocks unauthent        // User is logged in but doesn't have the right role
+        if (user.role === 'customer') {
+          return res.redirect('/customer/dashboard');
+        } else if (user.role === 'staff') {
+          return res.redirect('/reports/staff-performance');
+        } else if (user.role === 'admin') {
+          return res.redirect('/admin/films');
+        } else {
+          return res.redirect('/');
+        }ccess to protected routes
  * Attaches req.user from session for authenticated users
  */
 
@@ -110,8 +119,10 @@ const redirectAuthenticated = (req, res, next) => {
     
     if (user.role === 'customer') {
       return res.redirect('/customer/dashboard');
-    } else if (user.role === 'staff' || user.role === 'manager') {
+    } else if (user.role === 'staff') {
       return res.redirect('/reports/staff-performance');
+    } else if (user.role === 'admin') {
+      return res.redirect('/admin/films');
     } else {
       return res.redirect('/');
     }

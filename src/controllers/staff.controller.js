@@ -11,7 +11,8 @@ const staffController = {
   getOffers: function(req, res, next) {
     const options = {
       category: req.query.category || 'all',
-      status: req.query.status || 'all'
+      page: parseInt(req.query.page) || 1,
+      limit: 20
     };
 
     staffService.getOffersData(options, function(err, data) {
@@ -22,10 +23,10 @@ const staffController = {
 
       res.render('staff/offers', {
         title: 'Staff Offers',
-        offers: data.offers,
-        categories: data.categories,
+        offers: data.offers || [],
+        categories: data.categories || [],
         currentCategory: options.category,
-        currentStatus: options.status
+        pagination: data.pagination || null
       });
     });
   },
@@ -47,6 +48,27 @@ const staffController = {
         selections: data.selections,
         stats: data.stats
       });
+    });
+  },
+
+  /**
+   * POST /staff/offers/select - Select an offer
+   */
+  postSelectOffer: function(req, res, next) {
+    const filmId = req.body.film_id;
+    const staffId = req.session.user?.id;
+
+    if (!filmId || !staffId) {
+      return res.status(400).json({ error: 'Missing film_id or staff not authenticated' });
+    }
+
+    staffService.selectOffer(staffId, filmId, function(err, result) {
+      if (err) {
+        console.error('Error selecting offer:', err);
+        return res.status(500).json({ error: 'Failed to select offer' });
+      }
+
+      res.json({ success: true, message: 'Offer selected successfully' });
     });
   }
 

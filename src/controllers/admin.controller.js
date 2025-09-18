@@ -1,4 +1,5 @@
 const adminService = require('../services/admin.service');
+const authService = require('../services/auth.service');
 
 /**
  * Admin Controller - Simple admin endpoints
@@ -45,8 +46,48 @@ const adminController = {
 
       res.render('admin/staff', {
         title: 'Staff Management - Admin',
-        staff: staff
+        staff: staff,
+        success: req.flash('success'),
+        error: req.flash('error')
       });
+    });
+  },
+
+  /**
+   * GET /admin/staff/new - New staff form
+   */
+  getNewStaff: function(req, res, next) {
+    res.render('admin/staff-new', {
+      title: 'Create New Staff - Admin',
+      error: req.flash('error'),
+      formData: req.flash('formData')[0] || {}
+    });
+  },
+
+  /**
+   * POST /admin/staff - Create new staff account
+   */
+  postCreateStaff: function(req, res, next) {
+    const { firstName, lastName, email, username, password, role = 'staff' } = req.body;
+
+    // Store form data for potential error redisplay
+    req.flash('formData', { firstName, lastName, email, username, role });
+
+    authService.createStaff({
+      firstName,
+      lastName, 
+      email,
+      username,
+      password,
+      role
+    }, function(err, result) {
+      if (err) {
+        req.flash('error', err.message);
+        return res.redirect('/admin/staff/new');
+      }
+
+      req.flash('success', `Staff account created successfully for ${firstName} ${lastName}`);
+      res.redirect('/admin/staff');
     });
   }
 

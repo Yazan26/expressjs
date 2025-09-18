@@ -27,7 +27,8 @@
 # Icon must end with two \r
 Icon
 
-
+*.sql
+*lcl.md
 
 # Thumbnails
 ._*

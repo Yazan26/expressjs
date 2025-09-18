@@ -5,6 +5,7 @@ var cookieParser = require('cookie-parser');
 var favicon = require('serve-favicon');
 var dotenv = require('dotenv').config();
 const session = require('express-session');
+const flash = require('connect-flash');
 
 // Import enhanced logging middleware
 const requestLogger = require('./src/middleware/requestLogger');
@@ -53,6 +54,9 @@ app.use(
     name: 'moviesexpressrentals.session.id'
   })
 );
+
+// Flash messages middleware
+app.use(flash());
 
 // User session middleware
 app.use((req, res, next) => {

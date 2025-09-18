@@ -22,7 +22,7 @@ const requireRole = (allowedRoles) => {
         // User is logged in but doesn't have the right role
         if (req.user.role === 'customer') {
           return res.redirect('/customer/dashboard');
-        } else if (req.user.role === 'staff' || req.user.role === 'manager') {
+        } else if (req.user.role === 'staff') {
           return res.redirect('/staff/offers');
         } else if (req.user.role === 'admin') {
           return res.redirect('/admin/films');

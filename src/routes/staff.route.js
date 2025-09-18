@@ -8,12 +8,15 @@ const requireRole = require('../middleware/requireRole');
  * Staff Routes - Staff operations and offers
  */
 
-// Middleware: Require authentication and staff/manager role
+// Middleware: Require authentication and staff or admin role
 router.use(requireAuth);
-router.use(requireRole(['staff', 'manager']));
+router.use(requireRole(['staff', 'admin']));
 
 // GET /staff/offers - Staff offers dashboard
 router.get('/offers', staffController.getOffers);
+
+// POST /staff/offers/select - Select an offer
+router.post('/offers/select', staffController.postSelectOffer);
 
 // GET /staff/selections - View staff selections
 router.get('/selections', staffController.getSelections);
