@@ -2,9 +2,9 @@ describe('Movie Rental System', () => {
   beforeEach(() => {
     // Login as customer before each test
     cy.visit('http://localhost:3000/auth/login');
-    cy.get('input[name="email"]').type('MARY.SMITH@sakilacustomer.org');
-    cy.get('input[name="password"]').type('password123');
-    cy.get('button[type="submit"]').click();
+    cy.get('input[name="email"]').type('eter');
+    cy.get('input[name="password"]').type('chipss');
+    cy.get('button[name="sign in"]').click();
     cy.url().should('eq', 'http://localhost:3000/');
   });
 
