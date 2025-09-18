@@ -2,30 +2,36 @@ extends ../layout
 
 block content
   .container-fluid
+    // Flash Messages
+    if messages.error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{messages.error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if messages.success
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{messages.success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
     // Back Navigation
     .mb-3
       a.btn.btn-outline-secondary(href="/customer/dashboard")
         i.fas.fa-arrow-left.me-2
         | Back to Dashboard
 
-    // Error Messages
-    if error
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.fas.fa-exclamation-triangle.me-2
-        | #{error}
-        button.btn-close(type="button", data-bs-dismiss="alert")
-
     .row.mb-4
       .col-lg-8
         h1.h2.mb-1
           i.fas.fa-chart-line.me-2.text-success
-          | My Spending Analysis
+          | Spending History
         p.text-muted Here's a breakdown of your rental spending over time
       
       .col-lg-4.text-lg-end
         .btn-group
           a.btn.btn-outline-primary(href="/customer/dashboard") Dashboard
-          a.btn.btn-outline-info(href="/films") Browse Films
+          a.btn.btn-outline-info(href="/customer/movies") Browse Movies
 
     // Period Selector
     .row.mb-4
@@ -34,130 +40,100 @@ block content
           .card-header
             h5.card-title.mb-0
               i.fas.fa-calendar.me-2
-              | Select Time Period
+              | Filter by Period
           
           .card-body
-            .row
+            form.row.g-3(method="GET", action="/customer/spending")
               .col-md-6
-                h6 Monthly View
-                form.mb-3(method="GET", action="/customer/spending")
-                  .input-group
-                    input.form-control(type="month", name="period", value=selectedPeriod || '')
-                    button.btn.btn-primary(type="submit")
-                      i.fas.fa-search.me-2
-                      | View Month
+                select.form-select(name="period")
+                  option(value="all", selected=currentPeriod === 'all') All Time
+                  option(value="30", selected=currentPeriod === '30') Last 30 Days
+                  option(value="90", selected=currentPeriod === '90') Last 3 Months
+                  - const now = new Date()
+                  - for (let i = 0; i < 12; i++)
+                    - const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+                    - const value = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0')
+                    option(value=value, selected=currentPeriod === value) #{date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
               
-              .col-md-6
-                h6 Date Range
-                form(method="GET", action="/customer/spending")
-                  .row.mb-2
-                    .col-6
-                      input.form-control(type="date", name="from", value=selectedFromDate || '', placeholder="From date")
-                    .col-6
-                      input.form-control(type="date", name="to", value=selectedToDate || '', placeholder="To date")
-                  .d-grid
-                    button.btn.btn-success(type="submit")
-                      i.fas.fa-calendar-alt.me-2
-                      | View Range
+              .col-md-3
+                button.btn.btn-primary(type="submit")
+                  i.fas.fa-search.me-2
+                  | Filter
 
-    // Spending Data
+    // Summary Cards
+    if summary
+      .row.mb-4
+        .col-md-4.mb-3
+          .card.border-success.h-100
+            .card-body.text-center
+              .display-6.text-success.mb-2
+                i.fas.fa-dollar-sign
+              h4.card-title $#{summary.totalAmount || '0.00'}
+              p.card-text.text-muted Total Spent
+              if summary.period !== 'all'
+                small.text-muted in selected period
+        
+        .col-md-4.mb-3
+          .card.border-info.h-100
+            .card-body.text-center
+              .display-6.text-info.mb-2
+                i.fas.fa-shopping-bag
+              h4.card-title #{summary.totalRentals || 0}
+              p.card-text.text-muted Total Rentals
+        
+        .col-md-4.mb-3
+          .card.border-warning.h-100
+            .card-body.text-center
+              .display-6.text-warning.mb-2
+                i.fas.fa-calculator
+              h4.card-title 
+                if summary.totalRentals > 0
+                  | $#{(parseFloat(summary.totalAmount || 0) / summary.totalRentals).toFixed(2)}
+                else
+                  | $0.00
+              p.card-text.text-muted Average per Rental
+
+    // Spending Details
     if spending && spending.length > 0
-      // Summary Card
-      if summary
-        .row.mb-4
-          .col-md-4.mb-3
-            .card.border-success.h-100
-              .card-body.text-center
-                .display-6.text-success.mb-2
-                  i.fas.fa-dollar-sign
-                h4.card-title $#{parseFloat(summary.totalSpent || 0).toFixed(2)}
-                p.card-text.text-muted Total Spent
-          
-          .col-md-4.mb-3
-            .card.border-info.h-100
-              .card-body.text-center
-                .display-6.text-info.mb-2
-                  i.fas.fa-shopping-bag
-                h4.card-title #{summary.transactionCount || summary.periodsCount || 0}
-                p.card-text.text-muted #{summary.transactionCount ? 'Transactions' : 'Periods'}
-          
-          .col-md-4.mb-3
-            .card.border-warning.h-100
-              .card-body.text-center
-                .display-6.text-warning.mb-2
-                  i.fas.fa-calculator
-                h4.card-title 
-                  if summary.averageTransaction
-                    | $#{parseFloat(summary.averageTransaction).toFixed(2)}
-                  else
-                    | $#{summary.periodsCount > 0 ? parseFloat(summary.totalSpent / summary.periodsCount).toFixed(2) : '0.00'}
-                p.card-text.text-muted Average per #{summary.transactionCount ? 'Transaction' : 'Period'}
-
-      // Spending Details
       .row
         .col-12
           .card
             .card-header
               h5.card-title.mb-0
                 i.fas.fa-list-alt.me-2
-                | Spending Details
-                if summary && summary.period
-                  span.badge.bg-primary.ms-2 #{summary.period}
+                | Transaction History
 
             .card-body
-              if selectedFromDate && selectedToDate
-                // Date Range View - Transaction Details
-                .table-responsive
-                  table.table.table-hover
-                    thead.table-light
+              .table-responsive
+                table.table.table-hover
+                  thead.table-light
+                    tr
+                      th Payment Date
+                      th Film Title
+                      th Rating
+                      th Amount
+                      th Rental Date
+                      th Status
+                  
+                  tbody
+                    each transaction in spending
                       tr
-                        th Date
-                        th Film Title
-                        th Amount
-                        th Rental Date
-                    
-                    tbody
-                      - var totalAmount = 0
-                      each transaction in spending
-                        - totalAmount += parseFloat(transaction.amount)
-                        tr
-                          td #{new Date(transaction.paymentDate).toLocaleDateString()}
-                          td
-                            a.text-decoration-none(href=`/films/${transaction.filmId || '#'}`) #{transaction.filmTitle}
-                          td.text-success.fw-bold $#{parseFloat(transaction.amount).toFixed(2)}
-                          td.text-muted #{new Date(transaction.rentalDate).toLocaleDateString()}
-                    
-                    tfoot.table-light
-                      tr
-                        th(colspan="2") Total
-                        th.text-success $#{totalAmount.toFixed(2)}
-                        th
-              else
-                // Monthly View - Period Breakdown
-                .table-responsive
-                  table.table.table-hover
-                    thead.table-light
-                      tr
-                        th Period
-                        th Total Spent
-                        th Transactions
-                        th Films Rented
-                    
-                    tbody
-                      each period in spending
-                        tr
-                          td
-                            strong #{period.period}
-                          td.text-success.fw-bold $#{parseFloat(period.totalSpent).toFixed(2)}
-                          td
-                            span.badge.bg-info #{period.transactionCount}
-                          td.small.text-muted
-                            if period.filmsRented
-                              | #{period.filmsRented.split(';').slice(0, 3).join(', ')}
-                              if period.filmsRented.split(';').length > 3
-                                | ... and #{period.filmsRented.split(';').length - 3} more
-                            else
-                              | No details
+                        td #{new Date(transaction.payment_date).toLocaleDateString()}
+                        td
+                          strong
+                            a.text-decoration-none(href=`/customer/movies/${transaction.film_id || '#'}`) #{transaction.title}
+                        td
+                          if transaction.rating
+                            span.badge.bg-secondary #{transaction.rating}
+                          else
+                            span.text-muted.small N/A
+                        td.text-success.fw-bold $#{parseFloat(transaction.amount).toFixed(2)}
+                        td.text-muted #{new Date(transaction.rental_date).toLocaleDateString()}
+                        td
+                          if transaction.return_date
+                            span.badge.bg-success Returned
+                          else
+                            span.badge.bg-primary Active
 
     else
       // Empty State
@@ -167,19 +143,19 @@ block content
             .card-body.text-center.py-5
               .mb-4
                 i.fas.fa-chart-line.fa-4x.text-muted
-              h4.text-muted No Spending Data
+              h4.text-muted No Spending History
               p.text-muted.mb-4
-                if selectedPeriod || (selectedFromDate && selectedToDate)
+                if currentPeriod && currentPeriod !== 'all'
                   | No transactions found for the selected time period.
                 else
                   | You haven't made any rental payments yet.
               
               .d-flex.gap-2.justify-content-center
-                if selectedPeriod || (selectedFromDate && selectedToDate)
+                if currentPeriod && currentPeriod !== 'all'
                   a.btn.btn-outline-primary(href="/customer/spending") View All Time
-                a.btn.btn-primary(href="/films")
+                a.btn.btn-primary(href="/customer/movies")
                   i.fas.fa-film.me-2
-                  | Browse Films
+                  | Browse Movies
 
     // Quick Actions
     .row.mt-4
@@ -196,9 +172,9 @@ block content
                   | Dashboard
               
               .col-md-3.mb-2
-                a.btn.btn-outline-success.w-100(href="/films")
+                a.btn.btn-outline-success.w-100(href="/customer/movies")
                   i.fas.fa-film.me-2
-                  | Browse Films
+                  | Browse Movies
               
               .col-md-3.mb-2
                 a.btn.btn-outline-info.w-100(href="/customer/spending")

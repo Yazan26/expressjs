@@ -1,219 +1,90 @@
 extends ../layout
 
 block content
-  .container-fluid
-    // Error/Success Messages
-    if error
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.fas.fa-exclamation-triangle.me-2
-        | #{error}
-        button.btn-close(type="button", data-bs-dismiss="alert")
-
-    // Welcome Header
-    .row.mb-4
-      .col-12
-        .d-flex.justify-content-between.align-items-center
-          div
-            h1.h2.mb-1
-              i.fas.fa-tachometer-alt.me-2.text-primary
-              | Welcome, #{customer.firstName}
-            p.text-muted.mb-0 Here's your rental activity and account overview
-          
-          .text-end
-            a.btn.btn-outline-primary(href="/customer/spending")
-              i.fas.fa-chart-line.me-2
-              | View Spending
-
-    // Summary Cards
-    .row.mb-4
-      .col-md-3.mb-3
-        .card.border-primary.h-100
-          .card-body.text-center
-            .display-6.text-primary.mb-2
-              i.fas.fa-film
-            h4.card-title #{summary.totalRentals || 0}
-            p.card-text.text-muted Total Rentals
-      
-      .col-md-3.mb-3
-        .card.border-warning.h-100
-          .card-body.text-center
-            .display-6.text-warning.mb-2
-              i.fas.fa-clock
-            h4.card-title #{summary.activeRentals || 0}
-            p.card-text.text-muted Active Rentals
-      
-      .col-md-3.mb-3
-        .card.border-success.h-100
-          .card-body.text-center
-            .display-6.text-success.mb-2
-              i.fas.fa-dollar-sign
-            h4.card-title $#{parseFloat(summary.totalSpent || 0).toFixed(2)}
-            p.card-text.text-muted Total Spent
-      
-      .col-md-3.mb-3
-        .card.border-info.h-100
-          .card-body.text-center
-            .display-6.text-info.mb-2
-              i.fas.fa-calendar
-            h4.card-title 
-              if summary.lastRentalDate
-                | #{new Date(summary.lastRentalDate).toLocaleDateString()}
-              else
-                | Never
-            p.card-text.text-muted Last Rental
-
-    // Alerts for Overdue and Due Soon
-    if alerts && (alerts.overdue.length > 0 || alerts.dueSoon.length > 0)
-      .row.mb-4
-        if alerts.overdue.length > 0
-          .col-md-6.mb-3
-            .alert.alert-danger.d-flex.align-items-center
-              i.fas.fa-exclamation-triangle.fa-2x.me-3
-              div
-                h5.alert-heading.mb-1 #{alerts.overdue.length} Overdue Rental#{alerts.overdue.length > 1 ? 's' : ''}
-                p.mb-0 Please return these films as soon as possible to avoid additional fees.
-        
-        if alerts.dueSoon.length > 0
-          .col-md-6.mb-3
-            .alert.alert-warning.d-flex.align-items-center
-              i.fas.fa-clock.fa-2x.me-3
-              div
-                h5.alert-heading.mb-1 #{alerts.dueSoon.length} Due Soon
-                p.mb-0 These rentals are due within the next 3 days.
-
-    // Active Rentals
+  .container.mt-4
     .row
-      .col-12
-        .card
+      .col-md-12
+        h1.mb-4 Customer Dashboard
+        if user
+          h5.text-muted Welcome back, #{user.username} #{user.last_name}!
+    
+    .row
+      // Active Rentals
+      .col-md-8
+        .card.mb-4
           .card-header
             .d-flex.justify-content-between.align-items-center
-              h5.card-title.mb-0
-                i.fas.fa-list.me-2
-                | Active Rentals
-              if rentals && rentals.length > 0
-                span.badge.bg-primary #{rentals.length} Active
-
+              h5.mb-0 Active Rentals
+              span.badge.badge-primary= activeRentals ? activeRentals.length : 0
           .card-body
-            if rentals && rentals.length > 0
+            if activeRentals && activeRentals.length > 0
               .table-responsive
                 table.table.table-hover
                   thead
                     tr
-                      th Film Title
-                      th Category
-                      th Rental Date
+                      th Movie
+                      th Rented Date
                       th Due Date
+                      th Daily Rate
                       th Status
-                      th Actions
-
+                      th Action
                   tbody
-                    each rental in rentals
-                      tr(class=rental.daysUntilDue < 0 ? 'table-danger' : rental.daysUntilDue <= 3 ? 'table-warning' : '')
+                    each rental in activeRentals
+                      tr(class=(rental.is_overdue ? 'table-danger' : ''))
                         td
-                          strong
-                            a.text-decoration-none(href=`/films/${rental.filmId}`) #{rental.title}
-                          if rental.rentalRate
-                            br
-                            small.text-muted Rate: $#{parseFloat(rental.rentalRate).toFixed(2)}
-                        
-                        td
-                          if rental.category
-                            span.badge.bg-secondary #{rental.category}
-                          else
-                            span.text-muted.small Unknown
-                        
-                        td
-                          | #{new Date(rental.rentalDate).toLocaleDateString()}
-                        
-                        td
-                          | #{new Date(rental.dueDate).toLocaleDateString()}
+                          strong= rental.title
                           br
-                          small.text-muted
-                            if rental.daysUntilDue < 0
-                              span.text-danger
-                                i.fas.fa-exclamation-triangle.me-1
-                                | #{Math.abs(rental.daysUntilDue)} day#{Math.abs(rental.daysUntilDue) > 1 ? 's' : ''} overdue
-                            else if rental.daysUntilDue === 0
-                              span.text-warning
-                                i.fas.fa-clock.me-1
-                                | Due today
-                            else if rental.daysUntilDue <= 3
-                              span.text-warning
-                                i.fas.fa-clock.me-1
-                                | Due in #{rental.daysUntilDue} day#{rental.daysUntilDue > 1 ? 's' : ''}
-                            else
-                              span.text-muted
-                                | #{rental.daysUntilDue} days remaining
-                        
+                          small.text-muted= rental.category
+                        td= new Date(rental.rental_date).toLocaleDateString()
+                        td= new Date(rental.due_date).toLocaleDateString()
+                        td $#{rental.rental_rate}
                         td
-                          if rental.daysUntilDue < 0
-                            span.badge.bg-danger Overdue
-                          else if rental.daysUntilDue <= 3
-                            span.badge.bg-warning Due Soon
+                          if rental.is_overdue
+                            span.badge.badge-danger Overdue
                           else
-                            span.badge.bg-success Active
-                        
+                            span.badge.badge-success Active
                         td
-                          .btn-group.btn-group-sm
-                            a.btn.btn-outline-primary(href=`/films/${rental.filmId}`)
-                              i.fas.fa-eye
-                              span.d-none.d-sm-inline.ms-1 View
-                            button.btn.btn-outline-secondary.disabled
-                              i.fas.fa-undo
-                              span.d-none.d-sm-inline.ms-1 Return
-
+                          a.btn.btn-sm.btn-outline-primary(href=`/customer/movies/${rental.film_id}`) View Details
+              
+              if summary.total_overdue > 0
+                .alert.alert-warning.mt-3
+                  strong #{summary.total_overdue} overdue rental(s)
+                  p Please return these movies as soon as possible to avoid additional fees.
             else
-              // Empty State
-              .text-center.py-5
-                .mb-4
-                  i.fas.fa-inbox.fa-4x.text-muted
-                h4.text-muted No Active Rentals
-                p.text-muted.mb-4 You don't have any films rented at the moment.
-                a.btn.btn-primary(href="/films")
-                  i.fas.fa-film.me-2
-                  | Browse Films
-
-    // Quick Actions
-    .row.mt-4
-      .col-12
-        .card.bg-light
+              .text-center.py-4
+                p.text-muted No active rentals
+                a.btn.btn-primary(href='/customer/movies') Browse Movies
+      
+      // Summary and Quick Actions
+      .col-md-4
+        // Rental Summary
+        .card.mb-4
+          .card-header
+            h5.mb-0 Rental Summary
           .card-body
-            h6.card-title
-              i.fas.fa-bolt.me-2
-              | Quick Actions
-            .row
-              .col-md-3.mb-2
-                a.btn.btn-outline-primary.w-100(href="/films")
-                  i.fas.fa-search.me-2
-                  | Browse Films
-              
-              .col-md-3.mb-2
-                a.btn.btn-outline-info.w-100(href="/customer/spending")
-                  i.fas.fa-chart-line.me-2
-                  | View Spending
-              
-              .col-md-3.mb-2
-                a.btn.btn-outline-secondary.w-100(href="/customer/profile")
-                  i.fas.fa-user-edit.me-2
-                  | Edit Profile
-              
-              .col-md-3.mb-2
-                button.btn.btn-outline-success.w-100.disabled
-                  i.fas.fa-heart.me-2
-                  | Favorites
-
-  // Custom styles for dashboard
-  style.
-    .card {
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    }
-    .card:hover {
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-      transition: box-shadow 0.2s;
-    }
-    .table tbody tr.table-danger {
-      --bs-table-accent-bg: rgba(220, 53, 69, 0.1);
-    }
-    .table tbody tr.table-warning {
-      --bs-table-accent-bg: rgba(255, 193, 7, 0.1);
-    }
+            if summary
+              .d-flex.justify-content-between
+                span Total Active:
+                strong= summary.total_active
+              .d-flex.justify-content-between
+                span Overdue:
+                strong.text-danger= summary.total_overdue
+              .d-flex.justify-content-between
+                span This Month Cost:
+                strong $#{summary.current_month_total.toFixed(2)}
+              hr
+              .d-flex.justify-content-between
+                span Total Spent:
+                strong.text-success $#{summary.total_spent.toFixed(2)}
+        
+        // Quick Actions
+        .card.mb-4
+          .card-header
+            h5.mb-0 Quick Actions
+          .card-body
+            .d-grid.gap-2
+              a.btn.btn-primary(href='/customer/movies') Browse Movies
+              a.btn.btn-outline-secondary(href='/customer/spending') Spending History
+              a.btn.btn-outline-info(href='/customer/profile') My Profile
+              hr
+              a.btn.btn-outline-danger(href='/auth/logout') Logout

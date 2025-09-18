@@ -1,12 +1,12 @@
 const filmsDao = require('../dao/films.dao');
 
 /**
- * Films Service - Simple film operations
+ * Films Service - Unified film operations for both public and customer use
  */
 const filmsService = {
 
   /**
-   * Get films data with categories for display
+   * Get films data with categories and ratings for display
    */
   getFilmsData: function(options, callback) {
     filmsDao.getAllFilms(options, function(err, result) {
@@ -15,10 +15,16 @@ const filmsService = {
       filmsDao.getCategories(function(catErr, categories) {
         if (catErr) return callback(catErr);
         
-        callback(null, {
-          films: result.films,
-          pagination: result.pagination,
-          categories: categories
+        filmsDao.getRatings(function(ratErr, ratings) {
+          if (ratErr) return callback(ratErr);
+          
+          callback(null, {
+            films: result.films,
+            movies: result.films, // Alias for customer controller
+            categories: categories,
+            ratings: ratings,
+            pagination: result.pagination
+          });
         });
       });
     });
