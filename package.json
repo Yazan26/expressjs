@@ -8,10 +8,10 @@
     "test": "cypress run",
     "test:open": "cypress open",
     "test:headless": "cypress run --headless",
-    "test:auth": "cypress run --spec 'cypress/e2e/tests/auth.cy.js'",
-    "test:admin": "cypress run --spec 'cypress/e2e/tests/admin.cy.js'",
-    "test:registration": "cypress run --spec 'cypress/e2e/tests/registration.cy.js'",
-    "test:home": "cypress run --spec 'cypress/e2e/tests/home.page.cy.js'",
+    "test:auth": "cypress run --spec 'cypress/e2e/auth.cy.js'",
+    "test:rental": "cypress run --spec 'cypress/e2e/rental.cy.js'",
+    "test:integration": "cypress run --spec 'cypress/e2e/integration.cy.js'",
+    "test:all": "cypress run --spec 'cypress/e2e/{auth,rental,integration}.cy.js'",
     "test:ci": "cypress run --record false --config baseUrl=$CYPRESS_BASE_URL"
   },
   "dependencies": {

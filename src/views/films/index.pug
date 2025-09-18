@@ -19,14 +19,14 @@ block content
               .mb-3
                 label.form-label(for="category") Category
                 select.form-select(name="category", id="category")
-                  option(value="all") All Categories
+                  option(value="") All Categories
                   each category in categories
-                    option(value=category.name, selected=currentCategory == category.name) #{category.name}
+                    option(value=category.category_id, selected=currentCategory == category.category_id) #{category.name}
               
               .mb-3
                 label.form-label(for="rating") Rating
                 select.form-select(name="rating", id="rating")
-                  option(value="all") All Ratings
+                  option(value="") All Ratings
                   each rating in ratings
                     option(value=rating, selected=currentRating == rating) #{rating}
               
@@ -82,7 +82,7 @@ block content
                   .card-body
                     .d-flex.justify-content-between.align-items-start.mb-2
                       h5.card-title.mb-0
-                        a.text-decoration-none(href=`/films/${film.filmId || film.film_id}`) #{film.title}
+                        a.text-decoration-none(href=`/films/${film.filmId}`) #{film.title}
                       span.badge.bg-secondary #{film.rating}
                     
                     if film.category
@@ -90,21 +90,21 @@ block content
                         i.fas.fa-tags.me-1
                         | #{film.category}
                     
-                    if film.releaseYear || film.release_year
+                    if film.releaseYear
                       p.card-text.small.text-muted.mb-2
                         i.fas.fa-calendar.me-1
-                        | #{film.releaseYear || film.release_year}
+                        | #{film.releaseYear}
                     
                     if film.description
                       p.card-text.small #{film.description.substring(0, 120)}#{film.description.length > 120 ? '...' : ''}
                     
-                    if film.rentalRate || film.rental_rate
+                    if film.rentalRate
                       .d-flex.justify-content-between.align-items-center.mt-3
                         .text-muted.small Rental Rate
-                        .fw-bold.text-success $#{parseFloat(film.rentalRate || film.rental_rate).toFixed(2)}
+                        .fw-bold.text-success $#{parseFloat(film.rentalRate).toFixed(2)}
                   
                   .card-footer.bg-transparent
-                    a.btn.btn-primary.btn-sm.w-100(href=`/films/${film.filmId || film.film_id}`)
+                    a.btn.btn-primary.btn-sm.w-100(href=`/films/${film.filmId}`)
                       i.fas.fa-eye.me-2
                       | View Details
         else
