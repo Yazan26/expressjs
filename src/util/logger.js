@@ -3,7 +3,7 @@ const { combine, timestamp, printf, colorize, errors, json } = winston.format;
 
 // Custom format for better readability
 const customFormat = printf(({ level, message, timestamp, service, action, userId, error, ...meta }) => {
-  let logMessage = `🕒 ${timestamp} [${level.toUpperCase().padEnd(5)}]`;
+  let logMessage = `] ${timestamp}`;
   
   // Add service context if provided
   if (service) {
@@ -15,8 +15,8 @@ const customFormat = printf(({ level, message, timestamp, service, action, userI
     logMessage += ` ⚡ ${action}`;
   }
   
-  // Add user context if provided
-  if (userId) {
+  // Add user context if provided (only if not Anonymous)
+  if (userId && userId !== 'Anonymous') {
     logMessage += ` 👤 User:${userId}`;
   }
   
@@ -30,9 +30,16 @@ const customFormat = printf(({ level, message, timestamp, service, action, userI
     }
   }
   
-  // Add metadata if present
+  // Add metadata if present (but filter out verbose data)
   if (Object.keys(meta).length > 0) {
-    logMessage += `\n   📊 Data: ${JSON.stringify(meta, null, 2)}`;
+    // Filter out noisy metadata
+    const filteredMeta = { ...meta };
+    delete filteredMeta.userAgent; // Too verbose
+    delete filteredMeta.referer; // Usually not needed
+    
+    if (Object.keys(filteredMeta).length > 0) {
+      logMessage += `\n   📊 Data: ${JSON.stringify(filteredMeta, null, 2)}`;
+    }
   }
   
   return logMessage;
@@ -110,13 +117,13 @@ const enhancedLogger = {
   
   // HTTP request logging
   request: (req, res, responseTime) => {
-    const { method, url, ip } = req;
+    const { method, url } = req;
     const { statusCode } = res;
-    const userAgent = req.get('User-Agent') || 'Unknown';
     const userId = req.session?.user?.id || 'Anonymous';
     
     const statusEmoji = statusCode >= 500 ? '🔴' : statusCode >= 400 ? '🟡' : '🟢';
     
+    // Simplified request logging
     logger.info(`${statusEmoji} ${method} ${url} - ${statusCode}`, {
       service: 'HTTP',
       action: 'REQUEST',
@@ -124,9 +131,7 @@ const enhancedLogger = {
       url,
       statusCode,
       responseTime: `${responseTime}ms`,
-      ip,
-      userId,
-      userAgent: userAgent.substring(0, 50) + (userAgent.length > 50 ? '...' : '')
+      userId: userId !== 'Anonymous' ? userId : undefined
     });
   },
   
