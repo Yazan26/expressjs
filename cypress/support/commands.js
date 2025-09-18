@@ -4,36 +4,48 @@
 
 /**
  * Login command - supports different user types
- * @param {string} userType - 'admin', 'staff', or 'customer'
- * @param {string} username - optional custom username
- * @param {string} password - optional custom password
+ * @param {string} email - user email
+ * @param {string} password - user password
  */
-Cypress.Commands.add('login', (userType = 'staff', username, password) => {
-  // Use environment variables or defaults
-  const credentials = {
-    admin: {
-      username: username || Cypress.env('adminUsername') || 'admin',
-      password: password || Cypress.env('adminPassword') || 'admin123'
-    },
-    staff: {
-      username: username || Cypress.env('staffUsername') || 'mike',
-      password: password || Cypress.env('staffPassword') || 'staff123'
-    },
-    customer: {
-      username: username || Cypress.env('customerUsername') || 'mary.smith@sakilacustomer.org',
-      password: password || Cypress.env('customerPassword') || 'customer123'
-    }
-  };
-
-  const creds = credentials[userType];
-  
+Cypress.Commands.add('login', (email = 'MARY.SMITH@sakilacustomer.org', password = 'password123') => {
   cy.visit('/auth/login');
-  cy.get('input[name="username"]').type(creds.username);
-  cy.get('input[name="password"]').type(creds.password);
+  cy.get('input[name="email"]').type(email);
+  cy.get('input[name="password"]').type(password);
   cy.get('button[type="submit"]').click();
   
   // Wait for redirect to complete
   cy.url().should('not.include', '/auth/login');
+});
+
+/**
+ * Quick login for customer testing
+ */
+Cypress.Commands.add('loginAsCustomer', () => {
+  cy.login('MARY.SMITH@sakilacustomer.org', 'password123');
+});
+
+/**
+ * Register new user
+ * @param {Object} userData - user registration data
+ */
+Cypress.Commands.add('register', (userData) => {
+  const defaultData = {
+    firstName: `Test${Date.now()}`,
+    lastName: 'User',
+    email: `test${Date.now()}@test.com`,
+    password: 'password123'
+  };
+  
+  const data = { ...defaultData, ...userData };
+  
+  cy.visit('/auth/register');
+  cy.get('input[name="firstName"]').type(data.firstName);
+  cy.get('input[name="lastName"]').type(data.lastName);
+  cy.get('input[name="email"]').type(data.email);
+  cy.get('input[name="password"]').type(data.password);
+  cy.get('button[type="submit"]').click();
+  
+  return cy.wrap(data);
 });
 
 /**

@@ -16,3 +16,8 @@ a {
   transform:translate(-50%);
   z-index: 1050; /* Ensure it appears above other elements */
 }
+
+.pricing
+{
+  color: green;
+}

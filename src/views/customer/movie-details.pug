@@ -1,0 +1,105 @@
+extends ../layout
+
+block content
+  .container.mt-4
+    .row
+      .col-md-8
+        // Movie Details
+        .card.mb-4
+          .card-body
+            .row
+              .col-md-12
+                h1.card-title= movie.title
+                p.lead.text-muted= movie.category
+                
+                .row.mb-3
+                  .col-md-3
+                    strong Rating:
+                    br
+                    span.badge.badge-secondary= movie.rating
+                  .col-md-3
+                    strong Length:
+                    br
+                    = movie.length + ' minutes'
+                  .col-md-3
+                    strong Rental Rate:
+                    br
+                    strong.text-success $#{movie.rental_rate}
+                  .col-md-3
+                    strong Year:
+                    br
+                    = movie.release_year
+                
+                hr
+                
+                .row.mb-3
+                  .col-md-12
+                    h5 Description
+                    p= movie.description
+                
+                if actors && actors.length > 0
+                  .row.mb-3
+                    .col-md-12
+                      h5 Cast
+                      .row
+                        each actor in actors
+                          .col-md-4.mb-2
+                            span.badge.badge-light= actor.first_name + ' ' + actor.last_name
+                
+                hr
+                
+                // Availability and Rental
+                .row
+                  .col-md-6
+                    if movie.available_copies > 0
+                      .alert.alert-success
+                        strong Available!
+                        p #{movie.available_copies} of #{movie.total_copies} copies available
+                    else
+                      .alert.alert-warning
+                        strong Not Available
+                        p All #{movie.total_copies} copies are currently rented
+                  
+                  .col-md-6.text-right
+                    a.btn.btn-outline-secondary.mr-2(href='/customer/movies') ← Back to Movies
+                    if movie.available_copies > 0
+                      form.d-inline(method='POST' action=`/customer/movies/${movie.film_id}/rent`)
+                        button.btn.btn-success.btn-lg(type='submit' id='rentButton')
+                          i.fas.fa-shopping-cart.mr-2
+                          | Rent Now ($#{movie.rental_rate})
+      
+      .col-md-4
+        // Recommendations
+        if recommendations && recommendations.length > 0
+          .card
+            .card-header
+              h5.mb-0 You Might Also Like
+            .card-body
+              each rec in recommendations
+                .media.mb-3
+                  .media-body
+                    h6.mt-0
+                      a(href=`/customer/movies/${rec.film_id}`)= rec.title
+                    p.small.text-muted= rec.category
+                    p.small= rec.description.substring(0, 80) + '...'
+                    .d-flex.justify-content-between.align-items-center
+                      span.text-success
+                        strong $#{rec.rental_rate}
+                      if rec.available_copies > 0
+                        small.text-success Available
+                      else
+                        small.text-danger Rented
+                hr
+
+  script.
+    // Add loading spinner to rental button
+    document.addEventListener('DOMContentLoaded', function() {
+      const rentButton = document.getElementById('rentButton');
+      if (rentButton) {
+        const form = rentButton.closest('form');
+        form.addEventListener('submit', function() {
+          rentButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Processing...';
+          rentButton.disabled = true;
+        });
+      }
+    });

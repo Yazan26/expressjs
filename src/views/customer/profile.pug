@@ -8,18 +8,20 @@ block content
         i.fas.fa-arrow-left.me-2
         | Back to Dashboard
 
-    // Success/Error Messages
-    if success
-      .alert.alert-success.alert-dismissible.fade.show
-        i.fas.fa-check-circle.me-2
-        | #{success}
-        button.btn-close(type="button", data-bs-dismiss="alert")
+    // Flash Messages
+    if messages && messages.success && messages.success.length > 0
+      each msg in messages.success
+        .alert.alert-success.alert-dismissible.fade.show
+          i.fas.fa-check-circle.me-2
+          | #{msg}
+          button.btn-close(type="button", data-bs-dismiss="alert")
 
-    if error
-      .alert.alert-danger.alert-dismissible.fade.show
-        i.fas.fa-exclamation-triangle.me-2
-        | #{error}
-        button.btn-close(type="button", data-bs-dismiss="alert")
+    if messages && messages.error && messages.error.length > 0
+      each msg in messages.error
+        .alert.alert-danger.alert-dismissible.fade.show
+          i.fas.fa-exclamation-triangle.me-2
+          | #{msg}
+          button.btn-close(type="button", data-bs-dismiss="alert")
 
     .row.mb-4
       .col-lg-8
@@ -54,28 +56,39 @@ block content
                     input.form-control(type="text", name="lastName", value=customer.lastName || '', required, maxlength="45")
                 
                 .row.mb-3
-                  .col-md-6
+                  .col-md-12
                     label.form-label Email Address *
                     input.form-control(type="email", name="email", value=customer.email || '', required, maxlength="50")
                     .form-text.text-muted We'll use this for important notifications
-                  .col-md-6
-                    label.form-label Phone Number
-                    input.form-control(type="tel", name="phone", value=customer.phone || '', maxlength="20")
                 
-                .mb-3
-                  label.form-label Address Line 1 *
-                  input.form-control(type="text", name="address", value=customer.address || '', required, maxlength="50")
+                if customer.address
+                  .row.mb-3
+                    .col-md-8
+                      label.form-label Address
+                      input.form-control(type="text", name="address", value=customer.address || '', maxlength="50")
+                      .form-text.text-muted Address can be updated if needed
+                    .col-md-4
+                      label.form-label Phone Number
+                      input.form-control(type="tel", name="phone", value=customer.phone || '', maxlength="20")
                 
-                .row.mb-3
-                  .col-md-4
-                    label.form-label City *
-                    input.form-control(type="text", name="city", value=customer.city || '', required, maxlength="50")
-                  .col-md-4
-                    label.form-label Postal Code
-                    input.form-control(type="text", name="postalCode", value=customer.postalCode || '', maxlength="10")
-                  .col-md-4
-                    label.form-label Country
-                    input.form-control(type="text", name="country", value=customer.country || '', maxlength="50")
+                  .row.mb-3
+                    .col-md-6
+                      label.form-label Postal Code
+                      input.form-control(type="text", name="postalCode", value=customer.postalCode || '', maxlength="10")
+                    .col-md-6
+                      label.form-label City (Read Only)
+                      input.form-control(type="text", value=customer.city || '', readonly)
+                      .form-text.text-muted City cannot be changed directly
+                
+                  .row.mb-3
+                    .col-md-12
+                      label.form-label Country (Read Only)
+                      input.form-control(type="text", value=customer.country || '', readonly)
+                      .form-text.text-muted Country is determined by city
+                else
+                  .alert.alert-info
+                    i.fas.fa-info-circle.me-2
+                    | Address information is not available in your profile.
                 
                 .d-flex.gap-2
                   button.btn.btn-primary(type="submit")
@@ -226,19 +239,19 @@ block content
                     i.fas.fa-sign-out-alt.me-2
                     | Logout
 
-style.
-  .card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-  }
-  .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    transition: box-shadow 0.2s;
-  }
-  .form-control:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-  }
-  .list-group-item {
-    padding: 0.75rem 1rem;
-  }
+  style.
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .card:hover {
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      transition: box-shadow 0.2s;
+    }
+    .form-control:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .list-group-item {
+      padding: 0.75rem 1rem;
+    }

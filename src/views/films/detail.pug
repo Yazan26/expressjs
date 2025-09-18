@@ -33,8 +33,8 @@ block content
                 .d-flex.justify-content-between.align-items-start.mb-3
                   div
                     h1.h2.mb-1 #{film.title}
-                    if film.releaseYear
-                      p.text-muted.mb-0 #{film.releaseYear}
+                    if film.releaseYear || film.release_year
+                      p.text-muted.mb-0 #{film.releaseYear || film.release_year}
                   
                   span.badge.bg-primary.fs-6 #{film.rating}
 
@@ -65,27 +65,27 @@ block content
 
                 if film.rentalRate || film.replacementCost
                   .row.mb-3
-                    if film.rentalRate
-                      .col-sm-6.mb-2
-                        strong.text-muted.small Rental Rate:
-                        br
-                        .text-success.fw-bold $#{parseFloat(film.rentalRate).toFixed(2)}
-                    
-                    if film.replacementCost
-                      .col-sm-6.mb-2
-                        strong.text-muted.small Replacement Cost:
-                        br
-                        .text-warning.fw-bold $#{parseFloat(film.replacementCost).toFixed(2)}
+                  if film.rentalRate || film.rental_rate
+                    .col-sm-6.mb-2
+                      strong.text-muted.small Rental Rate:
+                      br
+                      .text-success.fw-bold $#{parseFloat(film.rentalRate || film.rental_rate).toFixed(2)}
+                  
+                  if film.replacementCost || film.replacement_cost
+                    .col-sm-6.mb-2
+                      strong.text-muted.small Replacement Cost:
+                      br
+                      .text-warning.fw-bold $#{parseFloat(film.replacementCost || film.replacement_cost).toFixed(2)}
 
                 if film.description
                   .mb-3
                     h6.fw-bold Description
                     p.text-muted #{film.description}
 
-                if film.specialFeatures
+                if film.specialFeatures || film.special_features
                   .mb-3
                     h6.fw-bold Special Features
-                    p.small.text-muted #{film.specialFeatures}
+                    p.small.text-muted #{film.specialFeatures || film.special_features}
 
       .col-lg-4
         // Film Cast
@@ -115,11 +115,19 @@ block content
             .card-body
               if user.role === 'customer'
                 .d-grid.gap-2
-                  button.btn.btn-success.disabled(type="button")
-                    i.fas.fa-shopping-cart.me-2
-                    | Add to Wishlist
-                  .small.text-muted.text-center
-                    | (Feature coming soon)
+                  if film.available_copies && film.available_copies > 0
+                    form(method="POST", action=`/films/${film.film_id}/rent`)
+                      button.btn.btn-success.btn-lg(type="submit", id="rentButton")
+                        i.fas.fa-shopping-cart.me-2
+                        | Rent Now ($#{parseFloat(film.rentalRate || film.rental_rate).toFixed(2)})
+                    .small.text-muted.text-center.mt-2
+                      | #{film.available_copies} of #{film.total_copies} copies available
+                  else
+                    button.btn.btn-secondary.btn-lg(disabled)
+                      i.fas.fa-ban.me-2
+                      | Currently Unavailable
+                    .small.text-muted.text-center.mt-2
+                      | All #{film.total_copies || 0} copies are rented
               
               else if user.role === 'admin'
                 .d-grid.gap-2
@@ -193,18 +201,31 @@ block content
               i.fas.fa-sign-in-alt.me-2
               | Login
 
-style.
-  .recommendation-card {
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
-  }
-  .recommendation-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  .recommendation-card .card-title a:hover {
-    color: #0d6efd !important;
-  }
-  .badge-sm {
-    font-size: 0.7em;
-  }
+  style.
+    .recommendation-card {
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .recommendation-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .recommendation-card .card-title a:hover {
+      color: #0d6efd !important;
+    }
+    .badge-sm {
+      font-size: 0.7em;
+    }
+
+  script.
+    // Add loading spinner to rental button
+    document.addEventListener('DOMContentLoaded', function() {
+      const rentButton = document.getElementById('rentButton');
+      if (rentButton) {
+        const form = rentButton.closest('form');
+        form.addEventListener('submit', function() {
+          rentButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing...';
+          rentButton.disabled = true;
+        });
+      }
+    });
