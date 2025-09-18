@@ -28,8 +28,53 @@ const customerService = {
   },
 
   getCustomerProfile: function(customerId, callback) {
-    callback(null, {
-      name: 'Test Customer'
+    const customerDao = require('../dao/customer.dao');
+    
+    customerDao.getCustomerById(customerId, function(err, customer) {
+      if (err) {
+        return callback(err);
+      }
+      
+      // Get account statistics
+      customerDao.getCustomerStats(customerId, function(err, stats) {
+        if (err) {
+          console.error('Error getting customer stats:', err);
+          // Continue without stats rather than failing
+        }
+        
+        callback(null, {
+          customer: customer,
+          accountStats: stats || {
+            activeRentals: 0,
+            totalSpent: 0,
+            totalRentals: 0,
+            overdueFees: 0
+          }
+        });
+      });
+    });
+  },
+
+  updateCustomerProfile: function(customerId, profileData, callback) {
+    const customerDao = require('../dao/customer.dao');
+    
+    // Basic validation
+    if (!profileData.firstName || !profileData.lastName || !profileData.email) {
+      return callback(new Error('Please fill in all required fields (First Name, Last Name, Email)'));
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(profileData.email)) {
+      return callback(new Error('Please enter a valid email address'));
+    }
+
+    customerDao.updateCustomer(customerId, profileData, function(err, result) {
+      if (err) {
+        return callback(err);
+      }
+
+      callback(null, result);
     });
   },
 

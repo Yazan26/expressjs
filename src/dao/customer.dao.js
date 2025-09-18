@@ -173,6 +173,125 @@ const customerDao = {
       
       callback(null, results);
     });
+  },
+
+  getCustomerById: function(customerId, callback) {
+    const query = `
+      SELECT c.customer_id, c.first_name, c.last_name, c.email, 
+             a.address, ci.city, a.postal_code, co.country, a.phone,
+             c.active, c.create_date, c.last_update
+      FROM customer c
+      LEFT JOIN address a ON c.address_id = a.address_id
+      LEFT JOIN city ci ON a.city_id = ci.city_id
+      LEFT JOIN country co ON ci.country_id = co.country_id
+      WHERE c.customer_id = ?
+    `;
+    
+    db.query(query, [customerId], function(err, results) {
+      if (err) {
+        return callback(err);
+      }
+      
+      if (results.length === 0) {
+        return callback(null, null);
+      }
+      
+      const customer = results[0];
+      // Transform database fields to template-friendly names
+      const transformedCustomer = {
+        customerId: customer.customer_id,
+        firstName: customer.first_name,
+        lastName: customer.last_name,
+        email: customer.email,
+        address: customer.address,
+        city: customer.city,
+        postalCode: customer.postal_code,
+        country: customer.country,
+        phone: customer.phone,
+        active: customer.active,
+        createDate: customer.create_date,
+        lastUpdate: customer.last_update
+      };
+      
+      callback(null, transformedCustomer);
+    });
+  },
+
+  getCustomerStats: function(customerId, callback) {
+    const query = `
+      SELECT 
+        COUNT(CASE WHEN r.return_date IS NULL THEN 1 END) as active_rentals,
+        COALESCE(SUM(p.amount), 0) as total_spent,
+        COUNT(DISTINCT p.payment_id) as total_rentals,
+        0 as overdue_fees
+      FROM rental r
+      LEFT JOIN payment p ON r.rental_id = p.rental_id
+      WHERE r.customer_id = ?
+    `;
+    
+    db.query(query, [customerId], function(err, results) {
+      if (err) {
+        return callback(err);
+      }
+      
+      const stats = results[0] || {};
+      callback(null, {
+        activeRentals: parseInt(stats.active_rentals) || 0,
+        totalSpent: parseFloat(stats.total_spent) || 0,
+        totalRentals: parseInt(stats.total_rentals) || 0,
+        overdueFees: parseFloat(stats.overdue_fees) || 0
+      });
+    });
+  },
+
+  updateCustomer: function(customerId, profileData, callback) {
+    // First get the customer's current address_id
+    const getAddressQuery = 'SELECT address_id FROM customer WHERE customer_id = ?';
+    
+    db.query(getAddressQuery, [customerId], function(err, results) {
+      if (err) {
+        return callback(err);
+      }
+      
+      if (results.length === 0) {
+        return callback(new Error('Customer not found'));
+      }
+      
+      const addressId = results[0].address_id;
+      
+      // Update customer basic info
+      const updateCustomerQuery = `
+        UPDATE customer 
+        SET first_name = ?, last_name = ?, email = ?, last_update = NOW()
+        WHERE customer_id = ?
+      `;
+      
+      db.query(updateCustomerQuery, [profileData.firstName, profileData.lastName, profileData.email, customerId], function(err, result) {
+        if (err) {
+          return callback(err);
+        }
+        
+        // Update address if addressId exists
+        if (addressId) {
+          const updateAddressQuery = `
+            UPDATE address 
+            SET address = ?, postal_code = ?, phone = ?, last_update = NOW()
+            WHERE address_id = ?
+          `;
+          
+          db.query(updateAddressQuery, [profileData.address, profileData.postalCode || null, profileData.phone || null, addressId], function(err, addressResult) {
+            if (err) {
+              console.error('Error updating address:', err);
+              // Continue even if address update fails
+            }
+            
+            callback(null, { customerId: customerId, updated: true });
+          });
+        } else {
+          callback(null, { customerId: customerId, updated: true });
+        }
+      });
+    });
   }
 
 };

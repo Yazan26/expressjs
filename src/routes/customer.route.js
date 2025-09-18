@@ -11,6 +11,7 @@ router.use(requireRole('customer'));
 // Dashboard and Profile Routes
 router.get('/dashboard', customerController.getDashboard);
 router.get('/profile', customerController.getProfile);
+router.post('/profile', customerController.updateProfile);
 
 // Movie Browsing and Rental Routes
 router.get('/movies', customerController.getMovies);

@@ -25,8 +25,54 @@ const customerController = {
   },
 
   getProfile: function(req, res, next) {
-    res.render('customer/profile', {
-      title: 'Customer Profile'
+    const customerId = req.session.user?.id;
+
+    if (!customerId) {
+      return res.redirect('/auth/login');
+    }
+
+    customerService.getCustomerProfile(customerId, function(err, data) {
+      if (err) {
+        console.error('Profile error:', err);
+        return next(err);
+      }
+
+      res.render('customer/profile', {
+        title: 'Customer Profile',
+        user: req.session.user,
+        customer: data.customer || null,
+        accountStats: data.accountStats || null,
+        messages: {
+          success: req.flash('success') || [],
+          error: req.flash('error') || []
+        }
+      });
+    });
+  },
+
+  updateProfile: function(req, res, next) {
+    const customerId = req.session.user?.id;
+    const profileData = {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      address: req.body.address || null,
+      postalCode: req.body.postalCode || null,
+      phone: req.body.phone || null
+    };
+
+    if (!customerId) {
+      return res.redirect('/auth/login');
+    }
+
+    customerService.updateCustomerProfile(customerId, profileData, function(err, result) {
+      if (err) {
+        req.flash('error', err.message || 'Failed to update profile');
+        return res.redirect('/customer/profile');
+      }
+
+      req.flash('success', 'Profile updated successfully!');
+      res.redirect('/customer/profile');
     });
   },
 
