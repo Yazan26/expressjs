@@ -43,10 +43,11 @@ const customerDao = {
   },
 
   createRental: function(customerId, filmId, callback) {
-    // First, find an available inventory item for the film
+    // First, find an available inventory item for the film and get the rental rate
     const findInventoryQuery = `
-      SELECT i.inventory_id
+      SELECT i.inventory_id, f.rental_rate
       FROM inventory i
+      JOIN film f ON i.film_id = f.film_id
       LEFT JOIN rental r ON i.inventory_id = r.inventory_id AND r.return_date IS NULL
       WHERE i.film_id = ? AND r.rental_id IS NULL
       LIMIT 1
@@ -62,6 +63,7 @@ const customerDao = {
       }
       
       const inventoryId = inventoryResults[0].inventory_id;
+      const rentalRate = inventoryResults[0].rental_rate;
       
       // Create the rental
       const createRentalQuery = `
@@ -76,13 +78,13 @@ const customerDao = {
         
         const rentalId = result.insertId;
         
-        // Create payment record
+        // Create payment record with actual rental rate
         const createPaymentQuery = `
           INSERT INTO payment (customer_id, staff_id, rental_id, amount, payment_date)
-          VALUES (?, 1, ?, 4.99, NOW())
+          VALUES (?, 1, ?, ?, NOW())
         `;
         
-        db.query(createPaymentQuery, [customerId, rentalId], function(err, paymentResult) {
+        db.query(createPaymentQuery, [customerId, rentalId, rentalRate], function(err, paymentResult) {
           if (err) {
             return callback(err);
           }
