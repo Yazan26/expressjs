@@ -2,6 +2,7 @@ const filmsDao = require('../dao/films.dao');
 const usersDao = require('../dao/users.dao');
 const logger = require('../util/logger');
 const emailUtil = require('../util/email');
+const hash = require('../util/hash');
 
 /**
  * Admin Service - Streamlined administrative operations using existing Sakila tables
@@ -64,8 +65,8 @@ const adminService = {
   },
 
   createFilm: function(filmData, callback) {
-    const query = `INSERT INTO film (title, description, release_year, length, rating, rental_rate, replacement_cost, last_update) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`;
-    const params = [filmData.title, filmData.description, filmData.releaseYear, filmData.length, filmData.rating, filmData.rentalRate, filmData.rentalRate * 10];
+    const query = `INSERT INTO film (title, description, release_year, language_id, length, rating, rental_rate, replacement_cost, last_update) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`;
+    const params = [filmData.title, filmData.description, filmData.releaseYear, filmData.languageId, filmData.length, filmData.rating, filmData.rentalRate, filmData.rentalRate * 10];
 
     usersDao.query(query, params, function(err, result) {
       if (err) return callback(err);
@@ -158,17 +159,66 @@ const adminService = {
   },
 
   createStaff: function(staffData, callback) {
-    // Normalize email to company domain
-    const email = emailUtil.normalizeCompanyEmail(staffData.email);
-    const username = email.split('@')[0];
+    // Handle email and username properly
+    let email, username;
     
-    const query = `INSERT INTO staff (first_name, last_name, email, store_id, active, username, role, last_update, address_id) VALUES (?, ?, ?, ?, 1, ?, ?, NOW(), 1)`;
-    const params = [staffData.firstName, staffData.lastName, email, staffData.storeId, username, staffData.role];
+    if (staffData.username) {
+      // If username is provided, use it as the local part
+      try {
+        email = emailUtil.normalizeCompanyEmail(staffData.username);
+        username = staffData.username.trim().toLowerCase();
+      } catch (err) {
+        return callback(new Error('Invalid username format. Only letters, numbers, dots, underscores, and hyphens are allowed.'));
+      }
+    } else if (staffData.email) {
+      // If only email is provided, extract username from it
+      if (emailUtil.isValidEmail(staffData.email)) {
+        if (emailUtil.isCompanyEmail(staffData.email)) {
+          email = staffData.email.toLowerCase();
+          username = emailUtil.getLocalPart(staffData.email);
+        } else {
+          // Extract local part and create company email
+          username = staffData.email.split('@')[0].trim().toLowerCase();
+          try {
+            email = emailUtil.normalizeCompanyEmail(username);
+          } catch (err) {
+            return callback(new Error('Invalid email format. Please use a valid format.'));
+          }
+        }
+      } else {
+        return callback(new Error('Please provide a valid email address.'));
+      }
+    } else {
+      return callback(new Error('Either username or email must be provided.'));
+    }
+    
+    // Hash the password first
+    hash.create(staffData.password, function(hashErr, hashedPassword) {
+      if (hashErr) return callback(hashErr);
+      
+      // Try to insert with role and password_hash columns first
+      const fullQuery = `INSERT INTO staff (first_name, last_name, email, store_id, active, username, role, password_hash, last_update, address_id) VALUES (?, ?, ?, ?, 1, ?, ?, ?, NOW(), 1)`;
+      const fullParams = [staffData.firstName, staffData.lastName, email, staffData.storeId, username, staffData.role, hashedPassword];
 
-    usersDao.query(query, params, function(err, result) {
-      if (err) return callback(err);
-      logger.info('Staff created', { staffId: result.insertId, email });
-      callback(null, { staffId: result.insertId });
+      usersDao.query(fullQuery, fullParams, function(err, result) {
+        if (err && err.code === 'ER_BAD_FIELD_ERROR') {
+          // If role/password_hash columns don't exist, fall back to basic structure
+          logger.warn('Role/password_hash columns not found, using basic staff structure');
+          const basicQuery = `INSERT INTO staff (first_name, last_name, email, store_id, active, username, last_update, address_id) VALUES (?, ?, ?, ?, 1, ?, NOW(), 1)`;
+          const basicParams = [staffData.firstName, staffData.lastName, email, staffData.storeId, username];
+          
+          usersDao.query(basicQuery, basicParams, function(basicErr, basicResult) {
+            if (basicErr) return callback(basicErr);
+            logger.info('Staff created with basic structure', { staffId: basicResult.insertId, email, username });
+            callback(null, { staffId: basicResult.insertId });
+          });
+        } else if (err) {
+          return callback(err);
+        } else {
+          logger.info('Staff created with full structure', { staffId: result.insertId, email, username });
+          callback(null, { staffId: result.insertId });
+        }
+      });
     });
   },
 

@@ -35,6 +35,27 @@ const filmsService = {
    */
   getFilmDetails: function(filmId, callback) {
     filmsDao.getFilmById(filmId, callback);
+  },
+
+  /**
+   * Get all categories for dropdowns and filters
+   */
+  getCategories: function(callback) {
+    filmsDao.getCategories(callback);
+  },
+
+  /**
+   * Get all ratings for dropdowns and filters
+   */
+  getRatings: function(callback) {
+    filmsDao.getRatings(callback);
+  },
+
+  /**
+   * Get all languages for dropdowns and film creation
+   */
+  getLanguages: function(callback) {
+    filmsDao.getLanguages(callback);
   }
 
 };

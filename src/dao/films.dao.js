@@ -215,6 +215,11 @@ const filmsDao = {
       const ratings = results.map(r => r.rating);
       callback(null, ratings);
     });
+  },
+
+  // Get all languages for film creation
+  getLanguages: function(callback) {
+    database.query('SELECT language_id, name FROM language ORDER BY name', callback);
   }
 
 };

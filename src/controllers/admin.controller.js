@@ -44,14 +44,19 @@ const adminController = {
     filmsService.getCategories(function(err, categories) {
       if (err) return next(err);
       
-      const success = req.flash('success');
-      const error = req.flash('error');
-      
-      res.render('admin/films-new', { 
-        title: 'Add New Film - Admin', 
-        categories: categories, 
-        success: success.length > 0 ? success[0] : null,
-        error: error.length > 0 ? error[0] : null
+      filmsService.getLanguages(function(langErr, languages) {
+        if (langErr) return next(langErr);
+        
+        const success = req.flash('success');
+        const error = req.flash('error');
+        
+        res.render('admin/films-new', { 
+          title: 'Add New Film - Admin', 
+          categories: categories,
+          languages: languages,
+          success: success.length > 0 ? success[0] : null,
+          error: error.length > 0 ? error[0] : null
+        });
       });
     });
   },
@@ -64,6 +69,7 @@ const adminController = {
       length: parseInt(req.body.length) || null,
       rating: req.body.rating,
       rentalRate: parseFloat(req.body.rental_rate) || 2.99,
+      languageId: parseInt(req.body.languageId) || 1,
       categoryId: parseInt(req.body.category_id) || null
     };
 
@@ -183,12 +189,24 @@ const adminController = {
       firstName: req.body.first_name?.trim(),
       lastName: req.body.last_name?.trim(),
       email: req.body.email?.trim(),
+      username: req.body.username?.trim(),
+      password: req.body.password,
       role: req.body.role || 'staff',
       storeId: parseInt(req.body.store_id) || 1
     };
 
-    if (!staffData.firstName || !staffData.lastName || !staffData.email) {
-      req.flash('error', 'First name, last name and email are required');
+    if (!staffData.firstName || !staffData.lastName || !staffData.password) {
+      req.flash('error', 'First name, last name, and password are required');
+      return res.redirect('/admin/staff/new');
+    }
+
+    if (!staffData.username && !staffData.email) {
+      req.flash('error', 'Either username or email must be provided');
+      return res.redirect('/admin/staff/new');
+    }
+
+    if (staffData.password.length < 6) {
+      req.flash('error', 'Password must be at least 6 characters long');
       return res.redirect('/admin/staff/new');
     }
 
