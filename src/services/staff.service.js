@@ -10,6 +10,17 @@ const staffService = {
    * Get available offers for staff to select from (with real discounts)
    */
   getOffersData: function(options, callback) {
+    let whereClause = `WHERE (fo.film_id IS NOT NULL OR so.film_id IS NOT NULL OR f.rental_rate <= 4.99)
+        AND (fo.valid_from IS NULL OR fo.valid_from <= NOW())
+        AND (fo.valid_to IS NULL OR fo.valid_to >= NOW())`;
+    let queryParams = [];
+
+    // Apply category filter
+    if (options.category && options.category !== 'all' && options.category !== '' && options.category !== '0') {
+      whereClause += ' AND c.category_id = ?';
+      queryParams.push(parseInt(options.category));
+    }
+
     const query = `SELECT 
         f.film_id, f.title, f.description, f.rental_rate, f.rating, c.name as category_name,
         COALESCE(fo.discount_percent, so.discount_percent, 15) as discount_percent,
@@ -23,17 +34,16 @@ const staffService = {
       LEFT JOIN category c ON fc.category_id = c.category_id
       LEFT JOIN film_offers fo ON f.film_id = fo.film_id AND fo.active = 1
       LEFT JOIN staff_offers so ON f.film_id = so.film_id AND so.active = 1
-      WHERE (fo.film_id IS NOT NULL OR so.film_id IS NOT NULL OR f.rental_rate <= 4.99)
-        AND (fo.valid_from IS NULL OR fo.valid_from <= NOW())
-        AND (fo.valid_to IS NULL OR fo.valid_to >= NOW())
+      ${whereClause}
       ORDER BY discount_percent DESC, f.title
       LIMIT ? OFFSET ?`;
 
     const limit = options.limit || 20;
     const offset = options.offset || 0;
+    queryParams.push(limit, offset);
     
     const usersDao = require('../dao/users.dao');
-    usersDao.query(query, [limit, offset], function(err, offers) {
+    usersDao.query(query, queryParams, function(err, offers) {
       if (err && err.message.includes("doesn't exist")) {
         // Fallback to basic films with default discounts
         filmsDao.getAllFilms(options, function(filmErr, filmResult) {

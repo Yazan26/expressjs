@@ -29,9 +29,9 @@ const filmsDao = {
     }
     
     // Add category filter
-    if (options.category && options.category !== 'all' && options.category !== '') {
-      filters.push('c.name = ?');
-      params.push(options.category);
+    if (options.category && options.category !== 'all' && options.category !== '' && options.category !== '0') {
+      filters.push('c.category_id = ?');
+      params.push(parseInt(options.category));
     }
     
     // Add rating filter

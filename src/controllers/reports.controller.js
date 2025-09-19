@@ -152,13 +152,23 @@ const reportsController = {
         return next(err);
       }
 
-      res.render('reports/inventory', {
-        title: 'Inventory Reports',
-        inventory: data.inventory || [],
-        summary: data.summary || {},
-        alerts: data.alerts || [],
-        filters: data.filters || {},
-        user: req.session.user
+      // Get categories for the filter dropdown
+      const filmsDao = require('../dao/films.dao');
+      filmsDao.getCategories(function(catErr, categories) {
+        if (catErr) {
+          console.error('Error fetching categories:', catErr);
+          categories = [];
+        }
+
+        res.render('reports/inventory', {
+          title: 'Inventory Reports',
+          inventory: data.inventory || [],
+          summary: data.summary || {},
+          alerts: data.alerts || [],
+          filters: data.filters || {},
+          categories: categories || [],
+          user: req.session.user
+        });
       });
     });
   },
@@ -180,13 +190,23 @@ const reportsController = {
         return next(err);
       }
 
-      res.render('reports/offers', {
-        title: 'Offers Performance Report',
-        offers: data.offers || [],
-        summary: data.summary || {},
-        topPerformers: data.topPerformers || [],
-        filters: data.filters || {},
-        user: req.session.user
+      // Get categories for the filter dropdown
+      const filmsDao = require('../dao/films.dao');
+      filmsDao.getCategories(function(catErr, categories) {
+        if (catErr) {
+          console.error('Error fetching categories:', catErr);
+          categories = [];
+        }
+
+        res.render('reports/offers', {
+          title: 'Offers Performance Report',
+          offers: data.offers || [],
+          summary: data.summary || {},
+          topPerformers: data.topPerformers || [],
+          filters: data.filters || {},
+          categories: categories || [],
+          user: req.session.user
+        });
       });
     });
   }

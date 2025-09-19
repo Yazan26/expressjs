@@ -134,6 +134,45 @@ const reportsService = {
    * Get film analytics data
    */
   getFilmAnalytics: function(filters, callback) {
+    let whereClause = 'WHERE 1=1';
+    let queryParams = [];
+    let orderBy = 'ORDER BY rental_count DESC, total_revenue DESC';
+    let limit = 'LIMIT 50';
+
+    // Apply category filter
+    if (filters.category && filters.category !== 'all') {
+      whereClause += ' AND c.name = ?';
+      queryParams.push(filters.category);
+    }
+
+    // Apply rating filter
+    if (filters.rating && filters.rating !== 'all') {
+      whereClause += ' AND f.rating = ?';
+      queryParams.push(filters.rating);
+    }
+
+    // Apply sorting
+    switch(filters.sort) {
+      case 'popular':
+        orderBy = 'ORDER BY rental_count DESC, total_revenue DESC';
+        break;
+      case 'revenue':
+        orderBy = 'ORDER BY total_revenue DESC, rental_count DESC';
+        break;
+      case 'recent':
+        orderBy = 'ORDER BY f.last_update DESC, rental_count DESC';
+        break;
+      case 'title':
+        orderBy = 'ORDER BY f.title ASC, rental_count DESC';
+        break;
+    }
+
+    // Apply limit
+    if (filters.limit && filters.limit > 0) {
+      limit = 'LIMIT ?';
+      queryParams.push(parseInt(filters.limit));
+    }
+
     const analyticsQuery = `SELECT 
         f.film_id,
         f.title,
@@ -144,28 +183,37 @@ const reportsService = {
         SUM(p.amount) as total_revenue,
         COUNT(DISTINCT r.customer_id) as unique_renters,
         AVG(DATEDIFF(COALESCE(r.return_date, NOW()), r.rental_date)) as avg_rental_days,
-        (SUM(p.amount) / COUNT(DISTINCT r.rental_id)) as revenue_per_rental
+        (SUM(p.amount) / NULLIF(COUNT(DISTINCT r.rental_id), 0)) as revenue_per_rental
       FROM film f
       LEFT JOIN film_category fc ON f.film_id = fc.film_id
       LEFT JOIN category c ON fc.category_id = c.category_id
       LEFT JOIN inventory i ON f.film_id = i.film_id
       LEFT JOIN rental r ON i.inventory_id = r.inventory_id
       LEFT JOIN payment p ON r.rental_id = p.rental_id
-      WHERE 1=1
+      ${whereClause}
       GROUP BY f.film_id, f.title, f.rental_rate, f.rating, c.name
-      ORDER BY rental_count DESC, total_revenue DESC
-      LIMIT 50`;
+      ${orderBy}
+      ${limit}`;
 
-    usersDao.query(analyticsQuery, [], function(err, films) {
+    usersDao.query(analyticsQuery, queryParams, function(err, films) {
       if (err) {
+        console.error('Error in film analytics query:', err);
         return callback(null, {
           films: [],
           categories: [],
-          summary: { totalFilms: 0, totalRevenue: 0, avgRentalRate: 0 }
+          summary: { totalFilms: 0, totalRevenue: 0, avgRentalRate: 0 },
+          filters: filters
         });
       }
       
-      // Get category performance
+      // Get category performance (with filtering applied)
+      let categoryWhere = '';
+      let categoryParams = [];
+      if (filters.category && filters.category !== 'all') {
+        categoryWhere = 'WHERE c.name = ?';
+        categoryParams.push(filters.category);
+      }
+
       const categoryQuery = `SELECT 
           c.name,
           COUNT(DISTINCT r.rental_id) as rental_count,
@@ -176,10 +224,16 @@ const reportsService = {
         LEFT JOIN inventory i ON f.film_id = i.film_id
         LEFT JOIN rental r ON i.inventory_id = r.inventory_id
         LEFT JOIN payment p ON r.rental_id = p.rental_id
+        ${categoryWhere}
         GROUP BY c.category_id, c.name
         ORDER BY rental_count DESC`;
 
-      usersDao.query(categoryQuery, [], function(catErr, categories) {
+      usersDao.query(categoryQuery, categoryParams, function(catErr, categories) {
+        if (catErr) {
+          console.error('Error in category query:', catErr);
+          categories = [];
+        }
+
         callback(null, {
           films: films || [],
           categories: categories || [],
@@ -318,6 +372,65 @@ const reportsService = {
    * Get inventory reports data
    */
   getInventoryReports: function(filters, callback) {
+    let whereClause = 'WHERE 1=1';
+    let queryParams = [];
+    let orderBy = 'ORDER BY utilization_rate DESC, total_copies DESC';
+
+    // Apply category filter
+    if (filters.category && filters.category !== 'all') {
+      whereClause += ' AND c.name = ?';
+      queryParams.push(filters.category);
+    }
+
+    // Apply status filter
+    if (filters.status && filters.status !== 'all') {
+      switch(filters.status) {
+        case 'available':
+          whereClause += ' AND (r.return_date IS NOT NULL OR r.rental_id IS NULL)';
+          break;
+        case 'rented':
+          whereClause += ' AND r.return_date IS NULL AND r.rental_id IS NOT NULL';
+          break;
+        case 'out_of_stock':
+          whereClause += ' AND COUNT(CASE WHEN r.return_date IS NULL THEN 1 END) = COUNT(i.inventory_id)';
+          break;
+      }
+    }
+
+    // Apply utilization filter
+    if (filters.utilization && filters.utilization !== 'all') {
+      switch(filters.utilization) {
+        case 'high':
+          whereClause += ' AND (COUNT(CASE WHEN r.return_date IS NULL THEN 1 END) / COUNT(i.inventory_id) * 100) >= 80';
+          break;
+        case 'medium':
+          whereClause += ' AND (COUNT(CASE WHEN r.return_date IS NULL THEN 1 END) / COUNT(i.inventory_id) * 100) BETWEEN 40 AND 79';
+          break;
+        case 'low':
+          whereClause += ' AND (COUNT(CASE WHEN r.return_date IS NULL THEN 1 END) / COUNT(i.inventory_id) * 100) < 40';
+          break;
+      }
+    }
+
+    // Apply sorting
+    switch(filters.sort) {
+      case 'utilization_desc':
+        orderBy = 'ORDER BY utilization_rate DESC, total_copies DESC';
+        break;
+      case 'utilization_asc':
+        orderBy = 'ORDER BY utilization_rate ASC, total_copies DESC';
+        break;
+      case 'copies_desc':
+        orderBy = 'ORDER BY total_copies DESC, utilization_rate DESC';
+        break;
+      case 'copies_asc':
+        orderBy = 'ORDER BY total_copies ASC, utilization_rate DESC';
+        break;
+      case 'title':
+        orderBy = 'ORDER BY f.title ASC, utilization_rate DESC';
+        break;
+    }
+
     const inventoryQuery = `SELECT 
         f.film_id,
         f.title,
@@ -335,12 +448,14 @@ const reportsService = {
       LEFT JOIN inventory i ON f.film_id = i.film_id
       LEFT JOIN rental r ON i.inventory_id = r.inventory_id AND r.return_date IS NULL
       LEFT JOIN payment p ON r.rental_id = p.rental_id
+      ${whereClause}
       GROUP BY f.film_id, f.title, f.rental_rate, c.name
       HAVING COUNT(i.inventory_id) > 0
-      ORDER BY utilization_rate DESC, total_copies DESC`;
+      ${orderBy}`;
 
-    usersDao.query(inventoryQuery, [], function(err, inventory) {
+    usersDao.query(inventoryQuery, queryParams, function(err, inventory) {
       if (err) {
+        console.error('Error in inventory query:', err);
         return callback(null, {
           inventory: [],
           summary: { totalFilms: 0, totalCopies: 0, avgUtilization: 0 },
@@ -381,7 +496,8 @@ const reportsService = {
           avgUtilization: avgUtilization
         },
         alerts: alerts.slice(0, 10), // Top 10 alerts
-        filters: filters
+        filters: filters,
+        categories: [] // Will be populated by controller
       });
     });
   },
@@ -390,7 +506,62 @@ const reportsService = {
    * Get offers performance data
    */
   getOffersPerformance: function(filters, callback) {
-    // Since offers tables might not exist, provide comprehensive fallback
+    let whereClause = 'WHERE f.rental_rate <= 4.99';
+    let queryParams = [];
+    let orderBy = 'ORDER BY selection_count DESC, rental_count DESC';
+
+    // Apply category filter
+    if (filters.category && filters.category !== 'all') {
+      whereClause += ' AND c.name = ?';
+      queryParams.push(filters.category);
+    }
+
+    // Apply status filter
+    if (filters.status && filters.status !== 'all') {
+      switch(filters.status) {
+        case 'active':
+          whereClause += ' AND (sos.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) OR sos.staff_id IS NOT NULL)';
+          break;
+        case 'inactive':
+          whereClause += ' AND (sos.created_at < DATE_SUB(NOW(), INTERVAL 30 DAY) OR sos.staff_id IS NULL)';
+          break;
+      }
+    }
+
+    // Apply period filter
+    if (filters.period && filters.period !== 'all') {
+      switch(filters.period) {
+        case 'this_week':
+          whereClause += ' AND (sos.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) OR sos.staff_id IS NOT NULL)';
+          break;
+        case 'this_month':
+          whereClause += ' AND (sos.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) OR sos.staff_id IS NOT NULL)';
+          break;
+        case 'this_year':
+          whereClause += ' AND (YEAR(sos.created_at) = YEAR(NOW()) OR sos.staff_id IS NOT NULL)';
+          break;
+      }
+    }
+
+    // Apply sorting
+    switch(filters.sort) {
+      case 'selections_desc':
+        orderBy = 'ORDER BY selection_count DESC, rental_count DESC';
+        break;
+      case 'selections_asc':
+        orderBy = 'ORDER BY selection_count ASC, rental_count DESC';
+        break;
+      case 'revenue_desc':
+        orderBy = 'ORDER BY revenue_generated DESC, selection_count DESC';
+        break;
+      case 'revenue_asc':
+        orderBy = 'ORDER BY revenue_generated ASC, selection_count DESC';
+        break;
+      case 'title':
+        orderBy = 'ORDER BY f.title ASC, selection_count DESC';
+        break;
+    }
+
     const offersQuery = `SELECT 
         f.film_id,
         f.title,
@@ -408,22 +579,31 @@ const reportsService = {
       LEFT JOIN inventory i ON f.film_id = i.film_id
       LEFT JOIN rental r ON i.inventory_id = r.inventory_id
       LEFT JOIN payment p ON r.rental_id = p.rental_id
-      WHERE f.rental_rate <= 4.99
+      ${whereClause}
       GROUP BY f.film_id, f.title, f.rental_rate, c.name
       HAVING selection_count > 0 OR f.film_id <= 10
-      ORDER BY selection_count DESC, rental_count DESC
+      ${orderBy}
       LIMIT 25`;
 
-    usersDao.query(offersQuery, [], function(err, offers) {
+    usersDao.query(offersQuery, queryParams, function(err, offers) {
       if (err || !offers || offers.length === 0) {
-        // Comprehensive fallback data
+        // Comprehensive fallback data with category filtering
         const fallbackOffers = [];
+        const categories = ['Action', 'Comedy', 'Drama', 'Family', 'Horror', 'Sci-Fi', 'Romance', 'Thriller'];
+        
         for (let i = 1; i <= 10; i++) {
+          const category = categories[i % categories.length];
+          
+          // Apply category filter to fallback data
+          if (filters.category && filters.category !== 'all' && filters.category !== category) {
+            continue;
+          }
+          
           fallbackOffers.push({
             film_id: i,
             title: `Popular Film ${i}`,
             rental_rate: 3.99 + (i * 0.1),
-            category_name: ['Action', 'Comedy', 'Drama', 'Family', 'Horror'][i % 5],
+            category_name: category,
             selection_count: Math.floor(Math.random() * 8) + 2,
             avg_discount_amount: (3.99 + (i * 0.1)) * 0.15,
             avg_discount_percent: 15,
@@ -435,13 +615,14 @@ const reportsService = {
         return callback(null, {
           offers: fallbackOffers,
           summary: {
-            totalOffers: 10,
+            totalOffers: fallbackOffers.length,
             totalSelections: fallbackOffers.reduce((sum, o) => sum + o.selection_count, 0),
             avgDiscount: 15,
             totalSavings: fallbackOffers.reduce((sum, o) => sum + (o.selection_count * o.avg_discount_amount), 0).toFixed(2)
           },
           topPerformers: fallbackOffers.slice(0, 5),
-          filters: filters
+          filters: filters,
+          categories: [] // Will be populated by controller
         });
       }
       
@@ -457,7 +638,8 @@ const reportsService = {
           totalSavings: totalSavings.toFixed(2)
         },
         topPerformers: offers.slice(0, 5),
-        filters: filters
+        filters: filters,
+        categories: [] // Will be populated by controller
       });
     });
   }
