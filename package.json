@@ -12,7 +12,7 @@
     "test:rental": "cypress run --spec 'cypress/e2e/rental.cy.js'",
     "test:integration": "cypress run --spec 'cypress/e2e/integration.cy.js'",
     "test:all": "cypress run --spec 'cypress/e2e/{auth,rental,integration}.cy.js'",
-    "test:ci": "cypress run --record false --config baseUrl=$CYPRESS_BASE_URL"
+    "test:ci": "cypress run --headless --browser electron --reporter spec"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
