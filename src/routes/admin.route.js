@@ -33,8 +33,10 @@ router.post('/staff/:id/deactivate', adminController.postToggleStaff);
 
 // Offers management routes
 router.get('/offers', adminController.getOffers);
-router.post('/offers/:filmId/activate', adminController.postToggleOffer);
-router.post('/offers/:filmId/deactivate', adminController.postToggleOffer);
+router.get('/offers/new', adminController.getNewOffer);
+router.post('/offers/new', adminController.postCreateOffer);
+router.post('/offers/activate/:filmId', adminController.postToggleOffer);
+router.post('/offers/deactivate/:filmId', adminController.postToggleOffer);
 router.post('/offers/batch', adminController.postBatchOffers);
 
 module.exports = router;

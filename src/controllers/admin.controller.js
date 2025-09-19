@@ -278,6 +278,42 @@ const adminController = {
       req.flash('success', `${result.updated} offers ${action}d successfully`);
       res.redirect('/admin/offers');
     });
+  },
+
+  getNewOffer: function(req, res, next) {
+    // Get films that don't already have active offers
+    adminService.getAvailableFilmsForOffers(function(err, films) {
+      if (err) return next(err);
+      
+      const success = req.flash('success');
+      const error = req.flash('error');
+      
+      res.render('admin/offers-new', {
+        title: 'Create New Offer - Admin',
+        films: films,
+        success: success.length > 0 ? success[0] : null,
+        error: error.length > 0 ? error[0] : null
+      });
+    });
+  },
+
+  postCreateOffer: function(req, res, next) {
+    const { filmIds, discountPercent, validFrom, validTo, description } = req.body;
+    
+    adminService.createOffers({
+      filmIds: Array.isArray(filmIds) ? filmIds : [filmIds],
+      discountPercent: parseFloat(discountPercent) || 0,
+      validFrom,
+      validTo,
+      description
+    }, function(err) {
+      if (err) {
+        req.flash('error', err.message);
+        return res.redirect('/admin/offers/new');
+      }
+      req.flash('success', 'Offers created successfully');
+      res.redirect('/admin/offers');
+    });
   }
 
 };

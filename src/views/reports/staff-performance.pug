@@ -273,56 +273,56 @@ block content
                   i.fas.fa-sort-amount-down.me-2
                   | Top Performers
 
-script.
-  function printReport() {
-    window.print();
-  }
-
-  function exportReport() {
-    // Create CSV content
-    let csvContent = "Staff Member,Role,Rentals Handled,Revenue Generated,Performance Score,Status\n";
-    
-    // Get table rows
-    const rows = document.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-      const cells = row.querySelectorAll('td');
-      if (cells.length >= 6) {
-        const name = cells[0].querySelector('.fw-bold').textContent.trim();
-        const role = cells[1].textContent.trim();
-        const rentals = cells[2].querySelector('.fw-bold').textContent.trim();
-        const revenue = cells[3].querySelector('.fw-bold').textContent.trim();
-        const score = cells[5].querySelector('.small').textContent.trim();
-        const status = cells[6].textContent.trim();
-        
-        csvContent += `"${name}","${role}","${rentals}","${revenue}","${score}","${status}"\n`;
-      }
-    });
-    
-    // Download CSV
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'staff-performance-report.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  }
-
-style.
-  .card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-  }
-  .table th {
-    border-top: none;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .progress {
-    background-color: #e9ecef;
-  }
-  @media print {
-    .btn-group, .card.bg-light {
-      display: none !important;
+  script.
+    function printReport() {
+      window.print();
     }
-  }
+
+    function exportReport() {
+      // Create CSV content
+      let csvContent = "Staff Member,Role,Rentals Handled,Revenue Generated,Performance Score,Status\n";
+      
+      // Get table rows
+      const rows = document.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 6) {
+          const name = cells[0].querySelector('.fw-bold').textContent.trim();
+          const role = cells[1].textContent.trim();
+          const rentals = cells[2].querySelector('.fw-bold').textContent.trim();
+          const revenue = cells[3].querySelector('.fw-bold').textContent.trim();
+          const score = cells[5].querySelector('.small').textContent.trim();
+          const status = cells[6].textContent.trim();
+          
+          csvContent += `"${name}","${role}","${rentals}","${revenue}","${score}","${status}"\n`;
+        }
+      });
+      
+      // Download CSV
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'staff-performance-report.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+
+  style.
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .table th {
+      border-top: none;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .progress {
+      background-color: #e9ecef;
+    }
+    @media print {
+      .btn-group, .card.bg-light {
+        display: none !important;
+      }
+    }

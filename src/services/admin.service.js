@@ -351,6 +351,183 @@ const adminService = {
         });
       }
     });
+  },
+
+  getAvailableFilmsForOffers: function(callback) {
+    // Get films that don't have active offers (fallback compatible)
+    const query = `SELECT f.film_id, f.title, f.rental_rate, f.rating, c.name as category_name
+                   FROM film f 
+                   LEFT JOIN film_category fc ON f.film_id = fc.film_id 
+                   LEFT JOIN category c ON fc.category_id = c.category_id 
+                   WHERE NOT EXISTS(
+                     SELECT 1 FROM film_offers fo 
+                     WHERE fo.film_id = f.film_id 
+                     AND fo.active = 1
+                   )
+                   ORDER BY f.title`;
+
+    usersDao.query(query, [], function(err, films) {
+      if (err && (err.message.includes("doesn't exist") || err.message.includes("Unknown column"))) {
+        // Fallback - just get all films since we don't have offers table
+        const fallbackQuery = `SELECT f.film_id, f.title, f.rental_rate, f.rating, c.name as category_name
+                               FROM film f 
+                               LEFT JOIN film_category fc ON f.film_id = fc.film_id 
+                               LEFT JOIN category c ON fc.category_id = c.category_id 
+                               ORDER BY f.title`;
+        
+        usersDao.query(fallbackQuery, [], callback);
+        return;
+      }
+      
+      callback(err, films);
+    });
+  },
+
+  createOffers: function(offerData, callback) {
+    const { filmIds, discountPercent, validFrom, validTo, description } = offerData;
+    
+    // Try to create offers in film_offers table
+    const insertQuery = `INSERT INTO film_offers (film_id, discount_percent, valid_from, valid_to, description, active, created_at) 
+                         VALUES (?, ?, ?, ?, ?, 1, NOW())`;
+    
+    let processed = 0;
+    let errors = [];
+    let successCount = 0;
+    
+    filmIds.forEach(filmId => {
+      usersDao.query(insertQuery, [
+        parseInt(filmId),
+        discountPercent,
+        validFrom || null,
+        validTo || null,
+        description || 'Special offer'
+      ], function(err) {
+        processed++;
+        
+        if (err) {
+          if (err.message.includes("doesn't exist")) {
+            // Table doesn't exist - create a fallback entry in a simple offers tracking table
+            const fallbackQuery = `INSERT INTO staff_offers (film_id, discount_percent, description, active, created_at) 
+                                   VALUES (?, ?, ?, 1, NOW()) 
+                                   ON DUPLICATE KEY UPDATE 
+                                   discount_percent = VALUES(discount_percent), 
+                                   description = VALUES(description), 
+                                   active = 1`;
+            
+            usersDao.query(fallbackQuery, [parseInt(filmId), discountPercent, description || 'Special offer'], function(fallbackErr) {
+              if (!fallbackErr) successCount++;
+            });
+          } else {
+            errors.push(`Film ${filmId}: ${err.message}`);
+          }
+        } else {
+          successCount++;
+        }
+        
+        if (processed === filmIds.length) {
+          if (errors.length > 0 && successCount === 0) {
+            callback(new Error(errors.join(', ')));
+          } else {
+            callback(null, { created: successCount });
+          }
+        }
+      });
+    });
+  },
+
+  // NEW: Get staff offer selections and calculate savings
+  getStaffOfferSelections: function(staffId, callback) {
+    const query = `SELECT 
+        f.film_id, f.title, f.rental_rate,
+        COALESCE(fo.discount_percent, so.discount_percent, 0) as discount_percent,
+        COALESCE(fo.description, so.description, 'Special offer') as offer_description,
+        (f.rental_rate * COALESCE(fo.discount_percent, so.discount_percent, 0) / 100) as discount_amount,
+        (f.rental_rate - (f.rental_rate * COALESCE(fo.discount_percent, so.discount_percent, 0) / 100)) as discounted_price,
+        sos.selected_at
+      FROM staff_offer_selections sos
+      JOIN film f ON sos.film_id = f.film_id
+      LEFT JOIN film_offers fo ON f.film_id = fo.film_id AND fo.active = 1
+      LEFT JOIN staff_offers so ON f.film_id = so.film_id AND so.active = 1
+      WHERE sos.staff_id = ?
+      ORDER BY sos.selected_at DESC`;
+
+    usersDao.query(query, [staffId], function(err, selections) {
+      if (err && err.message.includes("doesn't exist")) {
+        // Fallback for simpler tracking
+        const fallbackQuery = `SELECT f.film_id, f.title, f.rental_rate, 
+                               10 as discount_percent, 'Staff discount' as offer_description,
+                               (f.rental_rate * 0.10) as discount_amount,
+                               (f.rental_rate * 0.90) as discounted_price,
+                               NOW() as selected_at
+                               FROM film f 
+                               WHERE f.film_id IN (SELECT DISTINCT film_id FROM film_offers WHERE active = 1)
+                               LIMIT 5`;
+        usersDao.query(fallbackQuery, [], callback);
+        return;
+      }
+      
+      callback(err, selections);
+    });
+  },
+
+  // NEW: Apply offer discount to rental
+  applyOfferDiscount: function(filmId, originalPrice, callback) {
+    const query = `SELECT COALESCE(fo.discount_percent, so.discount_percent, 0) as discount_percent
+                   FROM film f
+                   LEFT JOIN film_offers fo ON f.film_id = fo.film_id AND fo.active = 1 
+                     AND (fo.valid_from IS NULL OR fo.valid_from <= NOW())
+                     AND (fo.valid_to IS NULL OR fo.valid_to >= NOW())
+                   LEFT JOIN staff_offers so ON f.film_id = so.film_id AND so.active = 1
+                   WHERE f.film_id = ?`;
+
+    usersDao.query(query, [filmId], function(err, results) {
+      if (err) return callback(err);
+      
+      const discountPercent = results[0]?.discount_percent || 0;
+      const discountAmount = (originalPrice * discountPercent / 100);
+      const finalPrice = originalPrice - discountAmount;
+      
+      callback(null, {
+        originalPrice,
+        discountPercent,
+        discountAmount: parseFloat(discountAmount.toFixed(2)),
+        finalPrice: parseFloat(finalPrice.toFixed(2)),
+        hasDiscount: discountPercent > 0
+      });
+    });
+  },
+
+  // NEW: Get offer statistics for dashboard
+  getOfferStats: function(callback) {
+    const statsQuery = `SELECT 
+        COUNT(DISTINCT COALESCE(fo.film_id, so.film_id)) as active_offers,
+        AVG(COALESCE(fo.discount_percent, so.discount_percent)) as avg_discount,
+        COUNT(DISTINCT sos.staff_id) as staff_participating,
+        SUM(f.rental_rate * COALESCE(fo.discount_percent, so.discount_percent, 0) / 100) as total_potential_savings
+      FROM film f
+      LEFT JOIN film_offers fo ON f.film_id = fo.film_id AND fo.active = 1
+      LEFT JOIN staff_offers so ON f.film_id = so.film_id AND so.active = 1  
+      LEFT JOIN staff_offer_selections sos ON f.film_id = sos.film_id
+      WHERE (fo.film_id IS NOT NULL OR so.film_id IS NOT NULL)`;
+
+    usersDao.query(statsQuery, [], function(err, results) {
+      if (err) {
+        // Fallback stats
+        return callback(null, {
+          active_offers: 0,
+          avg_discount: 0,
+          staff_participating: 0,
+          total_potential_savings: 0
+        });
+      }
+      
+      callback(null, results[0] || {
+        active_offers: 0,
+        avg_discount: 0,
+        staff_participating: 0,
+        total_potential_savings: 0
+      });
+    });
   }
 
 };

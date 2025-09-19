@@ -5,14 +5,39 @@ block content
     .row.mb-4
       .col-8
         h1.h2.mb-1
-          i.fas.fa-tags.me-2.text-warning
-          | Staff Film Offers
-        p.text-muted Select films offered by administration
+          i.fas.fa-percentage.me-2.text-success
+          | Staff Film Offers & Discounts
+        p.text-muted Select films with special staff discounts - save money on your rentals!
       
       .col-4.text-end
-        a.btn.btn-outline-info(href="/staff/selections") 
+        a.btn.btn-outline-success(href="/staff/selections") 
           i.fas.fa-star.me-2
-          | My Selections
+          | My Selections & Savings
+
+    // Quick Stats Banner
+    if offers && offers.length > 0
+      - var avgDiscount = 0
+      - var totalOffers = offers.length
+      - var bestDiscount = 0
+      - for (var i = 0; i < offers.length; i++)
+      -   if (offers[i].discount_percent > bestDiscount) bestDiscount = offers[i].discount_percent
+      -   avgDiscount += offers[i].discount_percent || 0
+      - avgDiscount = totalOffers > 0 ? (avgDiscount / totalOffers).toFixed(1) : 0
+      
+      .row.mb-4
+        .col-12
+          .card.bg-success.bg-gradient.text-white
+            .card-body.py-3
+              .row.text-center
+                .col-md-4
+                  .h4.mb-1 #{totalOffers}
+                  .small Available Offers
+                .col-md-4
+                  .h4.mb-1 #{avgDiscount}%
+                  .small Average Discount
+                .col-md-4
+                  .h4.mb-1 Up to #{bestDiscount}%
+                  .small Best Savings
 
     // Filters
     .row.mb-4
@@ -25,44 +50,61 @@ block content
                 select.form-select(name="category")
                   option(value="all", selected=currentCategory === 'all') All Categories
                   if categories
-                    each category in categories
+                    for category in categories
                       option(value=category.category_id, selected=currentCategory == category.category_id) #{category.name}
               
               .col-md-6.d-flex.align-items-end
                 button.btn.btn-primary.w-100(type="submit")
                   i.fas.fa-search.me-2
-                  | Filter
+                  | Filter Offers
 
-    // Offers List
+    // Enhanced Offers List with Pricing
     if offers && offers.length > 0
       .row
-        each offer in offers
+        for offer in offers
           .col-lg-4.col-md-6.mb-4
-            .card.h-100
-              .card-header
-                h5.card-title.mb-1 #{offer.title}
-                .small.text-muted #{offer.category_name} • #{offer.rating}
+            .card.h-100.border-success(class=offer.discount_percent >= 20 ? 'border-2' : '')
+              .card-header.bg-light
+                .d-flex.justify-content-between.align-items-start
+                  div
+                    h5.card-title.mb-1 #{offer.title}
+                    .small.text-muted #{offer.category_name} • #{offer.rating}
+                  
+                  .badge.bg-success.fs-6 #{offer.discount_percent || 15}% OFF
               
               .card-body
                 if offer.description
-                  p.card-text.small #{offer.description.substring(0, 100)}#{offer.description.length > 100 ? '...' : ''}
+                  p.card-text.small #{offer.description.substring(0, 80)}#{offer.description.length > 80 ? '...' : ''}
                 
-                .row.mb-3
-                  .col-6
-                    .small.text-muted Rental Rate
-                    .fw-bold.text-success $#{parseFloat(offer.rental_rate).toFixed(2)}
-                  .col-6
-                    .small.text-muted Status
-                    .badge.bg-success Available
+                // Pricing Display
+                .row.mb-3.text-center
+                  .col-4
+                    .small.text-muted.text-decoration-line-through Original
+                    .text-muted $#{parseFloat(offer.rental_rate || 4.99).toFixed(2)}
+                  .col-4
+                    .small.text-success Your Price
+                    .fw-bold.text-success.h5 $#{parseFloat(offer.discounted_price || (offer.rental_rate * 0.85)).toFixed(2)}
+                  .col-4
+                    .small.text-warning You Save
+                    .fw-bold.text-warning $#{parseFloat(offer.discount_amount || (offer.rental_rate * 0.15)).toFixed(2)}
+                
+                if offer.offer_description
+                  .small.text-info.mb-3
+                    i.fas.fa-info-circle.me-1
+                    | #{offer.offer_description}
+                
+                if offer.expires_at
+                  .small.text-muted.mb-3
+                    i.fas.fa-clock.me-1
+                    | Expires: #{new Date(offer.expires_at).toLocaleDateString()}
                 
                 .d-flex.gap-2
-                  button.btn.btn-success.btn-sm(onclick="selectOffer(#{offer.film_id})")
+                  button.btn.btn-success.btn-sm.flex-fill(onclick="selectOffer(#{offer.film_id}, '#{offer.title}', #{offer.discount_percent || 15})")
                     i.fas.fa-check.me-1
-                    | Select
+                    | Select Offer
                   
                   a.btn.btn-outline-info.btn-sm(href="/films/#{offer.film_id}")
-                    i.fas.fa-eye.me-1
-                    | Details
+                    i.fas.fa-eye
 
       // Pagination
       if pagination && pagination.totalPages > 1
@@ -94,14 +136,22 @@ block content
           .card
             .card-body.text-center.py-5
               .mb-4
-                i.fas.fa-tags.fa-4x.text-muted
-              h4.text-muted No Offers Available
-              p.text-muted No film offers are currently available.
+                i.fas.fa-percentage.fa-4x.text-muted
+              h4.text-muted No Staff Offers Available
+              p.text-muted 
+                | No film offers with staff discounts are currently available.
+                br
+                | Check back later for great savings on your favorite movies!
 
 script.
-  function selectOffer(filmId) {
-    // Simple JavaScript to handle offer selection
-    if (confirm('Select this film offer?')) {
+  function selectOffer(filmId, title, discountPercent) {
+    const message = `Select "${title}" with ${discountPercent}% staff discount?`;
+    
+    if (confirm(message)) {
+      // Show loading feedback
+      event.target.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Selecting...';
+      event.target.disabled = true;
+      
       fetch('/staff/offers/select', {
         method: 'POST',
         headers: {
@@ -111,14 +161,20 @@ script.
           film_id: filmId
         })
       })
-      .then(response => {
-        if (response.ok) {
-          alert('Offer selected successfully!');
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          alert(`✓ ${data.message}\n\nYou can now rent "${title}" at the discounted price when making rentals!`);
           location.reload();
         } else {
-          alert('Error selecting offer');
+          throw new Error('Invalid response');
         }
       })
-      .catch(() => alert('Error selecting offer'));
+      .catch(() => {
+        alert('Error selecting offer. Please try again.');
+        // Reset button
+        event.target.innerHTML = '<i class="fas fa-check me-1"></i> Select Offer';
+        event.target.disabled = false;
+      });
     }
   }

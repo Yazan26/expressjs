@@ -1,0 +1,202 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-plus.me-2.text-success
+          | Create New Offer
+        p.text-muted Select films and configure offer details
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-secondary(href="/admin/offers")
+            i.fas.fa-arrow-left.me-2
+            | Back to Offers
+          a.btn.btn-outline-primary(href="/admin/films") Film Management
+
+    // Success/Error Messages
+    if success
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    // Create Offer Form
+    if films && films.length > 0
+      .row
+        .col-lg-8
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-cog.me-2
+                | Offer Configuration
+            
+            .card-body
+              form(method="POST", action="/admin/offers/new")
+                // Offer Details
+                .row.mb-3
+                  .col-md-6
+                    label.form-label Discount Percentage
+                    .input-group
+                      input.form-control(type="number", name="discountPercent", min="0", max="100", step="0.1", placeholder="0.0", required)
+                      span.input-group-text %
+                    .form-text Staff will see this discount on selected films
+                  
+                  .col-md-6
+                    label.form-label Offer Description
+                    input.form-control(type="text", name="description", placeholder="Special offer description", maxlength="255")
+                    .form-text Brief description of the offer
+
+                .row.mb-4
+                  .col-md-6
+                    label.form-label Valid From (Optional)
+                    input.form-control(type="date", name="validFrom")
+                    .form-text Leave blank to start immediately
+                  
+                  .col-md-6
+                    label.form-label Valid Until (Optional)
+                    input.form-control(type="date", name="validTo")
+                    .form-text Leave blank for no expiration
+
+                // Film Selection
+                .mb-4
+                  label.form-label
+                    i.fas.fa-film.me-2
+                    | Select Films for Offer
+                  .form-text.mb-3 Choose which films to include in this offer
+
+                  // Select All/None Controls
+                  .mb-3
+                    .btn-group.btn-group-sm
+                      button.btn.btn-outline-primary(type="button", onclick="selectAllFilms()")
+                        i.fas.fa-check-square.me-1
+                        | Select All
+                      button.btn.btn-outline-secondary(type="button", onclick="selectNoneFilms()")
+                        i.fas.fa-square.me-1
+                        | Select None
+
+                  // Films Grid
+                  .row
+                    - for (var i = 0; i < films.length; i++)
+                      - var film = films[i]
+                      .col-md-6.col-lg-4.mb-3
+                        .card.film-card
+                          .card-body.p-3
+                            .form-check.mb-2
+                              input.form-check-input.film-checkbox(type="checkbox", name="filmIds", value=film.film_id, id=`film_${film.film_id}`)
+                              label.form-check-label(for=`film_${film.film_id}`)
+                                strong #{film.title}
+                            
+                            .small.text-muted.mb-1 Category: #{film.category_name || 'Uncategorized'}
+                            .small.text-muted.mb-1 Rating: #{film.rating || 'Not Rated'}
+                            .small.text-success Rental: $#{parseFloat(film.rental_rate || 0).toFixed(2)}
+
+                // Submit Button
+                .d-flex.justify-content-end.gap-2
+                  a.btn.btn-outline-secondary(href="/admin/offers") Cancel
+                  button.btn.btn-success(type="submit")
+                    i.fas.fa-save.me-2
+                    | Create Offer
+
+        .col-lg-4
+          // Help Card
+          .card.bg-light
+            .card-header
+              h6.card-title.mb-0
+                i.fas.fa-info-circle.me-2
+                | Offer Guidelines
+            
+            .card-body
+              ul.mb-0
+                li Discount percentage will be applied to the rental rate
+                li Staff can select from offered films at discounted prices
+                li Date ranges are optional - offers can be permanent
+                li You can activate/deactivate offers later from the main offers page
+                li Films already with active offers won't appear in this list
+
+          // Recent Offers Card
+          .card.mt-4
+            .card-header
+              h6.card-title.mb-0
+                i.fas.fa-history.me-2
+                | Quick Actions
+            
+            .card-body
+              a.btn.btn-outline-primary.btn-sm.w-100.mb-2(href="/admin/offers")
+                i.fas.fa-list.me-2
+                | View All Offers
+              
+              a.btn.btn-outline-info.btn-sm.w-100.mb-2(href="/admin/films")
+                i.fas.fa-film.me-2
+                | Manage Films
+              
+              a.btn.btn-outline-warning.btn-sm.w-100(href="/staff/offers")
+                i.fas.fa-eye.me-2
+                | Staff View
+
+    else
+      // No Films Available
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-film.fa-4x.text-muted
+              h4.text-muted No Films Available
+              p.text-muted.mb-4 All films already have active offers, or no films exist in the system.
+              
+              .d-flex.gap-2.justify-content-center
+                a.btn.btn-primary(href="/admin/offers")
+                  i.fas.fa-arrow-left.me-2
+                  | Back to Offers
+                
+                a.btn.btn-success(href="/admin/films")
+                  i.fas.fa-plus.me-2
+                  | Add Films
+
+  // JavaScript for form interactions
+  script.
+    function selectAllFilms() {
+      const checkboxes = document.querySelectorAll('.film-checkbox');
+      checkboxes.forEach(cb => cb.checked = true);
+    }
+    
+    function selectNoneFilms() {
+      const checkboxes = document.querySelectorAll('.film-checkbox');
+      checkboxes.forEach(cb => cb.checked = false);
+    }
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+      const checkboxes = document.querySelectorAll('.film-checkbox:checked');
+      if (checkboxes.length === 0) {
+        e.preventDefault();
+        alert('Please select at least one film for the offer.');
+        return false;
+      }
+    });
+
+  style.
+    .film-card {
+      transition: border-color 0.2s;
+      cursor: pointer;
+    }
+    .film-card:hover {
+      border-color: #0d6efd;
+    }
+    .film-card:has(.form-check-input:checked) {
+      border-color: #198754;
+      background-color: rgba(25, 135, 84, 0.1);
+    }
+    .form-check-input:focus {
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
