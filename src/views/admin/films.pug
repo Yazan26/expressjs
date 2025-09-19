@@ -141,8 +141,8 @@ block content
                     | Manage Copies
                   
                   if film.totalCopies === 0 || film.totalCopies < 3
-                    form.d-inline(method="POST", action="/admin/films/add-copy")
-                      input(type="hidden", name="filmId", value=film.filmId)
+                    form.d-inline(method="POST", action=`/admin/films/inventory/${film.filmId}/add`)
+                      input(type="hidden", name="copies", value="1")
                       button.btn.btn-success.btn-sm(type="submit")
                         i.fas.fa-plus.me-1
                         | Add Copy
