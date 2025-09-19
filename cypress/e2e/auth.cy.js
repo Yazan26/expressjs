@@ -165,23 +165,18 @@ describe('Authentication', () => {
       cy.get('form[action="/auth/logout"] button[name="logout"]').should('be.visible').click();
       
       // Should redirect to login page
-      cy.url().should('match', /\/auth\/login/);
+      cy.url().should('include', '/auth/login');
       
-      // Should show guest state (login/register links or no welcome message)
-      cy.get('body').then($homeBody => {
-        const hasLogin = $homeBody.find('a[href="/auth/login"]').length > 0;
-        const hasWelcome = $homeBody.text().includes('Welcome back');
-        if (hasLogin) {
-          cy.get('a[href="/auth/login"]').first().should('be.visible');
-        }
-        if (hasWelcome) {
-          cy.get('body').should('not.contain.text', 'Welcome back');
-        }
-      });
+      // Should show login form
+      cy.get('input[name="username"]').should('be.visible');
+      cy.get('input[name="password"]').should('be.visible');
     });
 
     it('should clear session after logout', () => {
       cy.get('form[action="/auth/logout"] button[name="logout"]').should('be.visible').click();
+      
+      // Wait for logout to complete
+      cy.url().should('include', '/auth/login');
       
       // Try to access protected route
       cy.visit('/customer/dashboard');
