@@ -49,12 +49,14 @@ const globalErrorHandler = (err, req, res, next) => {
     });
   }
 
-  // Default error response
+  // Default error response - SHOW DETAILED ERRORS FOR DEBUGGING
   res.status(statusCode).render('error', {
     title: 'Error',
+    message: message,
     error: {
       status: statusCode,
-      message: statusCode >= 500 ? 'Something went wrong' : message
+      message: message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     }
   });
 };

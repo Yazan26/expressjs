@@ -239,7 +239,17 @@ const adminController = {
   getOffers: function(req, res, next) {
     adminService.getOffersData(function(err, data) {
       if (err) return next(err);
-      res.render('admin/offers', { title: 'Film Offers Management - Admin', ...data, success: req.flash('success'), error: req.flash('error') });
+      // Map films to offers for template compatibility
+      const templateData = {
+        ...data,
+        offers: data.films  // Template expects 'offers' but service returns 'films'
+      };
+      res.render('admin/offers', { 
+        title: 'Film Offers Management - Admin', 
+        ...templateData, 
+        success: req.flash('success'), 
+        error: req.flash('error') 
+      });
     });
   },
 

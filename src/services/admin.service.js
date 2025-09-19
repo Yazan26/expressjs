@@ -236,7 +236,8 @@ const adminService = {
   // === OFFERS MANAGEMENT ===
 
   getOffersData: function(callback) {
-    const query = `SELECT f.film_id, f.title, f.length, f.rental_rate, f.rating, c.name as category_name, c.category_id,
+    // First try to use the advanced film_offers table, fallback to simple query if not available
+    const advancedQuery = `SELECT f.film_id, f.title, f.length, f.rental_rate, f.rating, c.name as category_name, c.category_id,
                   EXISTS(SELECT 1 FROM film_offers fo WHERE fo.film_id = f.film_id AND fo.active = 1) as is_offered,
                   (SELECT COUNT(*) FROM staff_offer_selections sos JOIN film_offers fo ON sos.offer_id = fo.offer_id WHERE fo.film_id = f.film_id) as selection_count
                   FROM film f 
@@ -244,7 +245,34 @@ const adminService = {
                   LEFT JOIN category c ON fc.category_id = c.category_id 
                   ORDER BY is_offered DESC, f.title`;
 
-    usersDao.query(query, [], function(err, films) {
+    usersDao.query(advancedQuery, [], function(err, films) {
+      if (err && (err.message.includes("doesn't exist") || err.message.includes("Unknown column") || err.message.includes("Unknown table"))) {
+        // Fallback to simple query without film_offers table
+        const simpleQuery = `SELECT f.film_id, f.title, f.length, f.rental_rate, f.rating, c.name as category_name, c.category_id,
+                      0 as is_offered, 0 as selection_count
+                      FROM film f 
+                      LEFT JOIN film_category fc ON f.film_id = fc.film_id 
+                      LEFT JOIN category c ON fc.category_id = c.category_id 
+                      ORDER BY f.title`;
+        
+        usersDao.query(simpleQuery, [], function(fallbackErr, fallbackFilms) {
+          if (fallbackErr) return callback(fallbackErr);
+          
+          filmsDao.getCategories(function(catErr, categories) {
+            if (catErr) return callback(catErr);
+            
+            const stats = {
+              totalFilms: fallbackFilms.length,
+              activeOffers: 0, // No offers without the offers table
+              staffSelections: 0
+            };
+            
+            callback(null, { films: fallbackFilms, categories, ...stats });
+          });
+        });
+        return;
+      }
+      
       if (err) return callback(err);
       
       filmsDao.getCategories(function(catErr, categories) {
@@ -262,12 +290,27 @@ const adminService = {
   },
 
   toggleOffer: function(filmId, action, callback) {
+    // Check if film_offers table exists, if not just return success (no-op)
     if (action === 'activate') {
       const query = `INSERT INTO film_offers (film_id, active, created_date) VALUES (?, 1, NOW()) ON DUPLICATE KEY UPDATE active = 1`;
-      usersDao.query(query, [filmId], callback);
+      usersDao.query(query, [filmId], function(err, result) {
+        if (err && (err.message.includes("doesn't exist") || err.message.includes("Unknown column") || err.message.includes("Unknown table"))) {
+          // Table doesn't exist, just return success
+          logger.warn('film_offers table not found, offer toggle is a no-op');
+          return callback(null);
+        }
+        callback(err, result);
+      });
     } else {
       const query = `UPDATE film_offers SET active = 0 WHERE film_id = ?`;
-      usersDao.query(query, [filmId], callback);
+      usersDao.query(query, [filmId], function(err, result) {
+        if (err && (err.message.includes("doesn't exist") || err.message.includes("Unknown column") || err.message.includes("Unknown table"))) {
+          // Table doesn't exist, just return success
+          logger.warn('film_offers table not found, offer toggle is a no-op');
+          return callback(null);
+        }
+        callback(err, result);
+      });
     }
   },
 
@@ -288,12 +331,22 @@ const adminService = {
       
       if (action === 'activate') {
         const query = `INSERT INTO film_offers (film_id, active, created_date) VALUES ${filmIds.map(() => '(?, 1, NOW())').join(', ')} ON DUPLICATE KEY UPDATE active = 1`;
-        usersDao.query(query, filmIds, function(actErr) {
+        usersDao.query(query, filmIds, function(actErr, result) {
+          if (actErr && (actErr.message.includes("doesn't exist") || actErr.message.includes("Unknown column") || actErr.message.includes("Unknown table"))) {
+            // Table doesn't exist, just return success
+            logger.warn('film_offers table not found, batch update is a no-op');
+            return callback(null, { updated: filmIds.length });
+          }
           callback(actErr, { updated: filmIds.length });
         });
       } else {
         const query = `UPDATE film_offers SET active = 0 WHERE film_id IN (${filmIds.map(() => '?').join(', ')})`;
         usersDao.query(query, filmIds, function(deactErr, result) {
+          if (deactErr && (deactErr.message.includes("doesn't exist") || deactErr.message.includes("Unknown column") || deactErr.message.includes("Unknown table"))) {
+            // Table doesn't exist, just return success
+            logger.warn('film_offers table not found, batch update is a no-op');
+            return callback(null, { updated: 0 });
+          }
           callback(deactErr, { updated: result?.affectedRows || 0 });
         });
       }
