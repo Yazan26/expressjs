@@ -265,16 +265,16 @@ block content
                   i.fas.fa-calendar.me-2
                   | Time Periods
                 .d-flex.flex-wrap.gap-2
-                  a.btn.btn-outline-primary.btn-sm(href="/reports/staff-performance?days=7") Last 7 Days
-                  a.btn.btn-outline-primary.btn-sm(href="/reports/staff-performance?days=30") Last 30 Days
-                  a.btn.btn-outline-primary.btn-sm(href="/reports/staff-performance?days=90") Last 90 Days
+                  a.btn.btn-outline-primary.btn-sm(href="/reports/staff-performance?period=this_week") Last 7 Days
+                  a.btn.btn-outline-primary.btn-sm(href="/reports/staff-performance?period=this_month") Last 30 Days
+                  a.btn.btn-outline-primary.btn-sm(href="/reports/revenue?period=monthly") Monthly Revenue
               
               .col-md-4.mb-3
                 h6
                   i.fas.fa-trophy.me-2
                   | Top Performers
                 .d-flex.flex-wrap.gap-2
-                  a.btn.btn-outline-success.btn-sm(href="/reports/staff-performance?sort=performance&limit=5") Top 5 Staff
+                  a.btn.btn-outline-success.btn-sm(href="/reports/staff-performance?sort=rentals_desc&limit=5") Top 5 Staff
                   a.btn.btn-outline-success.btn-sm(href="/reports/film-analytics?sort=popular&limit=10") Top 10 Films
                   a.btn.btn-outline-success.btn-sm(href="/reports/customer-insights?sort=value&limit=20") Top 20 Customers
               
@@ -285,7 +285,7 @@ block content
                 .d-flex.flex-wrap.gap-2
                   a.btn.btn-outline-warning.btn-sm(href="/reports/inventory?status=low") Low Inventory
                   a.btn.btn-outline-danger.btn-sm(href="/reports/staff-performance?status=underperforming") Underperforming
-                  a.btn.btn-outline-info.btn-sm(href="/reports/offers?status=expiring") Expiring Offers
+                  a.btn.btn-outline-info.btn-sm(href="/reports/offers?status=unpopular") Unpopular Offers
 
     // Export and Scheduling Options
     .row.mt-4
@@ -333,25 +333,21 @@ block content
 
   script.
     function exportAllReports(format) {
-      alert(`Exporting reports in ${format.toUpperCase()} format... (Feature coming soon)`);
+      alert('Exporting reports in ' + format.toUpperCase() + ' format... (Feature coming soon)');
     }
 
     function scheduleReport(frequency) {
-      alert(`Setting up ${frequency} report schedule... (Feature coming soon)`);
+      alert('Setting up ' + frequency + ' report schedule... (Feature coming soon)');
     }
 
   style.
-    .card {
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      border: 1px solid rgba(0, 0, 0, 0.125);
-      transition: box-shadow 0.2s;
-    }
-    .card:hover {
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-    .btn-sm {
-      font-size: 0.875rem;
-    }
-    .display-6 {
-      font-size: 2.5rem;
-    }
+    .card
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)
+      border: 1px solid rgba(0, 0, 0, 0.125)
+      transition: box-shadow 0.2s
+    .card:hover
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15)
+    .btn-sm
+      font-size: 0.875rem
+    .display-6
+      font-size: 2.5rem

@@ -164,7 +164,7 @@ script.
       .then(response => response.json())
       .then(data => {
         if (data.message) {
-          alert(`✓ ${data.message}\n\nYou can now rent "${title}" at the discounted price when making rentals!`);
+          alert('✓ ' + data.message + '\n\nYou can now rent "' + title + '" at the discounted price when making rentals!');
           location.reload();
         } else {
           throw new Error('Invalid response');

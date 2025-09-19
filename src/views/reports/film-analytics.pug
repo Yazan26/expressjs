@@ -1,0 +1,197 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-film.me-2.text-success
+          | Film Analytics Report
+        p.text-muted Analyze film popularity, rental patterns, and inventory performance
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-primary(href="/reports") 
+            i.fas.fa-chart-bar.me-2
+            | All Reports
+          a.btn.btn-outline-info(href="/admin/films") 
+            i.fas.fa-cog.me-2
+            | Manage Films
+
+    // Summary Cards
+    if summary
+      .row.mb-4
+        .col-md-3.mb-3
+          .card.bg-primary.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 #{summary.totalFilms || 0}
+              .small Total Films Analyzed
+        .col-md-3.mb-3
+          .card.bg-success.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 $#{parseFloat(summary.totalRevenue || 0).toFixed(2)}
+              .small Total Revenue Generated
+        .col-md-3.mb-3
+          .card.bg-info.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 $#{summary.avgRentalRate || 0}
+              .small Average Rental Rate
+        .col-md-3.mb-3
+          .card.bg-warning.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 #{categories ? categories.length : 0}
+              .small Active Categories
+
+    // Filters
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-filter.me-2
+              | Filter Options
+          .card-body
+            form.row.g-3(method="GET", action="/reports/film-analytics")
+              .col-md-3
+                label.form-label Category
+                select.form-select(name="category")
+                  option(value="all", selected=filters.category === 'all') All Categories
+                  if categories
+                    for category in categories
+                      option(value=category.name, selected=filters.category === category.name) #{category.name}
+              
+              .col-md-3
+                label.form-label Sort By
+                select.form-select(name="sort")
+                  option(value="popular", selected=filters.sort === 'popular') Most Popular
+                  option(value="revenue", selected=filters.sort === 'revenue') Highest Revenue
+                  option(value="recent", selected=filters.sort === 'recent') Recently Added
+                  option(value="title", selected=filters.sort === 'title') Title A-Z
+              
+              .col-md-3
+                label.form-label Show Results
+                select.form-select(name="limit")
+                  option(value="25", selected=filters.limit == 25) Top 25
+                  option(value="50", selected=filters.limit == 50) Top 50
+                  option(value="100", selected=filters.limit == 100) Top 100
+              
+              .col-md-3.d-flex.align-items-end
+                button.btn.btn-primary.w-100(type="submit")
+                  i.fas.fa-search.me-2
+                  | Apply Filters
+
+    // Category Performance Chart
+    if categories && categories.length > 0
+      .row.mb-4
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-chart-pie.me-2
+                | Category Performance
+            .card-body
+              .row
+                for category in categories.slice(0, 8)
+                  .col-md-6.col-lg-3.mb-3
+                    .card.border-info.h-100
+                      .card-body.text-center
+                        h6.card-title #{category.name}
+                        .h4.text-info #{category.rental_count || 0}
+                        .small.text-muted rentals
+                        .small.text-success $#{parseFloat(category.revenue || 0).toFixed(2)} revenue
+
+    // Films Performance Table
+    if films && films.length > 0
+      .row
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-table.me-2
+                | Detailed Film Analytics
+            .card-body
+              .table-responsive
+                table.table.table-hover
+                  thead.table-dark
+                    tr
+                      th Film Title
+                      th Category
+                      th Rating
+                      th Rental Rate
+                      th Total Rentals
+                      th Unique Customers
+                      th Total Revenue
+                      th Avg Revenue/Rental
+                      th Performance
+                  tbody
+                    for film in films
+                      tr
+                        td
+                          strong #{film.title}
+                        td
+                          .badge.bg-secondary #{film.category_name || 'N/A'}
+                        td
+                          .badge.bg-info #{film.rating}
+                        td.text-success $#{parseFloat(film.rental_rate).toFixed(2)}
+                        td.text-center #{film.rental_count || 0}
+                        td.text-center #{film.unique_renters || 0}
+                        td.text-success $#{parseFloat(film.total_revenue || 0).toFixed(2)}
+                        td.text-success $#{parseFloat(film.revenue_per_rental || 0).toFixed(2)}
+                        td
+                          - var performance = film.rental_count || 0
+                          if performance >= 30
+                            .badge.bg-success Excellent
+                          else if performance >= 15
+                            .badge.bg-primary Good
+                          else if performance >= 5
+                            .badge.bg-warning Average
+                          else
+                            .badge.bg-danger Poor
+
+    else
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-film.fa-4x.text-muted
+              h4.text-muted No Film Data Available
+              p.text-muted No film analytics data found for the selected criteria.
+
+    // Export Options
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            .row
+              .col-md-8
+                h6.card-title
+                  i.fas.fa-download.me-2
+                  | Export Film Analytics
+                p.card-text.text-muted Download this report in various formats for further analysis.
+              .col-md-4.text-end
+                .btn-group
+                  button.btn.btn-outline-success.btn-sm(onclick="exportReport('csv')")
+                    i.fas.fa-file-csv.me-1
+                    | CSV
+                  button.btn.btn-outline-danger.btn-sm(onclick="exportReport('pdf')")
+                    i.fas.fa-file-pdf.me-1
+                    | PDF
+                  button.btn.btn-outline-primary.btn-sm(onclick="exportReport('excel')")
+                    i.fas.fa-file-excel.me-1
+                    | Excel
+
+    script.
+      function exportReport(format) {
+        alert('Exporting film analytics in ' + format.toUpperCase() + ' format... (Feature coming soon)');
+      }
+
+    style.
+      .table th
+        font-size: 0.875rem
+        white-space: nowrap
+      .table td
+        font-size: 0.875rem
+      .card
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)
