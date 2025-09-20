@@ -18,13 +18,13 @@ block content
           a.btn.btn-outline-primary(href="/admin/films") Film Management
 
     // Success/Error Messages
-    if success
+    if success && success.length > 0
       .alert.alert-success.alert-dismissible.fade.show
         i.fas.fa-check-circle.me-2
         | #{success}
         button.btn-close(type="button", data-bs-dismiss="alert")
 
-    if error
+    if error && error.length > 0
       .alert.alert-danger.alert-dismissible.fade.show
         i.fas.fa-exclamation-triangle.me-2
         | #{error}

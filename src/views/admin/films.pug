@@ -19,13 +19,13 @@ block content
           a.btn.btn-outline-warning(href="/admin/offers") Offers Management
 
     // Success/Error Messages
-    if success
+    if success && success.length > 0
       .alert.alert-success.alert-dismissible.fade.show
         i.fas.fa-check-circle.me-2
         | #{success}
         button.btn-close(type="button", data-bs-dismiss="alert")
 
-    if error
+    if error && error.length > 0
       .alert.alert-danger.alert-dismissible.fade.show
         i.fas.fa-exclamation-triangle.me-2
         | #{error}
@@ -270,19 +270,15 @@ block content
                   | Add New Film
               
               .col-md-3.mb-2
-                a.btn.btn-outline-primary.w-100(href="/admin/films?sort=copies")
+                a.btn.btn-outline-primary.w-100(href="/admin/offers")
                   i.fas.fa-sort-amount-down.me-2
-                  | Low Inventory
+                  | Manage Offers
               
               .col-md-3.mb-2
                 a.btn.btn-outline-info.w-100(href="/admin/staff")
                   i.fas.fa-users.me-2
                   | Manage Staff
-              
-                .col-md-3.mb-2
-                  a.btn.btn-outline-warning.w-100(href="/admin/offers")
-                    i.fas.fa-tags.me-2
-                    | Manage Offers
+
 
   style.
     .card {

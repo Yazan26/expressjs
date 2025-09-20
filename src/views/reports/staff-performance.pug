@@ -21,7 +21,7 @@ block content
               | Manage Staff
 
     // Error Messages
-    if error
+    if error && error.length > 0
       .alert.alert-danger.alert-dismissible.fade.show
         i.fas.fa-exclamation-triangle.me-2
         | #{error}

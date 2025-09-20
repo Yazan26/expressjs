@@ -12,7 +12,7 @@ block content
           
           .card-body
             // Error Messages
-            if error
+            if error && error.length > 0
               .alert.alert-danger.alert-dismissible.fade.show
                 i.fas.fa-exclamation-triangle.me-2
                 | #{error}
@@ -26,6 +26,7 @@ block content
                     type="text", 
                     id="first_name", 
                     name="first_name", 
+                    placeholder="pietje"
                     required
                   )
                 .col-md-6
@@ -34,18 +35,34 @@ block content
                     type="text", 
                     id="last_name", 
                     name="last_name", 
+                    placeholder="puk"
                     required
                   )
               
               .mb-3
-                label.form-label(for="email") Email Address
+                label.form-label Email Address
+                .input-group
+                  input.form-control(
+                    type="text", 
+                    id="email_username", 
+                    name="email_username", 
+                    placeholder="example",
+                    pattern="[a-zA-Z0-9._-]+",
+                    required
+                  )
+                  span.input-group-text @
+                  select.form-select(
+                    id="email_domain", 
+                    name="email_domain",
+                    required
+                  )
+                    option(value="@moviesexpressrentals.com", selected) moviesexpressrentals.com
                 input.form-control(
-                  type="email", 
+                  type="hidden", 
                   id="email", 
-                  name="email", 
-                  required
+                  name="email"
                 )
-                .form-text Will be normalized to @moviesexpressrentals.com domain
+                .form-text Enter the username part and select the domain. The email will be automatically combined.
               
               .mb-3
                 label.form-label(for="username") Username
@@ -53,6 +70,7 @@ block content
                   type="text", 
                   id="username", 
                   name="username", 
+                  placeholder="pietjepuk",
                   pattern="[a-zA-Z0-9._-]+",
                   required
                 )
@@ -105,3 +123,40 @@ block content
           .card-footer.text-muted.small
             i.fas.fa-info-circle.me-1
             | The new staff member will be created with basic access. Contact system admin for login credentials.
+
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const usernameInput = document.getElementById('email_username');
+      const domainSelect = document.getElementById('email_domain');
+      const hiddenEmailInput = document.getElementById('email');
+      
+      function updateEmail() {
+        const username = usernameInput.value.trim();
+        const domain = domainSelect.value;
+        if (username && domain) {
+          hiddenEmailInput.value = username + domain;
+        } else {
+          hiddenEmailInput.value = '';
+        }
+      }
+      
+      // Update email on input changes
+      usernameInput.addEventListener('input', updateEmail);
+      domainSelect.addEventListener('change', updateEmail);
+      
+      // Update email on form submission to ensure it's current
+      document.querySelector('form').addEventListener('submit', function(e) {
+        updateEmail();
+        
+        // Validate that we have a complete email
+        if (!hiddenEmailInput.value) {
+          e.preventDefault();
+          alert('Please enter a valid email address.');
+          usernameInput.focus();
+          return false;
+        }
+      });
+      
+      // Initial update in case fields are pre-filled
+      updateEmail();
+    });

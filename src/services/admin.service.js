@@ -150,11 +150,40 @@ const adminService = {
   // === STAFF MANAGEMENT ===
 
   getStaffData: function(callback) {
-    const query = `SELECT staff_id, first_name, last_name, email, active, role, store_id, last_update FROM staff ORDER BY last_name, first_name`;
+    // Try to get staff with active column first
+    const fullQuery = `SELECT staff_id, first_name, last_name, email, active, role, store_id, last_update FROM staff ORDER BY last_name, first_name`;
     
-    usersDao.query(query, [], function(err, staff) {
+    usersDao.query(fullQuery, [], function(err, staff) {
+      if (err && err.code === 'ER_BAD_FIELD_ERROR') {
+        // If active/role columns don't exist, fall back to basic query
+        logger.warn('Active/role columns not found in staff table, using basic query');
+        const basicQuery = `SELECT staff_id, first_name, last_name, email, store_id, last_update FROM staff ORDER BY last_name, first_name`;
+        
+        usersDao.query(basicQuery, [], function(basicErr, basicStaff) {
+          if (basicErr) return callback(basicErr);
+          
+          // Add default values for missing columns
+          const staffWithDefaults = basicStaff.map(member => ({
+            ...member,
+            active: 1, // Assume active by default
+            role: 'staff' // Assume staff role by default
+          }));
+          
+          callback(null, staffWithDefaults);
+        });
+        return;
+      }
+      
       if (err) return callback(err);
-      callback(null, staff);
+      
+      // Ensure all staff have active and role fields with defaults
+      const staffWithDefaults = staff.map(member => ({
+        ...member,
+        active: member.active !== undefined ? member.active : 1,
+        role: member.role || 'staff'
+      }));
+      
+      callback(null, staffWithDefaults);
     });
   },
 
@@ -227,6 +256,12 @@ const adminService = {
     const query = `UPDATE staff SET active = ?, last_update = NOW() WHERE staff_id = ?`;
     
     usersDao.query(query, [active, staffId], function(err) {
+      if (err && err.code === 'ER_BAD_FIELD_ERROR') {
+        // If active column doesn't exist, try to use a different approach
+        logger.warn('Active column not found in staff table, staff toggle is a no-op');
+        return callback(null); // Return success to avoid breaking the UI
+      }
+      
       if (err) return callback(err);
       logger.info(`Staff ${action}d`, { staffId });
       callback(null);

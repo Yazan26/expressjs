@@ -222,7 +222,7 @@ const adminController = {
 
   postToggleStaff: function(req, res, next) {
     const staffId = parseInt(req.params.id);
-    const action = req.path.includes('activate') ? 'activate' : 'deactivate';
+    const action = req.path.includes('deactivate') ? 'deactivate' : 'activate';
 
     adminService.toggleStaff(staffId, action, function(err) {
       if (err) {
