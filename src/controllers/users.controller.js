@@ -85,42 +85,21 @@ const usersController={
   
   getRentals: (req, res, next) => {
     const userId = req.params.userId;
-    const usersDao = require('../dao/users.dao');
-    const sql = `SELECT r.rental_id, f.title, r.rental_date, r.return_date,
-                        COALESCE(p.amount, 0) as amount
-                 FROM rental r
-                 JOIN inventory i ON r.inventory_id = i.inventory_id
-                 JOIN film f ON i.film_id = f.film_id
-                 LEFT JOIN payment p ON p.rental_id = r.rental_id AND p.customer_id = r.customer_id
-                 WHERE r.customer_id = ?
-                 ORDER BY r.rental_date DESC`;
-    usersDao.query(sql, [userId], function(err, rows){
+    userService.getRentals(userId, function(err, rentals){
       if (err) return next(err);
-      res.render('users/rentals', { userId, rentals: rows || [] });
+      res.render('users/rentals', { userId, rentals: rentals });
     });
   },
 
   getSpending: (req, res, next) => {
     const userId = req.params.userId;
-    const usersDao = require('../dao/users.dao');
-    const summarySql = `SELECT COALESCE(SUM(amount),0) as total, COUNT(*) as payments
-                        FROM payment WHERE customer_id = ?`;
-    const monthlySql = `SELECT DATE_FORMAT(payment_date, '%Y-%m') as period,
-                               COALESCE(SUM(amount),0) as total,
-                               COUNT(*) as count
-                        FROM payment WHERE customer_id = ?
-                        GROUP BY DATE_FORMAT(payment_date, '%Y-%m')
-                        ORDER BY period DESC`;
-    usersDao.query(summarySql, [userId], function(err, sumRows){
+    userService.getSpending(userId, function(err, spendingData){
       if (err) return next(err);
-      usersDao.query(monthlySql, [userId], function(err2, monthRows){
-        if (err2) return next(err2);
-        res.render('users/spending', {
-          userId,
-          total: sumRows && sumRows[0] ? sumRows[0].total : 0,
-          paymentsCount: sumRows && sumRows[0] ? sumRows[0].payments : 0,
-          monthly: monthRows || []
-        });
+      res.render('users/spending', {
+        userId,
+        total: spendingData.total,
+        paymentsCount: spendingData.paymentsCount,
+        monthly: spendingData.monthly
       });
     });
   }

@@ -82,7 +82,33 @@ const userService={
       return callback(undefined, hasActive ? [{}] : []);
     });
   },
-  
+
+  // Get rental history for a user
+  getRentals: function(userId, callback) {
+    usersDao.getRentals(userId, (error, rentals) => {
+      if (error) return callback(error, undefined);
+      return callback(undefined, rentals || []);
+    });
+  },
+
+  // Get spending information for a user
+  getSpending: function(userId, callback) {
+    usersDao.getSpendingSummary(userId, (error, summary) => {
+      if (error) return callback(error, undefined);
+
+      usersDao.getMonthlySpending(userId, (error2, monthly) => {
+        if (error2) return callback(error2, undefined);
+
+        const spendingData = {
+          total: summary && summary[0] ? summary[0].total : 0,
+          paymentsCount: summary && summary[0] ? summary[0].payments : 0,
+          monthly: monthly || []
+        };
+
+        return callback(undefined, spendingData);
+      });
+    });
+  },
 }
 
 module.exports = userService;

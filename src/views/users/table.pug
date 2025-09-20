@@ -1,47 +1,297 @@
 extends ../layout
 
 block content
-    table.table.table-striped
-      thead
-        tr
-          th.col ID
-          th.col Firstname
-          th.col lastname
-          th.col Email
-          th.col Status
+    .container-fluid
+        .row.mb-4
+            .col-12
+                h2.mb-3
+                    i.fas.fa-users.me-2
+                    | Users Management
+                
+                // Filter Section
+                .card.mb-4
+                    .card-header
+                        h5.mb-0
+                            i.fas.fa-filter.me-2
+                            | Filter Users
+                    .card-body
+                        .row.g-3
+                            .col-md-3
+                                label.form-label(for="searchName") Search by Name
+                                input.form-control(
+                                    type="text" 
+                                    id="searchName" 
+                                    placeholder="Search first or last name..."
+                                )
+                            .col-md-3
+                                label.form-label(for="searchUsername") Search by Username
+                                input.form-control(
+                                    type="text" 
+                                    id="searchUsername" 
+                                    placeholder="Search username..."
+                                )
+                            .col-md-3
+                                label.form-label(for="searchEmail") Search by Email
+                                input.form-control(
+                                    type="text" 
+                                    id="searchEmail" 
+                                    placeholder="Search email..."
+                                )
+                            .col-md-2
+                                label.form-label(for="filterStatus") Status
+                                select.form-select(id="filterStatus")
+                                    option(value="") All Status
+                                    option(value="active") Active
+                                    option(value="inactive") Inactive
+                            .col-md-1.d-flex.align-items-end
+                                button.btn.btn-outline-secondary.me-2(
+                                    type="button" 
+                                    id="clearFilters"
+                                    title="Clear all filters"
+                                )
+                                    i.fas.fa-times
+                                button.btn.btn-primary(
+                                    type="button" 
+                                    id="applyFilters"
+                                    title="Apply filters"
+                                )
+                                    i.fas.fa-search
+        
+        .row
+            .col-12
+                .card
+                    .card-header.d-flex.justify-content-between.align-items-center
+                        h5.mb-0
+                            i.fas.fa-table.me-2
+                            | Users Table
+                        .text-muted.small(id="userCount") #{users.length} users found
+                    
+                    .card-body.p-0
+                        .table-responsive
+                            table.table.table-striped.table-hover.mb-0(id="usersTable")
+                                thead.table-dark
+                                    tr
+                                        th ID
+                                        th First Name
+                                        th Last Name
+                                        th Username
+                                        th Email
+                                        th Status
+                                        th Actions
+                                
+                                tbody
+                                    each user in users
+                                        tr(data-user-id=user.customer_id)
+                                            th #{user.customer_id}
+                                            td #{user.first_name}
+                                            td #{user.last_name}
+                                            td
+                                                code.text-muted #{user.username}
+                                            td #{user.email}
+                                            td
+                                                span.badge(
+                                                    class=user.active == 1 ? 'bg-success' : 'bg-danger'
+                                                ) #{user.active == 1 ? 'Active' : 'Inactive'}
+                                            td
+                                                .btn-group.btn-group-sm(role="group")
+                                                    a.btn.btn-outline-primary(
+                                                        href='/users/' + user.customer_id + '/details'
+                                                        title="View Details"
+                                                    )
+                                                        i.fas.fa-eye
+                                                    a.btn.btn-outline-secondary(
+                                                        href='/users/' + user.customer_id + '/edit'
+                                                        title="Edit User"
+                                                    )
+                                                        i.fas.fa-edit
+                                                    a.btn.btn-outline-info(
+                                                        href='/users/' + user.customer_id + '/rentals'
+                                                        title="View Rentals"
+                                                    )
+                                                        i.fas.fa-film
+                                                    a.btn.btn-outline-warning(
+                                                        href='/users/' + user.customer_id + '/spending'
+                                                        title="View Spending"
+                                                    )
+                                                        i.fas.fa-dollar-sign
+                                                    button.btn.btn-outline-danger(
+                                                        onclick=`deleteButtonClicked('${user.customer_id}', this)`
+                                                        title="Delete User"
+                                                    )
+                                                        i.fas.fa-trash
+        
+        // Delete Alert Container
+        div#deleteAlertContainer
+            div#deleteAlert.alert.alert-danger.alert-dismissible.fade.d-none(role="alert")
+                span.alert-message Customer deleted successfully!
+                button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Close")
+        
+        // Bootstrap Delete Confirmation Modal
+        div#deleteConfirmModal.modal.fade(tabindex="-1", aria-labelledby="deleteConfirmModalLabel", aria-hidden="true")
+            div.modal-dialog
+                div.modal-content
+                    div.modal-header
+                        h5#deleteConfirmModalLabel.modal-title Confirm Delete
+                        button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
+                    div.modal-body
+                        | Are you sure you want to delete this user?
+                    div.modal-footer
+                        button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
+                        button#confirmDeleteBtn.btn.btn-danger(type="button") Delete
 
-      tbody
-        each user in users
-            tr
-                th #{user.customer_id}
-                td #{user.first_name}
-                td #{user.last_name}
-                td #{user.email}
-                td #{user.active == 1 ? 'active' : 'inactive'}
-                td 
-                    a.btn.btn-dark(href='/users/' + user.customer_id + '/details') details
-                td 
-                    a.btn.btn-outline-secondary(href='/users/' + user.customer_id + '/edit') edit
-                td 
-                    a.btn.btn-outline-primary(href='/users/' + user.customer_id + '/rentals') rentals
-                td 
-                    a.btn.btn-outline-info(href='/users/' + user.customer_id + '/spending') spending
-                td 
-                    a.btn.btn-danger(onclick=`deleteButtonClicked('${user.customer_id}', this)`) delete
-      div#deleteAlertContainer
-        div#deleteAlert.alert.alert-danger.alert-dismissible.fade.d-none(role="alert")
-            span.alert-message Customer deleted successfully!
-            button.btn-close(type="button", data-bs-dismiss="alert", aria-label="Close")
-
-      // Bootstrap Delete Confirmation Modal
-      div#deleteConfirmModal.modal.fade(tabindex="-1", aria-labelledby="deleteConfirmModalLabel", aria-hidden="true")
-          div.modal-dialog
-              div.modal-content
-                  div.modal-header
-                      h5#deleteConfirmModalLabel.modal-title Confirm Delete
-                      button.btn-close(type="button", data-bs-dismiss="modal", aria-label="Close")
-                  div.modal-body
-                      | Are you sure you want to delete this user?
-                  div.modal-footer
-                      button.btn.btn-secondary(type="button", data-bs-dismiss="modal") Cancel
-                      button#confirmDeleteBtn.btn.btn-danger(type="button") Delete
+    script.
+        // Filter functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchNameInput = document.getElementById('searchName');
+            const searchUsernameInput = document.getElementById('searchUsername');
+            const searchEmailInput = document.getElementById('searchEmail');
+            const filterStatusSelect = document.getElementById('filterStatus');
+            const applyFiltersBtn = document.getElementById('applyFilters');
+            const clearFiltersBtn = document.getElementById('clearFilters');
+            const usersTable = document.getElementById('usersTable');
+            const userCountElement = document.getElementById('userCount');
+            const tableRows = usersTable.querySelectorAll('tbody tr');
+            
+            let filters = {
+                name: '',
+                username: '',
+                email: '',
+                status: ''
+            };
+            
+            // Apply filters function
+            function applyFilters() {
+                const nameFilter = filters.name.toLowerCase();
+                const usernameFilter = filters.username.toLowerCase();
+                const emailFilter = filters.email.toLowerCase();
+                const statusFilter = filters.status;
+                
+                let visibleCount = 0;
+                
+                tableRows.forEach(row => {
+                    const cells = row.querySelectorAll('td');
+                    const firstName = cells[0].textContent.toLowerCase();
+                    const lastName = cells[1].textContent.toLowerCase();
+                    const username = cells[2].textContent.toLowerCase();
+                    const email = cells[3].textContent.toLowerCase();
+                    const status = cells[4].textContent.toLowerCase();
+                    
+                    const matchesName = !nameFilter || 
+                        firstName.includes(nameFilter) || 
+                        lastName.includes(nameFilter);
+                    
+                    const matchesUsername = !usernameFilter || username.includes(usernameFilter);
+                    
+                    const matchesEmail = !emailFilter || email.includes(emailFilter);
+                    
+                    const matchesStatus = !statusFilter || status === statusFilter;
+                    
+                    if (matchesName && matchesUsername && matchesEmail && matchesStatus) {
+                        row.style.display = '';
+                        visibleCount++;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Update user count
+                userCountElement.textContent = `${visibleCount} users found`;
+            }
+            
+            // Event listeners
+            searchNameInput.addEventListener('input', function() {
+                filters.name = this.value;
+                applyFilters();
+            });
+            
+            searchUsernameInput.addEventListener('input', function() {
+                filters.username = this.value;
+                applyFilters();
+            });
+            
+            searchEmailInput.addEventListener('input', function() {
+                filters.email = this.value;
+                applyFilters();
+            });
+            
+            filterStatusSelect.addEventListener('change', function() {
+                filters.status = this.value;
+                applyFilters();
+            });
+            
+            applyFiltersBtn.addEventListener('click', applyFilters);
+            
+            clearFiltersBtn.addEventListener('click', function() {
+                searchNameInput.value = '';
+                searchUsernameInput.value = '';
+                searchEmailInput.value = '';
+                filterStatusSelect.value = '';
+                filters = { name: '', username: '', email: '', status: '' };
+                applyFilters();
+            });
+            
+            // Real-time filtering for better UX
+            searchNameInput.addEventListener('keyup', function() {
+                filters.name = this.value;
+                applyFilters();
+            });
+            
+            searchUsernameInput.addEventListener('keyup', function() {
+                filters.username = this.value;
+                applyFilters();
+            });
+            
+            searchEmailInput.addEventListener('keyup', function() {
+                filters.email = this.value;
+                applyFilters();
+            });
+        });
+        
+        // Delete functionality (existing code)
+        function deleteButtonClicked(userId, buttonElement) {
+            const modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            
+            confirmBtn.onclick = function() {
+                fetch(`/users/${userId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 200) {
+                        // Remove the row from the table
+                        const row = buttonElement.closest('tr');
+                        row.remove();
+                        
+                        // Update user count
+                        const userCountElement = document.getElementById('userCount');
+                        const currentCount = parseInt(userCountElement.textContent.split(' ')[0]);
+                        userCountElement.textContent = `${currentCount - 1} users found`;
+                        
+                        // Show success alert
+                        const alert = document.getElementById('deleteAlert');
+                        alert.classList.remove('d-none');
+                        alert.classList.add('show');
+                        
+                        // Hide alert after 3 seconds
+                        setTimeout(() => {
+                            alert.classList.remove('show');
+                            alert.classList.add('d-none');
+                        }, 3000);
+                        
+                        modal.hide();
+                    } else {
+                        alert('Error deleting user: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error deleting user');
+                });
+            };
+            
+            modal.show();
+        }

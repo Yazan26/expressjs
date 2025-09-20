@@ -20,7 +20,7 @@ const usersDao = {
     // Get all users or user by ID
     get: function(userId, callback) {
         if (userId == undefined) {
-            database.query('SELECT customer_id as id, first_name, last_name, email, active FROM customer LIMIT 50', callback);
+            database.query('SELECT customer_id as id, first_name, last_name, email, active, CONCAT(LOWER(first_name), LOWER(last_name)) as username FROM customer', callback);
         } else {
             this.getUserById(userId, callback);
         }
@@ -69,6 +69,37 @@ const usersDao = {
         if (results) return callback(undefined, results);
       }
     );
+  },
+
+  // Get rental history for a user
+  getRentals: function(userId, callback) {
+    const sql = `SELECT r.rental_id, f.title, r.rental_date, r.return_date,
+                        COALESCE(p.amount, 0) as amount
+                 FROM rental r
+                 JOIN inventory i ON r.inventory_id = i.inventory_id
+                 JOIN film f ON i.film_id = f.film_id
+                 LEFT JOIN payment p ON p.rental_id = r.rental_id AND p.customer_id = r.customer_id
+                 WHERE r.customer_id = ?
+                 ORDER BY r.rental_date DESC`;
+    database.query(sql, [userId], callback);
+  },
+
+  // Get spending summary for a user
+  getSpendingSummary: function(userId, callback) {
+    const sql = `SELECT COALESCE(SUM(amount),0) as total, COUNT(*) as payments
+                 FROM payment WHERE customer_id = ?`;
+    database.query(sql, [userId], callback);
+  },
+
+  // Get monthly spending breakdown for a user
+  getMonthlySpending: function(userId, callback) {
+    const sql = `SELECT DATE_FORMAT(payment_date, '%Y-%m') as period,
+                        COALESCE(SUM(amount),0) as total,
+                        COUNT(*) as count
+                 FROM payment WHERE customer_id = ?
+                 GROUP BY DATE_FORMAT(payment_date, '%Y-%m')
+                 ORDER BY period DESC`;
+    database.query(sql, [userId], callback);
   },
 };
 
