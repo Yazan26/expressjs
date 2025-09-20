@@ -3,12 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var favicon = require('serve-favicon');
-// Load dotenv only if .env file exists (safe for Azure deployment)
-try {
-  require('dotenv').config();
-} catch (err) {
-  console.log('No .env file found, using environment variables');
-}
+var dotenv = require('dotenv').config();
 const session = require('express-session');
 const flash = require('connect-flash');
 
