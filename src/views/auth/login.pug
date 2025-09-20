@@ -54,6 +54,17 @@ block content
                 .invalid-feedback
                   | Please enter your password.
               
+              .mb-3
+                .form-check
+                  input.form-check-input(
+                    type="checkbox" 
+                    id="rememberMe" 
+                    name="rememberMe"
+                  )
+                  label.form-check-label(for="rememberMe")
+                    i.fas.fa-clock.me-1
+                    | Remember me for 30 days
+              
               .d-grid
                 button.btn.btn-primary.btn-lg(type="submit")
                   i.fas.fa-sign-in-alt.me-2
