@@ -15,5 +15,11 @@ router.use(requireRole(['staff', 'manager', 'admin']));
 
 /* GET users listing */
 router.get('/', usersController.get);
+router.get('/:userId/details', usersController.get);
+router.get('/:userId/edit', usersController.update);
+router.post('/:userId/edit', usersController.validate, usersController.update);
+router.get('/:userId/rentals', usersController.getRentals);
+router.get('/:userId/spending', usersController.getSpending);
+router.delete('/:userId', usersController.CheckRentals, usersController.delete);
 
 module.exports = router;

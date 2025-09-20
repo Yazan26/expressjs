@@ -29,6 +29,15 @@ block content
                   option(value="") All Ratings
                   each rating in ratings
                     option(value=rating, selected=currentRating == rating) #{rating}
+
+              .mb-3
+                label.form-label(for="sort") Sort By
+                select.form-select(name="sort", id="sort")
+                  option(value="title", selected=(currentSort === 'title')) Title (A → Z)
+                  option(value="discount_desc", selected=(currentSort === 'discount_desc')) Discount (High → Low)
+                  option(value="discount_asc", selected=(currentSort === 'discount_asc')) Discount (Low → High)
+                  option(value="price_asc", selected=(currentSort === 'price_asc')) Price (Low → High)
+                  option(value="price_desc", selected=(currentSort === 'price_desc')) Price (High → Low)
               
               .d-grid
                 button.btn.btn-primary(type="submit")
@@ -82,7 +91,7 @@ block content
                   .card-body
                     .d-flex.justify-content-between.align-items-start.mb-2
                       h5.card-title.mb-0
-                        a.text-decoration-none(href=`/films/${film.filmId}`) #{film.title}
+                        a.text-decoration-none(href='/films/' + film.filmId) #{film.title}
                       span.badge.bg-secondary #{film.rating}
                     
                     if film.category
@@ -100,11 +109,16 @@ block content
                     
                     if film.rentalRate
                       .d-flex.justify-content-between.align-items-center.mt-3
-                        .text-muted.small Rental Rate
-                        .fw-bold.text-success $#{parseFloat(film.rentalRate).toFixed(2)}
+                        .text-muted.small Price
+                        if film.discounted_price
+                          span
+                            span.text-muted.text-decoration-line-through $#{parseFloat(film.rentalRate).toFixed(2)}
+                            span.ms-2.fw-bold.text-success $#{parseFloat(film.discounted_price).toFixed(2)}
+                        else
+                          .fw-bold.text-success $#{parseFloat(film.rentalRate).toFixed(2)}
                   
                   .card-footer.bg-transparent
-                    a.btn.btn-primary.btn-sm.w-100(href=`/films/${film.filmId}`)
+                    a.btn.btn-primary.btn-sm.w-100(href='/films/' + film.filmId)
                       i.fas.fa-eye.me-2
                       | View Details
         else

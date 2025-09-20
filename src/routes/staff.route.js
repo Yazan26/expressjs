@@ -12,6 +12,14 @@ const requireRole = require('../middleware/requireRole');
 router.use(requireAuth);
 router.use(requireRole(['staff', 'admin']));
 
+// GET /staff - Staff dashboard (redirect to dashboard)
+router.get('/', function(req, res) {
+  res.redirect('/staff/dashboard');
+});
+
+// GET /staff/dashboard - Staff dashboard with stats
+router.get('/dashboard', staffController.getDashboard);
+
 // GET /staff/offers - Staff offers dashboard with discounts
 router.get('/offers', staffController.getOffers);
 

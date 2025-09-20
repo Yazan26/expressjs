@@ -82,6 +82,7 @@ const customerController = {
       category: req.query.category || 'all',
       rating: req.query.rating || 'all',
       available: req.query.available || '',
+      sort: req.query.sort || 'title',
       page: parseInt(req.query.page) || 1,
       limit: 12
     };
@@ -98,7 +99,9 @@ const customerController = {
         category: options.category,
         rating: options.rating,
         available: options.available,
-        page: options.page
+        sort: options.sort,
+        page: options.page,
+        totalPages: (data.pagination && (data.pagination.totalPages || data.pagination.totalFilms && Math.ceil(data.pagination.totalFilms / (data.pagination.limit || options.limit)))) || 1
       });
     });
   },

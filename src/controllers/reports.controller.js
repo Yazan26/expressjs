@@ -129,6 +129,11 @@ const reportsController = {
         customers: data.customers || [],
         segments: data.segments || {},
         summary: data.summary || {},
+        rfmSummary: data.rfmSummary || {},
+        cohorts: data.cohorts || [],
+        geography: data.geography || [],
+        lateReturns: data.lateReturns || [],
+        inactivity: data.inactivity || {},
         filters: data.filters || {},
         user: req.session.user
       });

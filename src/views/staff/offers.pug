@@ -3,25 +3,30 @@ extends ../layout
 block content
   .container-fluid
     .row.mb-4
-      .col-8
+      .col-lg-8
         h1.h2.mb-1
-          i.fas.fa-percentage.me-2.text-success
+          i.fas.fa-tags.me-2.text-success
           | Staff Film Offers & Discounts
-        p.text-muted Select films with special staff discounts - save money on your rentals!
+        p.text-muted Select films with special staff discounts and enjoy employee benefits!
       
-      .col-4.text-end
-        a.btn.btn-outline-success(href="/staff/selections") 
-          i.fas.fa-star.me-2
-          | My Selections & Savings
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-primary(href="/staff/dashboard") 
+            i.fas.fa-tachometer-alt.me-2
+            | Dashboard
+          a.btn.btn-success(href="/staff/selections") 
+            i.fas.fa-star.me-2
+            | My Selections
 
     // Quick Stats Banner
     if offers && offers.length > 0
       - var avgDiscount = 0
       - var totalOffers = offers.length
       - var bestDiscount = 0
-      - for (var i = 0; i < offers.length; i++)
-      -   if (offers[i].discount_percent > bestDiscount) bestDiscount = offers[i].discount_percent
-      -   avgDiscount += offers[i].discount_percent || 0
+      - offers.forEach(function(offer) {
+      -   if (offer.discount_percent > bestDiscount) bestDiscount = offer.discount_percent
+      -   avgDiscount += offer.discount_percent || 0
+      - })
       - avgDiscount = totalOffers > 0 ? (avgDiscount / totalOffers).toFixed(1) : 0
       
       .row.mb-4
@@ -50,8 +55,19 @@ block content
                 select.form-select(name="category")
                   option(value="all", selected=currentCategory === 'all') All Categories
                   if categories
-                    for category in categories
+                    - var catIndex = 0
+                    - while (catIndex < categories.length)
+                      - var category = categories[catIndex]
                       option(value=category.category_id, selected=currentCategory == category.category_id) #{category.name}
+                      - catIndex++
+              .col-md-6
+                label.form-label Sort By
+                select.form-select(name="sort")
+                  option(value="discount_desc", selected=(currentSort === 'discount_desc')) Discount (High → Low)
+                  option(value="discount_asc", selected=(currentSort === 'discount_asc')) Discount (Low → High)
+                  option(value="price_asc", selected=(currentSort === 'price_asc')) Price (Low → High)
+                  option(value="price_desc", selected=(currentSort === 'price_desc')) Price (High → Low)
+                  option(value="title", selected=(currentSort === 'title')) Title (A → Z)
               
               .col-md-6.d-flex.align-items-end
                 button.btn.btn-primary.w-100(type="submit")
@@ -61,7 +77,9 @@ block content
     // Enhanced Offers List with Pricing
     if offers && offers.length > 0
       .row
-        for offer in offers
+        - var offerIndex = 0
+        - while (offerIndex < offers.length)
+          - var offer = offers[offerIndex]
           .col-lg-4.col-md-6.mb-4
             .card.h-100.border-success(class=offer.discount_percent >= 20 ? 'border-2' : '')
               .card-header.bg-light
@@ -80,13 +98,13 @@ block content
                 .row.mb-3.text-center
                   .col-4
                     .small.text-muted.text-decoration-line-through Original
-                    .text-muted $#{parseFloat(offer.rental_rate || 4.99).toFixed(2)}
+                    .text-muted.text-decoration-line-through $#{parseFloat(offer.rental_rate || 4.99).toFixed(2)}
                   .col-4
                     .small.text-success Your Price
                     .fw-bold.text-success.h5 $#{parseFloat(offer.discounted_price || (offer.rental_rate * 0.85)).toFixed(2)}
                   .col-4
                     .small.text-warning You Save
-                    .fw-bold.text-warning $#{parseFloat(offer.discount_amount || (offer.rental_rate * 0.15)).toFixed(2)}
+                    .fw-bold.text-warning $#{parseFloat(offer.discount_amount || (offer.rental_rate * (offer.discount_percent || 15) / 100)).toFixed(2)}
                 
                 if offer.offer_description
                   .small.text-info.mb-3
@@ -99,12 +117,18 @@ block content
                     | Expires: #{new Date(offer.expires_at).toLocaleDateString()}
                 
                 .d-flex.gap-2
-                  button.btn.btn-success.btn-sm.flex-fill(onclick="selectOffer(#{offer.film_id}, '#{offer.title}', #{offer.discount_percent || 15})")
+                  button.btn.btn-success.btn-sm.flex-fill.select-offer-btn(
+                    data-film-id=offer.film_id,
+                    data-film-title=offer.title,
+                    data-discount=offer.discount_percent || 15
+                  )
                     i.fas.fa-check.me-1
                     | Select Offer
                   
-                  a.btn.btn-outline-info.btn-sm(href="/films/#{offer.film_id}")
-                    i.fas.fa-eye
+                  a.btn.btn-outline-info.btn-sm(href="/films/" + offer.film_id)
+                    i.fas.fa-eye.me-1
+                    | View
+          - offerIndex++
 
       // Pagination
       if pagination && pagination.totalPages > 1
@@ -113,21 +137,23 @@ block content
             .d-flex.justify-content-center
               nav
                 ul.pagination
-                  if pagination.currentPage > 1
-                    li.page-item
-                      a.page-link(href="?page=#{pagination.currentPage - 1}&category=#{currentCategory}")
+              if pagination.currentPage > 1
+                li.page-item
+                  a.page-link(href="?page=#{pagination.currentPage - 1}&category=#{currentCategory}&sort=#{currentSort}")
                         i.fas.fa-chevron-left
                   
-                  - for (var i = 1; i <= pagination.totalPages; i++)
-                    li.page-item(class=i === pagination.currentPage ? 'active' : '')
-                      if i === pagination.currentPage
+                  - var currentPage = pagination.currentPage
+                  - var totalPages = pagination.totalPages
+                  - for (var i = 1; i <= totalPages; i++)
+                    li.page-item(class=i === currentPage ? 'active' : '')
+                      if i === currentPage
                         span.page-link #{i}
                       else
-                        a.page-link(href="?page=#{i}&category=#{currentCategory}") #{i}
+                        a.page-link(href="?page=" + i + "&category=" + currentCategory + "&sort=" + currentSort) #{i}
                   
-                  if pagination.currentPage < pagination.totalPages
-                    li.page-item
-                      a.page-link(href="?page=#{pagination.currentPage + 1}&category=#{currentCategory}")
+              if pagination.currentPage < pagination.totalPages
+                li.page-item
+                  a.page-link(href="?page=#{pagination.currentPage + 1}&category=#{currentCategory}&sort=#{currentSort}")
                         i.fas.fa-chevron-right
 
     else
@@ -141,40 +167,82 @@ block content
               p.text-muted 
                 | No film offers with staff discounts are currently available.
                 br
-                | Check back later for great savings on your favorite movies!
+                | Check back later or ask your manager to activate some offers!
+              
+              .mt-4
+                a.btn.btn-primary(href="/staff/dashboard")
+                  i.fas.fa-tachometer-alt.me-2
+                  | Back to Dashboard
 
-script.
-  function selectOffer(filmId, title, discountPercent) {
-    const message = `Select "${title}" with ${discountPercent}% staff discount?`;
-    
-    if (confirm(message)) {
-      // Show loading feedback
-      event.target.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Selecting...';
-      event.target.disabled = true;
-      
-      fetch('/staff/offers/select', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          film_id: filmId
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.message) {
-          alert('✓ ' + data.message + '\n\nYou can now rent "' + title + '" at the discounted price when making rentals!');
-          location.reload();
-        } else {
-          throw new Error('Invalid response');
-        }
-      })
-      .catch(() => {
-        alert('Error selecting offer. Please try again.');
-        // Reset button
-        event.target.innerHTML = '<i class="fas fa-check me-1"></i> Select Offer';
-        event.target.disabled = false;
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Handle offer selection
+      const selectButtons = document.querySelectorAll('.select-offer-btn');
+      selectButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          const filmId = this.dataset.filmId;
+          const filmTitle = this.dataset.filmTitle;
+          const discount = this.dataset.discount;
+          
+          const message = `Select "${filmTitle}" with ${discount}% staff discount?`;
+          
+          if (confirm(message)) {
+            // Show loading feedback
+            const originalContent = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Selecting...';
+            this.disabled = true;
+            
+            fetch('/staff/offers/select', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({ film_id: filmId })
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                this.innerHTML = '<i class="fas fa-check me-1"></i> Selected!';
+                this.classList.remove('btn-success');
+                this.classList.add('btn-outline-success');
+                
+                alert(`✓ Successfully selected "${filmTitle}"!\n\nYou can now rent this film at the discounted price.`);
+                
+                // Refresh after delay
+                setTimeout(() => {
+                  window.location.reload();
+                }, 1500);
+              } else {
+                throw new Error(data.message || 'Failed to select offer');
+              }
+            })
+            .catch(error => {
+              console.error('Error selecting offer:', error);
+              alert('Error selecting offer: ' + error.message);
+              this.innerHTML = originalContent;
+              this.disabled = false;
+            });
+          }
+        });
       });
+    });
+
+  style.
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+      transition: box-shadow 0.2s, transform 0.2s;
     }
-  }
+    .card:hover {
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+    }
+    .text-decoration-line-through {
+      text-decoration: line-through;
+    }
+    .border-2 {
+      border-width: 2px !important;
+    }

@@ -5,7 +5,7 @@ const usersDao = {
     // Get user by ID
     getUserById: function(userId, callback) {
         database.query(
-            'SELECT customer_id as id, first_name, last_name, email FROM customer WHERE customer_id = ?',
+            'SELECT customer_id as id, first_name, last_name, email, active FROM customer WHERE customer_id = ?',
             [userId],
             (error, results) => {
                 if (error) return callback(error, undefined);

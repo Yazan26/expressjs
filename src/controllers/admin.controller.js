@@ -171,6 +171,25 @@ const adminController = {
     });
   },
 
+  postRemoveFilmCopy: function(req, res, next) {
+    const filmId = parseInt(req.params.id);
+    const inventoryId = parseInt(req.params.inventoryId);
+
+    if (Number.isNaN(filmId) || Number.isNaN(inventoryId)) {
+      req.flash('error', 'Invalid inventory copy');
+      return res.redirect('/admin/films');
+    }
+
+    adminService.removeFilmCopy(filmId, inventoryId, function(err) {
+      if (err) {
+        req.flash('error', err.message);
+        return res.redirect(`/admin/films/inventory/${filmId}`);
+      }
+      req.flash('success', 'Inventory copy removed successfully');
+      res.redirect(`/admin/films/inventory/${filmId}`);
+    });
+  },
+
   // === STAFF MANAGEMENT ===
 
   getStaff: function(req, res, next) {
@@ -237,18 +256,31 @@ const adminController = {
   // === OFFERS MANAGEMENT ===
 
   getOffers: function(req, res, next) {
-    adminService.getOffersData(function(err, data) {
+    const options = {
+      search: req.query.search,
+      category: req.query.category,
+      page: parseInt(req.query.page) || 1,
+      limit: 20
+    };
+    
+    adminService.getAllOffers(options, function(err, data) {
       if (err) return next(err);
-      // Map films to offers for template compatibility
-      const templateData = {
-        ...data,
-        offers: data.films  // Template expects 'offers' but service returns 'films'
-      };
-      res.render('admin/offers', { 
-        title: 'Film Offers Management - Admin', 
-        ...templateData, 
-        success: req.flash('success'), 
-        error: req.flash('error') 
+      
+      // Get categories for filter dropdown
+      const filmsService = require('../services/films.service');
+      filmsService.getCategories(function(catErr, categories) {
+        res.render('admin/offers', { 
+          title: 'Film Offers Management - Admin', 
+          offers: data.offers || [],
+          categories: categories || [],
+          pagination: data.pagination || { page: 1, totalPages: 1, totalItems: 0, hasNextPage: false, hasPrevPage: false },
+          searchParams: {
+            search: req.query.search || '',
+            category: req.query.category || 'all'
+          },
+          success: req.flash('success'), 
+          error: req.flash('error') 
+        });
       });
     });
   },
@@ -281,18 +313,35 @@ const adminController = {
   },
 
   getNewOffer: function(req, res, next) {
+    const options = {
+      search: req.query.search,
+      category: req.query.category,
+      page: parseInt(req.query.page) || 1,
+      limit: 20
+    };
+    
     // Get films that don't already have active offers
-    adminService.getAvailableFilmsForOffers(function(err, films) {
+    adminService.getAvailableFilmsForOffers(options, function(err, data) {
       if (err) return next(err);
       
-      const success = req.flash('success');
-      const error = req.flash('error');
-      
-      res.render('admin/offers-new', {
-        title: 'Create New Offer - Admin',
-        films: films,
-        success: success.length > 0 ? success[0] : null,
-        error: error.length > 0 ? error[0] : null
+      // Get categories for filter dropdown
+      const filmsService = require('../services/films.service');
+      filmsService.getCategories(function(catErr, categories) {
+        const success = req.flash('success');
+        const error = req.flash('error');
+        
+        res.render('admin/offers-new', {
+          title: 'Create New Offer - Admin',
+          films: data.films || [],
+          categories: categories || [],
+          pagination: data.pagination,
+          searchParams: {
+            search: req.query.search || '',
+            category: req.query.category || 'all'
+          },
+          success: success.length > 0 ? success[0] : null,
+          error: error.length > 0 ? error[0] : null
+        });
       });
     });
   },
@@ -312,6 +361,25 @@ const adminController = {
         return res.redirect('/admin/offers/new');
       }
       req.flash('success', 'Offers created successfully');
+      res.redirect('/admin/offers');
+    });
+  },
+
+  postRemoveOffer: function(req, res, next) {
+    const offerId = parseInt(req.params.offerId);
+    
+    if (!offerId) {
+      req.flash('error', 'Invalid offer ID');
+      return res.redirect('/admin/offers');
+    }
+    
+    adminService.removeOffer(offerId, function(err, result) {
+      if (err) {
+        req.flash('error', 'Failed to remove offer: ' + err.message);
+        return res.redirect('/admin/offers');
+      }
+      
+      req.flash('success', 'Offer removed successfully');
       res.redirect('/admin/offers');
     });
   }

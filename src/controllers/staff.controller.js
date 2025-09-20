@@ -6,11 +6,63 @@ const staffService = require('../services/staff.service');
 const staffController = {
 
   /**
+   * GET /staff/dashboard - Staff dashboard with stats and quick actions
+   */
+  getDashboard: function(req, res, next) {
+    const staffId = req.session.user?.id;
+    
+    if (!staffId) {
+      return res.redirect('/auth/login');
+    }
+
+    // Get dashboard data in parallel
+    staffService.getOffersData({ limit: 6 }, function(offersErr, offersData) {
+      staffService.getSelections(staffId, function(selectionsErr, selectionsData) {
+        // Use fallback data if there are errors
+        const offerStats = {
+          available: offersData?.offers?.length || 0
+        };
+        
+        const selectionStats = selectionsData?.stats || {
+          total: 0,
+          totalSavings: 0,
+          expiringSoon: 0,
+          totalOriginalPrice: 0,
+          averageDiscount: 0
+        };
+        
+        const activeSelections = (selectionsData?.selections || []).filter(s => {
+          const expiry = new Date(s.expires_at || Date.now() + 30*24*60*60*1000);
+          return expiry > new Date();
+        }).map(selection => ({
+          filmId: selection.film_id,
+          filmTitle: selection.title || 'Film',
+          discountPercent: selection.discount_percent || 15,
+          savingsAmount: selection.discount_amount || 0.75,
+          endDate: selection.expires_at || new Date(Date.now() + 30*24*60*60*1000)
+        }));
+        
+        const recentOffers = (offersData?.offers || []).slice(0, 6);
+        
+        res.render('staff/dashboard', {
+          title: 'Staff Dashboard',
+          offerStats,
+          selectionStats,
+          activeSelections,
+          recentOffers,
+          user: req.session.user
+        });
+      });
+    });
+  },
+
+  /**
    * GET /staff/offers - Staff offers page with discounts
    */
   getOffers: function(req, res, next) {
     const options = {
       category: req.query.category || 'all',
+      sort: req.query.sort || 'discount_desc',
       page: parseInt(req.query.page) || 1,
       limit: 20,
       offset: ((parseInt(req.query.page) || 1) - 1) * 20
@@ -27,6 +79,7 @@ const staffController = {
         offers: data.offers || [],
         categories: data.categories || [],
         currentCategory: options.category,
+        currentSort: options.sort,
         pagination: data.pagination || null,
         user: req.session.user
       });
@@ -108,6 +161,7 @@ const staffController = {
 
     if (!filmId || !staffId) {
       return res.status(400).json({ 
+        success: false,
         error: 'Missing film_id or staff not authenticated',
         message: 'Please log in and try again'
       });
@@ -117,6 +171,7 @@ const staffController = {
       if (err) {
         console.error('Error selecting offer:', err);
         return res.status(500).json({ 
+          success: false,
           error: 'Failed to select offer',
           message: 'Unable to select offer. Please try again.'
         });

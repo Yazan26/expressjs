@@ -21,19 +21,30 @@ const userService={
 
 
     get:(userId,callback)=>{
-usersDao.get(userId,(error,users)=>{
-    if(error) return callback(error,undefined);
-    if(users) {
-        if(userId==undefined) return callback(undefined,users);
-        let user = users.filter((user)=>user.customer_id == userId)[0];
+      usersDao.get(userId,(error,users)=>{
+        if(error) return callback(error,undefined);
+        if(!users) return callback(undefined, undefined);
+
+        // If no userId, users is an array (list view)
+        if(userId == undefined) return callback(undefined, users);
+
+        // When userId is provided, DAO returns a single object
+        let user;
+        if (Array.isArray(users)) {
+          user = users.find(u => String(u.customer_id || u.id) === String(userId));
+        } else {
+          user = users; // already a single record from DAO
+        }
+
         logger.debug('User filtered from results', {
           service: 'USERS',
           action: 'GET_USER_FILTERED',
           userId: userId,
           found: !!user
         });
-        return callback(undefined,[user])};
-});
+
+        return callback(undefined, user ? [user] : []);
+      });
     },
     update:(email,userId,first_name,last_name, active, callback)=>{
             usersDao.update(email,userId,first_name,last_name,active,(error,result)=>{
@@ -44,7 +55,7 @@ usersDao.get(userId,(error,users)=>{
         },
 
     
-    delete: function(userId, callback) {
+  delete: function(userId, callback) {
     // First, check for active rentals
     usersDao.HasActiveRentals(userId, (error, hasRentals) => {
       if (error) return callback(error, undefined);
@@ -60,6 +71,15 @@ usersDao.get(userId,(error,users)=>{
           });
         });
       });
+    });
+  },
+  
+  // Check if user has active rentals before deletion
+  CheckRentals: function(userId, callback) {
+    usersDao.HasActiveRentals(userId, (error, hasActive) => {
+      if (error) return callback(error, undefined);
+      // Controller expects an array; return non-empty array if has active rentals
+      return callback(undefined, hasActive ? [{}] : []);
     });
   },
   

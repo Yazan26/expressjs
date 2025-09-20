@@ -1,5 +1,5 @@
-const offersDao = require('../dao/offers.dao');
 const filmsDao = require('../dao/films.dao');
+const staffDao = require('../dao/staff.dao');
 
 /**
  * Staff Service - Enhanced staff offer operations with real business value
@@ -10,9 +10,7 @@ const staffService = {
    * Get available offers for staff to select from (with real discounts)
    */
   getOffersData: function(options, callback) {
-    let whereClause = `WHERE (fo.film_id IS NOT NULL OR so.film_id IS NOT NULL OR f.rental_rate <= 4.99)
-        AND (fo.valid_from IS NULL OR fo.valid_from <= NOW())
-        AND (fo.valid_to IS NULL OR fo.valid_to >= NOW())`;
+    let whereClause = `WHERE fo.film_id IS NOT NULL AND fo.is_active = 1`;
     let queryParams = [];
 
     // Apply category filter
@@ -21,35 +19,30 @@ const staffService = {
       queryParams.push(parseInt(options.category));
     }
 
-    const query = `SELECT 
-        f.film_id, f.title, f.description, f.rental_rate, f.rating, c.name as category_name,
-        COALESCE(fo.discount_percent, so.discount_percent, 15) as discount_percent,
-        COALESCE(fo.description, so.description, 'Staff discount available') as offer_description,
-        (f.rental_rate * COALESCE(fo.discount_percent, so.discount_percent, 15) / 100) as discount_amount,
-        (f.rental_rate - (f.rental_rate * COALESCE(fo.discount_percent, so.discount_percent, 15) / 100)) as discounted_price,
-        COALESCE(fo.valid_to, DATE_ADD(NOW(), INTERVAL 30 DAY)) as expires_at,
-        CASE WHEN fo.film_id IS NOT NULL OR so.film_id IS NOT NULL THEN 'active' ELSE 'available' END as status
-      FROM film f
-      LEFT JOIN film_category fc ON f.film_id = fc.film_id
-      LEFT JOIN category c ON fc.category_id = c.category_id
-      LEFT JOIN film_offers fo ON f.film_id = fo.film_id AND fo.active = 1
-      LEFT JOIN staff_offers so ON f.film_id = so.film_id AND so.active = 1
-      ${whereClause}
-      ORDER BY discount_percent DESC, f.title
-      LIMIT ? OFFSET ?`;
+    // Sorting
+    const sort = options.sort || 'discount_desc';
+    let orderBySql = 'ORDER BY discount_percent DESC, f.title';
+    if (sort === 'discount_asc') {
+      orderBySql = 'ORDER BY discount_percent ASC, f.title';
+    } else if (sort === 'price_asc') {
+      orderBySql = 'ORDER BY discounted_price ASC, f.title';
+    } else if (sort === 'price_desc') {
+      orderBySql = 'ORDER BY discounted_price DESC, f.title';
+    } else if (sort === 'title') {
+      orderBySql = 'ORDER BY f.title';
+    }
 
     const limit = options.limit || 20;
     const offset = options.offset || 0;
-    queryParams.push(limit, offset);
-    
-    const usersDao = require('../dao/users.dao');
-    usersDao.query(query, queryParams, function(err, offers) {
+    const params = [...queryParams, limit, offset];
+
+    staffDao.getAvailableOffers({ whereClause, orderBySql, params }, function(err, offers) {
       if (err && err.message.includes("doesn't exist")) {
         // Fallback to basic films with default discounts
         filmsDao.getAllFilms(options, function(filmErr, filmResult) {
           if (filmErr) return callback(filmErr);
           
-          const offersWithDiscounts = filmResult.films.map(function(film) {
+          let offersWithDiscounts = filmResult.films.map(function(film) {
             const discountPercent = 15; // Default staff discount
             const discountAmount = parseFloat((film.rental_rate * discountPercent / 100).toFixed(2));
             const discountedPrice = parseFloat((film.rental_rate - discountAmount).toFixed(2));
@@ -69,6 +62,24 @@ const staffService = {
               status: 'available'
             };
           });
+
+          // Apply in-memory sorting for fallback
+          switch (sort) {
+            case 'discount_asc':
+              offersWithDiscounts.sort((a, b) => (a.discount_percent||0)-(b.discount_percent||0) || a.title.localeCompare(b.title));
+              break;
+            case 'price_asc':
+              offersWithDiscounts.sort((a, b) => (a.discounted_price||0)-(b.discounted_price||0) || a.title.localeCompare(b.title));
+              break;
+            case 'price_desc':
+              offersWithDiscounts.sort((a, b) => (b.discounted_price||0)-(a.discounted_price||0) || a.title.localeCompare(b.title));
+              break;
+            case 'title':
+              offersWithDiscounts.sort((a, b) => a.title.localeCompare(b.title));
+              break;
+            default:
+              offersWithDiscounts.sort((a, b) => (b.discount_percent||0)-(a.discount_percent||0) || a.title.localeCompare(b.title));
+          }
           
           filmsDao.getCategories(function(catErr, categories) {
             callback(null, {
@@ -82,17 +93,9 @@ const staffService = {
       }
       
       if (err) return callback(err);
-      
-      filmsDao.getCategories(function(catErr, categories) {
-        callback(null, {
-          offers: offers || [],
-          categories: categories || [],
-          pagination: {
-            page: Math.floor(offset / limit) + 1,
-            totalPages: Math.ceil((offers || []).length / limit),
-            totalItems: (offers || []).length
-          }
-        });
+
+      staffDao.getCategories(function(catErr, categories) {
+        callback(null, { offers: offers || [], categories: categories || [], pagination: { page: Math.floor(offset / limit) + 1, totalPages: Math.ceil((offers || []).length / limit), totalItems: (offers || []).length } });
       });
     });
   },
@@ -101,47 +104,27 @@ const staffService = {
    * Get staff member's selected offers with savings summary
    */
   getSelections: function(staffId, callback) {
-    const adminService = require('./admin.service');
-    adminService.getStaffOfferSelections(staffId, function(err, selections) {
-      if (err) {
-        // Fallback to mock data
-        return callback(null, {
-          selections: [],
-          stats: {
-            total: 0,
-            active: 0,
-            savings: 0,
-            totalOriginalPrice: 0,
-            averageDiscount: 0
-          }
+    staffDao.selectStaffOfferSelections(staffId, function(err, selections) {
+      if (err && err.message.includes("doesn't exist")) {
+        const fallback = Array.from({ length: 5 }).map((_, idx) => {
+          const rate = 3.99 + idx * 0.5;
+          const discountAmount = parseFloat((rate * 0.15).toFixed(2));
+          return {
+            film_id: idx + 1,
+            title: `Sample Film ${idx + 1}`,
+            rental_rate: rate,
+            rating: 'PG',
+            category_name: 'General',
+            discount_percent: 15,
+            discount_amount: discountAmount,
+            discounted_price: parseFloat((rate - discountAmount).toFixed(2)),
+            expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          };
         });
+        return callback(null, buildSelectionResponse(fallback));
       }
-      
-      // Calculate statistics
-      let totalSavings = 0;
-      let totalOriginalPrice = 0;
-      let activeCount = 0;
-      
-      selections.forEach(selection => {
-        totalSavings += selection.discount_amount || 0;
-        totalOriginalPrice += selection.rental_rate || 0;
-        if (selection.expires_at && new Date(selection.expires_at) > new Date()) {
-          activeCount++;
-        }
-      });
-      
-      const stats = {
-        total: selections.length,
-        active: activeCount,
-        savings: parseFloat(totalSavings.toFixed(2)),
-        totalOriginalPrice: parseFloat(totalOriginalPrice.toFixed(2)),
-        averageDiscount: totalOriginalPrice > 0 ? parseFloat((totalSavings / totalOriginalPrice * 100).toFixed(1)) : 0
-      };
-      
-      callback(null, {
-        selections: selections,
-        stats: stats
-      });
+      if (err) return callback(err);
+      callback(null, buildSelectionResponse(selections || []));
     });
   },
 
@@ -149,43 +132,55 @@ const staffService = {
    * Select an offer for staff member (with real database tracking)
    */
   selectOffer: function(staffId, filmId, callback) {
-    const insertQuery = `INSERT INTO staff_offer_selections (staff_id, film_id, selected_at) 
-                         VALUES (?, ?, NOW()) 
-                         ON DUPLICATE KEY UPDATE selected_at = NOW()`;
-
-    const usersDao = require('../dao/users.dao');
-    usersDao.query(insertQuery, [staffId, filmId], function(err, result) {
-      if (err && err.message.includes("doesn't exist")) {
-        // Fallback - just track the selection in memory/logs
-        console.log('Staff', staffId, 'selected film offer', filmId, '(fallback mode)');
-        return callback(null, {
-          staffId: staffId,
-          filmId: filmId,
-          selectedAt: new Date(),
-          message: 'Offer selected successfully (tracking in fallback mode)'
-        });
-      }
-      
+    // First find the offer with discount percentage
+    staffDao.findActiveOffer(filmId, function(err, offerResults) {
       if (err) return callback(err);
       
-      // Get film details for confirmation
-      filmsDao.getFilmById(filmId, function(filmErr, film) {
-        const confirmationData = {
-          staffId: staffId,
-          filmId: filmId,
-          selectedAt: new Date(),
-          message: 'Offer selected successfully'
-        };
-        
-        if (!filmErr && film) {
-          confirmationData.filmTitle = film.title;
-          confirmationData.originalPrice = film.rental_rate;
-          confirmationData.discount = '15%'; // Default staff discount
-          confirmationData.discountedPrice = parseFloat((film.rental_rate * 0.85).toFixed(2));
-          confirmationData.savings = parseFloat((film.rental_rate * 0.15).toFixed(2));
+      if (!offerResults || offerResults.length === 0) {
+        return callback(new Error('No active offer found for this film'));
+      }
+      
+      const offerId = offerResults[0].offer_id;
+      const discountPercentage = parseFloat(offerResults[0].discount_percentage || 15);
+      
+      staffDao.insertSelection(staffId, offerId, discountPercentage, function(err) {
+        if (err && err.message.includes("doesn't exist")) {
+          // Fallback - just track the selection in memory/logs
+          console.log('Staff', staffId, 'selected film offer', filmId, '(fallback mode)');
+          return callback(null, {
+            staffId: staffId,
+            filmId: filmId,
+            selectedAt: new Date(),
+            message: 'Offer selected successfully (tracking in fallback mode)'
+          });
         }
         
-        callback(null, confirmationData);
+        if (err) return callback(err);
+        
+        // Get film details for confirmation
+        staffDao.getFilmById(filmId, function(filmErr, film) {
+          const confirmationData = {
+            staffId: staffId,
+            filmId: filmId,
+            offerId: offerId,
+            selectedAt: new Date(),
+            message: 'Offer selected successfully'
+          };
+          
+          if (!filmErr && film) {
+            const discountDecimal = discountPercentage / 100;
+            const discountAmount = parseFloat((film.rental_rate * discountDecimal).toFixed(2));
+            const discountedPrice = parseFloat((film.rental_rate - discountAmount).toFixed(2));
+            
+            confirmationData.filmTitle = film.title;
+            confirmationData.originalPrice = film.rental_rate;
+            confirmationData.discount = `${discountPercentage}%`;
+            confirmationData.discountedPrice = discountedPrice;
+            confirmationData.savings = discountAmount;
+          }
+          
+          callback(null, confirmationData);
+        });
       });
     });
   },
@@ -194,34 +189,67 @@ const staffService = {
    * Calculate rental price with staff discounts applied
    */
   calculateRentalPrice: function(staffId, filmId, callback) {
-    const adminService = require('./admin.service');
-    adminService.applyOfferDiscount(staffId, filmId, function(err, pricing) {
-      if (err || !pricing) {
-        // Fallback to regular pricing
-        filmsDao.getFilmById(filmId, function(filmErr, film) {
-          if (filmErr || !film) {
-            return callback(null, { 
-              originalPrice: 4.99, 
-              finalPrice: 4.99, 
-              discount: 0,
-              discountApplied: false 
-            });
-          }
-          
-          callback(null, {
-            originalPrice: film.rental_rate,
-            finalPrice: film.rental_rate,
-            discount: 0,
-            discountApplied: false
-          });
+    staffDao.selectOfferDiscount(filmId, function(err, results) {
+      if (err) return fallbackPrice(filmId, callback);
+      const discountPercent = results && results[0] ? parseFloat(results[0].discount_percentage || results[0].discount_percent || 0) : 0;
+      if (!discountPercent) return fallbackPrice(filmId, callback);
+      filmsDao.getFilmById(filmId, function(filmErr, film) {
+        if (filmErr || !film) return fallbackPrice(filmId, callback);
+        const discountAmount = parseFloat((film.rental_rate * (discountPercent / 100)).toFixed(2));
+        const finalPrice = parseFloat((film.rental_rate - discountAmount).toFixed(2));
+        callback(null, {
+          originalPrice: film.rental_rate,
+          discountPercent,
+          discountAmount,
+          finalPrice,
+          discountApplied: discountPercent > 0
         });
-        return;
-      }
-      
-      callback(null, pricing);
+      });
     });
   }
 
 };
+
+function buildSelectionResponse(selections) {
+  let totalSavings = 0;
+  let totalOriginalPrice = 0;
+  let activeCount = 0;
+  selections.forEach(selection => {
+    totalSavings += parseFloat(selection.discount_amount) || 0;
+    totalOriginalPrice += parseFloat(selection.rental_rate) || 0;
+    if (selection.expires_at && new Date(selection.expires_at) > new Date()) {
+      activeCount++;
+    }
+  });
+  const stats = {
+    total: selections.length,
+    active: activeCount,
+    savings: parseFloat(totalSavings.toFixed(2)),
+    totalOriginalPrice: parseFloat(totalOriginalPrice.toFixed(2)),
+    averageDiscount: totalOriginalPrice > 0 ? parseFloat((totalSavings / totalOriginalPrice * 100).toFixed(1)) : 0
+  };
+  return { selections, stats };
+}
+
+function fallbackPrice(filmId, callback) {
+  filmsDao.getFilmById(filmId, function(filmErr, film) {
+    if (filmErr || !film) {
+      return callback(null, {
+        originalPrice: 4.99,
+        finalPrice: 4.99,
+        discountPercent: 0,
+        discountAmount: 0,
+        discountApplied: false
+      });
+    }
+    callback(null, {
+      originalPrice: film.rental_rate,
+      finalPrice: film.rental_rate,
+      discountPercent: 0,
+      discountAmount: 0,
+      discountApplied: false
+    });
+  });
+}
 
 module.exports = staffService;

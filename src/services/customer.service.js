@@ -80,32 +80,133 @@ const customerService = {
 
   getMovies: function(options, callback) {
     const filmsService = require('./films.service');
-    filmsService.getFilmsData(options, callback);
+    const customerDao = require('../dao/customer.dao');
+    
+    filmsService.getFilmsData(options, function(err, result){
+      if (err) return callback(err);
+      const movies = result.films || result.movies || [];
+      if (!movies.length) return callback(null, { ...result, movies });
+
+      const filmIds = movies.map(m => m.film_id).filter(Boolean);
+      if (!filmIds.length) return callback(null, { ...result, movies });
+
+      customerDao.getDiscountedOffersForFilms(filmIds, function(qErr, rows){
+        // If offers table missing or error, just return base data gracefully
+        if (qErr) return callback(null, { ...result, movies });
+
+        const byId = new Map(rows.map(r => [r.film_id, parseFloat(r.discount_percentage || 0)]));
+        let enriched = movies.map(m => {
+          const rate = parseFloat(m.rental_rate) || 0;
+          const pct = byId.get(m.film_id) || 0;
+          const discAmt = +(rate * pct / 100).toFixed(2);
+          const discPrice = +(rate - discAmt).toFixed(2);
+          return {
+            ...m,
+            discount_percent: pct,
+            discount_amount: discAmt,
+            discounted_price: pct > 0 ? discPrice : undefined
+          };
+        });
+
+        // Optional client-side sorting within current page
+        if (options.sort === 'discount_desc') {
+          enriched = enriched.sort((a, b) => (b.discount_percent || 0) - (a.discount_percent || 0) || String(a.title).localeCompare(String(b.title)));
+        } else if (options.sort === 'discount_asc') {
+          enriched = enriched.sort((a, b) => (a.discount_percent || 0) - (b.discount_percent || 0) || String(a.title).localeCompare(String(b.title)));
+        } else if (options.sort === 'price_asc') {
+          enriched = enriched.sort((a, b) => {
+            const pa = (a.discounted_price != null ? parseFloat(a.discounted_price) : parseFloat(a.rental_rate) || 0);
+            const pb = (b.discounted_price != null ? parseFloat(b.discounted_price) : parseFloat(b.rental_rate) || 0);
+            if (pa === pb) return String(a.title).localeCompare(String(b.title));
+            return pa - pb;
+          });
+        } else if (options.sort === 'price_desc') {
+          enriched = enriched.sort((a, b) => {
+            const pa = (a.discounted_price != null ? parseFloat(a.discounted_price) : parseFloat(a.rental_rate) || 0);
+            const pb = (b.discounted_price != null ? parseFloat(b.discounted_price) : parseFloat(b.rental_rate) || 0);
+            if (pa === pb) return String(a.title).localeCompare(String(b.title));
+            return pb - pa;
+          });
+        }
+
+        callback(null, { ...result, movies: enriched, films: enriched });
+      });
+    });
   },
 
   getMovieDetails: function(movieId, customerId, callback) {
     const filmsService = require('./films.service');
     const filmsDao = require('../dao/films.dao');
+    const customerDao = require('../dao/customer.dao');
     
     filmsService.getFilmDetails(movieId, function(err, movie) {
       if (err) return callback(err);
-      
-      // Add customer-specific data: availability, actors, recommendations
-      filmsDao.isFilmAvailable(movieId, function(err, availability) {
-        if (err) return callback(err);
-        
-        filmsDao.getFilmActors(movieId, function(err, actors) {
-          if (err) return callback(err);
+
+      const applyDiscountAndAssemble = function(baseMovie){
+        // Add customer-specific data: availability, actors, recommendations
+        filmsDao.isFilmAvailable(movieId, function(avErr, availability) {
+          if (avErr) return callback(avErr);
           
-          filmsDao.getRecommendations(movieId, function(err, recommendations) {
-            if (err) return callback(err);
+          filmsDao.getFilmActors(movieId, function(actErr, actors) {
+            if (actErr) return callback(actErr);
             
-            callback(null, {
-              movie: {...movie, ...availability},
-              actors: actors,
-              recommendations: recommendations
+          filmsDao.getRecommendations(movieId, function(recErr, recommendations) {
+            if (recErr) return callback(recErr);
+
+            // Enrich recommendations with active offers if any
+            const recIds = (recommendations || []).map(r => r.film_id);
+            if (!recIds.length) {
+              return callback(null, {
+                movie: { ...baseMovie, ...availability },
+                actors: actors,
+                recommendations: recommendations
+              });
+            }
+
+            const ph = recIds.map(() => '?').join(',');
+            customerDao.getDiscountedOffersForFilms(recIds, function(rqErr, rows){
+              if (rqErr) {
+                return callback(null, {
+                  movie: { ...baseMovie, ...availability },
+                  actors: actors,
+                  recommendations: recommendations
+                });
+              }
+              const mapPct = new Map(rows.map(x => [x.film_id, parseFloat(x.discount_percentage || 0)]));
+              const enrichedRecs = recommendations.map(rec => {
+                const rate = parseFloat(rec.rental_rate) || 0;
+                const pct = mapPct.get(rec.film_id) || 0;
+                const amt = +(rate * pct / 100).toFixed(2);
+                const price = +(rate - amt).toFixed(2);
+                return pct > 0 ? { ...rec, discount_percent: pct, discount_amount: amt, discounted_price: price } : rec;
+              });
+
+              callback(null, {
+                movie: { ...baseMovie, ...availability },
+                actors: actors,
+                recommendations: enrichedRecs
+              });
             });
           });
+          });
+        });
+      };
+
+      // Try to enrich with active offer
+      customerDao.getOfferDiscount(movieId, function(qErr, rows){
+        if (qErr || !rows || !rows.length) return applyDiscountAndAssemble(movie);
+
+        const pct = parseFloat(rows[0].discount_percentage || 0);
+        if (!pct) return applyDiscountAndAssemble(movie);
+
+        const rate = parseFloat(movie.rental_rate) || 0;
+        const discAmt = +(rate * pct / 100).toFixed(2);
+        const discPrice = +(rate - discAmt).toFixed(2);
+        applyDiscountAndAssemble({
+          ...movie,
+          discount_percent: pct,
+          discount_amount: discAmt,
+          discounted_price: discPrice
         });
       });
     });

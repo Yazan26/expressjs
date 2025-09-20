@@ -37,15 +37,46 @@ html
                     i.fas.fa-tachometer-alt.me-1
                     | Customer Dashboard
               else if user.role === 'staff'
-                li.nav-item
-                  a.nav-link(href='/staff/offers' class=req && req.path.includes('/staff') ? 'active' : '')
-                    i.fas.fa-tags.me-1
-                    | Staff Offers
+                li.nav-item.dropdown
+                  a.nav-link.dropdown-toggle(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false' class=req && req.path.includes('/staff') ? 'active' : '')
+                    i.fas.fa-user-tie.me-1
+                    | Staff
+                  ul.dropdown-menu
+                    li
+                      a.dropdown-item(href='/staff/dashboard')
+                        i.fas.fa-tachometer-alt.me-1
+                        | Dashboard
+                    li
+                      a.dropdown-item(href='/staff/offers')
+                        i.fas.fa-tags.me-1
+                        | Film Offers
+                    li
+                      a.dropdown-item(href='/staff/selections')
+                        i.fas.fa-star.me-1
+                        | My Selections
+                    li
+                      a.dropdown-item(href='/users')
+                        i.fas.fa-users.me-1
+                        | Users
+
               else if user.role === 'manager'
-                li.nav-item
-                  a.nav-link(href='/staff/offers' class=req && req.path.includes('/staff') ? 'active' : '')
-                    i.fas.fa-tags.me-1
-                    | Staff Offers
+                li.nav-item.dropdown
+                  a.nav-link.dropdown-toggle(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false' class=req && req.path.includes('/staff') ? 'active' : '')
+                    i.fas.fa-user-tie.me-1
+                    | Staff
+                  ul.dropdown-menu
+                    li
+                      a.dropdown-item(href='/staff/dashboard')
+                        i.fas.fa-tachometer-alt.me-1
+                        | Dashboard
+                    li
+                      a.dropdown-item(href='/staff/offers')
+                        i.fas.fa-tags.me-1
+                        | Film Offers
+                    li
+                      a.dropdown-item(href='/staff/selections')
+                        i.fas.fa-star.me-1
+                        | My Selections
                 li.nav-item
                   a.nav-link(href='/reports' class=req && req.path.includes('/reports') ? 'active' : '')
                     i.fas.fa-chart-bar.me-1
@@ -56,6 +87,10 @@ html
                     i.fas.fa-user-shield.me-1
                     | Admin
                   ul.dropdown-menu
+                    li
+                      a.dropdown-item(href='/users')
+                        i.fas.fa-users.me-1
+                        | Users
                     li
                       a.dropdown-item(href='/admin/films')
                         i.fas.fa-film.me-1

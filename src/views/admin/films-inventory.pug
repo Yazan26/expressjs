@@ -160,18 +160,27 @@ block content
                             .badge.bg-success
                               i.fas.fa-check-circle.me-1
                               | Available
+                            - const rentalsCount = parseInt(item.total_rentals || 0, 10)
+                            if rentalsCount > 0
+                              .small.text-muted.mt-1 Previously rented #{rentalsCount} #{rentalsCount === 1 ? 'time' : 'times'}
                           else
                             .badge.bg-warning
                               i.fas.fa-clock.me-1
                               | Rented
                         
                         td
-                          if item.first_name && item.last_name
+                          if item.status === 'RENTED' && item.first_name && item.last_name
                             .d-flex.align-items-center
                               i.fas.fa-user.me-2.text-muted
                               | #{item.first_name} #{item.last_name}
+                          else if item.status === 'RENTED'
+                            .text-muted.small Checked out
                           else
-                            .text-muted.small Not rented
+                            - const rentalsCount = parseInt(item.total_rentals || 0, 10)
+                            if rentalsCount > 0
+                              .text-muted.small Returned (#{rentalsCount} #{rentalsCount === 1 ? 'rental' : 'rentals'})
+                            else
+                              .text-muted.small Never rented
                         
                         td
                           if item.rental_date
@@ -181,13 +190,19 @@ block content
                         
                         td
                           if item.status === 'AVAILABLE'
-                            .btn-group.btn-group-sm
-                              button.btn.btn-outline-info.disabled
-                                i.fas.fa-check.me-1
-                                | Ready
+                            if item.isRemovable
+                              form.d-inline(method="POST", action=`/admin/films/inventory/${film.film_id}/remove/${item.inventory_id}`)
+                                button.btn.btn-outline-danger.btn-sm(type="submit", onclick="return confirm('Remove this copy from inventory?');")
+                                  i.fas.fa-trash-alt.me-1
+                                  | Remove
+                            else
+                              .btn-group.btn-group-sm
+                                button.btn.btn-outline-secondary.disabled(type="button", title="This copy has rental history and cannot be removed")
+                                  i.fas.fa-lock.me-1
+                                  | Locked
                           else
                             .btn-group.btn-group-sm
-                              button.btn.btn-outline-warning.disabled
+                              button.btn.btn-outline-warning.disabled(type="button", title="Copy currently rented")
                                 i.fas.fa-clock.me-1
                                 | Rented
 
