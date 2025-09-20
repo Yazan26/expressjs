@@ -37,7 +37,7 @@ describe('Full User Journey Integration', () => {
         cy.get('input[name="password"]').type('chipss');
       }
     });
-    cy.get('button[name="sign in"]').click();
+    cy.get('button[type="submit"]').first().click(); // Fixed button selector
     cy.url().should('match', /\/$|\/$/);
     
     // Step 3: Browse and rent a movie
@@ -78,7 +78,7 @@ describe('Full User Journey Integration', () => {
     cy.visit('/auth/login');
     cy.get('input[name="username"]').type('eter');
     cy.get('input[name="password"]').type('chipss');
-    cy.get('button[name="sign in"]').click();
+    cy.get('button[type="submit"]').first().click(); // Fixed button selector
     
     // Wait for login to complete
     cy.url().should('not.include', '/auth/login');
