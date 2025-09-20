@@ -1,0 +1,315 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-percentage.me-2.text-danger
+          | Offers Performance Report
+        p.text-muted Track staff offer selections, discount effectiveness, and promotion ROI
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-primary(href="/reports") 
+            i.fas.fa-chart-bar.me-2
+            | All Reports
+          a.btn.btn-outline-success(href="/admin/offers") 
+            i.fas.fa-cog.me-2
+            | Manage Offers
+
+    // Summary Cards
+    if summary
+      .row.mb-4
+        .col-md-3.mb-3
+          .card.bg-primary.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 #{summary.totalOffers || 0}
+              .small Active Offers
+        .col-md-3.mb-3
+          .card.bg-success.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 #{summary.totalSelections || 0}
+              .small Staff Selections
+        .col-md-3.mb-3
+          .card.bg-info.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 #{summary.avgDiscount || 0}%
+              .small Average Discount
+        .col-md-3.mb-3
+          .card.bg-warning.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 $#{summary.totalSavings || 0}
+              .small Total Staff Savings
+
+    // Top Performing Offers
+    if topPerformers && topPerformers.length > 0
+      .row.mb-4
+        .col-12
+          .card.border-success
+            .card-header.bg-success.text-white
+              h5.card-title.mb-0
+                i.fas.fa-trophy.me-2
+                | Top Performing Offers
+            .card-body
+              .row
+                for offer in topPerformers
+                  .col-md-6.col-lg-4.mb-3
+                    .card.border-warning.h-100
+                      .card-header.d-flex.justify-content-between
+                        strong #{offer.title}
+                        .badge.bg-warning #{offer.avg_discount_percent}% OFF
+                      .card-body
+                        .row.mb-2
+                          .col-6
+                            .small.text-muted Selections
+                            .h6.text-primary #{offer.selection_count || 0}
+                          .col-6
+                            .small.text-muted Revenue
+                            .h6.text-success $#{parseFloat(offer.revenue_generated || 0).toFixed(2)}
+                        .small.text-info #{offer.category_name} • $#{parseFloat(offer.rental_rate).toFixed(2)}
+
+    // Filters
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-filter.me-2
+              | Filter Offers Performance
+          .card-body
+            form.row.g-3(method="GET", action="/reports/offers")
+              .col-md-3
+                label.form-label Category
+                select.form-select(name="category")
+                  option(value="all", selected=filters.category === 'all') All Categories
+                  if categories
+                    for category in categories
+                      option(value=category.name, selected=filters.category === category.name) #{category.name}
+              
+              .col-md-3
+                label.form-label Status
+                select.form-select(name="status")
+                  option(value="all", selected=filters.status === 'all') All Offers
+                  option(value="popular", selected=filters.status === 'popular') Popular (>5 selections)
+                  option(value="unpopular", selected=filters.status === 'unpopular') Unpopular (<2 selections)
+                  option(value="expiring", selected=filters.status === 'expiring') Expiring Soon
+              
+              .col-md-3
+                label.form-label Sort By
+                select.form-select(name="sort")
+                  option(value="selections_desc", selected=filters.sort === 'selections_desc') Most Selected
+                  option(value="revenue_desc", selected=filters.sort === 'revenue_desc') Highest Revenue
+                  option(value="discount_desc", selected=filters.sort === 'discount_desc') Biggest Discount
+                  option(value="title", selected=filters.sort === 'title') Title A-Z
+              
+              .col-md-3.d-flex.align-items-end
+                button.btn.btn-primary.w-100(type="submit")
+                  i.fas.fa-search.me-2
+                  | Apply Filters
+
+    // Detailed Offers Performance Table
+    if offers && offers.length > 0
+      .row
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-table.me-2
+                | Detailed Offers Performance
+            .card-body
+              .table-responsive
+                table.table.table-hover
+                  thead.table-dark
+                    tr
+                      th Film Title
+                      th Category
+                      th Original Price
+                      th Discount %
+                      th Discounted Price
+                      th Staff Selections
+                      th Total Rentals
+                      th Revenue Generated
+                      th Avg Savings/Staff
+                      th Performance
+                  tbody
+                    for offer in offers
+                      tr
+                        td
+                          strong #{offer.title}
+                        td
+                          .badge.bg-secondary #{offer.category_name || 'N/A'}
+                        td.text-muted $#{parseFloat(offer.rental_rate || 0).toFixed(2)}
+                        td.text-warning
+                          strong #{offer.avg_discount_percent || 15}%
+                        td.text-success
+                          strong $#{parseFloat((offer.rental_rate || 0) - (offer.avg_discount_amount || 0)).toFixed(2)}
+                        td.text-center
+                          .badge.bg-primary #{offer.selection_count || 0}
+                        td.text-center #{offer.rental_count || 0}
+                        td.text-success $#{parseFloat(offer.revenue_generated || 0).toFixed(2)}
+                        td.text-info $#{parseFloat(offer.avg_discount_amount || 0).toFixed(2)}
+                        td
+                          - var selections = offer.selection_count || 0
+                          if selections >= 8
+                            .badge.bg-success Excellent
+                          else if selections >= 5
+                            .badge.bg-primary Very Good
+                          else if selections >= 2
+                            .badge.bg-warning Good
+                          else
+                            .badge.bg-danger Needs Promotion
+
+      // Performance Analysis
+      .row.mt-4
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-chart-pie.me-2
+                | Selection Distribution
+            .card-body
+              .row
+                - var excellentOffers = offers.filter(o => (o.selection_count || 0) >= 8).length
+                - var goodOffers = offers.filter(o => (o.selection_count || 0) >= 5 && (o.selection_count || 0) < 8).length
+                - var averageOffers = offers.filter(o => (o.selection_count || 0) >= 2 && (o.selection_count || 0) < 5).length
+                - var poorOffers = offers.filter(o => (o.selection_count || 0) < 2).length
+                
+                .col-md-3.mb-3
+                  .card.border-success.h-100
+                    .card-body.text-center
+                      .display-6.text-success.mb-2
+                        i.fas.fa-star
+                      h4.card-title #{excellentOffers}
+                      p.card-text Excellent Performance
+                      .small.text-muted 8+ selections
+                
+                .col-md-3.mb-3
+                  .card.border-primary.h-100
+                    .card-body.text-center
+                      .display-6.text-primary.mb-2
+                        i.fas.fa-thumbs-up
+                      h4.card-title #{goodOffers}
+                      p.card-text Good Performance
+                      .small.text-muted 5-7 selections
+                
+                .col-md-3.mb-3
+                  .card.border-warning.h-100
+                    .card-body.text-center
+                      .display-6.text-warning.mb-2
+                        i.fas.fa-equals
+                      h4.card-title #{averageOffers}
+                      p.card-text Average Performance
+                      .small.text-muted 2-4 selections
+                
+                .col-md-3.mb-3
+                  .card.border-danger.h-100
+                    .card-body.text-center
+                      .display-6.text-danger.mb-2
+                        i.fas.fa-thumbs-down
+                      h4.card-title #{poorOffers}
+                      p.card-text Needs Improvement
+                      .small.text-muted <2 selections
+
+    else
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-percentage.fa-4x.text-muted
+              h4.text-muted No Offers Performance Data
+              p.text-muted No offers performance data available for the selected criteria.
+
+    // Insights and Recommendations
+    .row.mt-4
+      .col-md-6.mb-4
+        .card.border-info
+          .card-header.bg-info.text-white
+            h6.card-title.mb-0
+              i.fas.fa-lightbulb.me-2
+              | Performance Insights
+          .card-body
+            if offers && offers.length > 0
+              - var totalSelections = offers.reduce((sum, o) => sum + (o.selection_count || 0), 0)
+              - var totalSavings = offers.reduce((sum, o) => sum + ((o.selection_count || 0) * (o.avg_discount_amount || 0)), 0)
+              - var bestOffer = offers.reduce((max, o) => (o.selection_count || 0) > (max.selection_count || 0) ? o : max, offers[0])
+              - var avgSelectionRate = offers.length > 0 ? (totalSelections / offers.length) : 0
+              
+              ul.list-unstyled.mb-0
+                li.mb-2
+                  i.fas.fa-trophy.text-warning.me-2
+                  strong Best offer: "#{bestOffer.title}" with #{bestOffer.selection_count || 0} selections
+                li.mb-2
+                  i.fas.fa-chart-line.text-success.me-2
+                  | Average selection rate: #{avgSelectionRate.toFixed(1)} per offer
+                li.mb-2
+                  i.fas.fa-dollar-sign.text-info.me-2
+                  | Total staff savings generated: $#{totalSavings.toFixed(2)}
+                li
+                  i.fas.fa-percentage.text-primary.me-2
+                  | Most effective discount: #{Math.max(...offers.map(o => o.avg_discount_percent || 0))}%
+            else
+              p.text-muted No insights available without offers data.
+
+      .col-md-6.mb-4
+        .card.border-warning
+          .card-header.bg-warning.text-dark
+            h6.card-title.mb-0
+              i.fas.fa-bullhorn.me-2
+              | Optimization Tips
+          .card-body
+            ul.list-unstyled.mb-0
+              li.mb-2
+                i.fas.fa-arrow-up.text-success.me-2
+                | Promote underperforming offers through staff meetings
+              li.mb-2
+                i.fas.fa-copy.text-primary.me-2
+                | Replicate successful offer patterns for new films
+              li.mb-2
+                i.fas.fa-clock.text-warning.me-2
+                | Set expiration dates to create urgency
+              li.mb-2
+                i.fas.fa-users.text-info.me-2
+                | Consider staff preferences when creating new offers
+              li
+                i.fas.fa-gift.text-danger.me-2
+                | Increase discounts for slow-moving inventory
+
+    // Export Options
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            .row
+              .col-md-8
+                h6.card-title
+                  i.fas.fa-download.me-2
+                  | Export Offers Performance
+                p.card-text.text-muted Download offers data for promotional planning and ROI analysis.
+              .col-md-4.text-end
+                .btn-group
+                  button.btn.btn-outline-success.btn-sm(onclick="exportReport('csv')")
+                    i.fas.fa-file-csv.me-1
+                    | CSV
+                  button.btn.btn-outline-danger.btn-sm(onclick="exportReport('pdf')")
+                    i.fas.fa-file-pdf.me-1
+                    | PDF
+                  button.btn.btn-outline-primary.btn-sm(onclick="exportReport('excel')")
+                    i.fas.fa-file-excel.me-1
+                    | Excel
+
+    script.
+        function exportReport(format) {
+            alert('Exporting offers performance in ' + format.toUpperCase() + ' format... (Feature coming soon)');
+        }
+
+    style.
+    .table th
+        font-size: 0.875rem
+        white-space: nowrap
+    .table td
+        font-size: 0.875rem
+    .card
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)

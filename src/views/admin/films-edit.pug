@@ -1,0 +1,255 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-edit.me-2.text-primary
+          | Edit Film
+        p.text-muted Modify film details and properties
+        nav(aria-label="breadcrumb")
+          ol.breadcrumb
+            li.breadcrumb-item
+              a(href="/admin/films") Film Management
+            li.breadcrumb-item.active Edit Film
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-secondary(href="/admin/films")
+            i.fas.fa-arrow-left.me-2
+            | Back to Films
+          a.btn.btn-outline-info(href=`/films/${film.film_id}`)
+            i.fas.fa-eye.me-2
+            | View Public
+
+    // Success/Error Messages
+    if success && success.length > 0
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error && error.length > 0
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    // Edit Form
+    .row
+      .col-lg-8
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-film.me-2
+              | Film Information
+          
+          .card-body
+            form(method="POST", action=`/admin/films/edit/${film.film_id}`)
+              .row.mb-3
+                .col-12
+                  label.form-label(for="title") 
+                    | Film Title 
+                    span.text-danger *
+                  input.form-control(type="text", id="title", name="title", value=film.title, required, maxlength="255")
+                  .form-text Enter the complete film title
+
+              .row.mb-3
+                .col-12
+                  label.form-label(for="description") Description
+                  textarea.form-control(id="description", name="description", rows="4", maxlength="1000") #{film.description || ''}
+                  .form-text Brief plot summary or film description
+
+              .row.mb-3
+                .col-md-4
+                  label.form-label(for="release_year") Release Year
+                  input.form-control(type="number", id="release_year", name="release_year", value=film.release_year, min="1900", max="2030")
+                
+                .col-md-4
+                  label.form-label(for="length") Runtime (minutes)
+                  input.form-control(type="number", id="length", name="length", value=film.length, min="1", max="600")
+                
+                .col-md-4
+                  label.form-label(for="rating") 
+                    | Rating 
+                    span.text-danger *
+                  select.form-select(id="rating", name="rating", required)
+                    option(value="G", selected=film.rating === 'G') G - General Audiences
+                    option(value="PG", selected=film.rating === 'PG') PG - Parental Guidance
+                    option(value="PG-13", selected=film.rating === 'PG-13') PG-13 - Parents Strongly Cautioned
+                    option(value="R", selected=film.rating === 'R') R - Restricted
+                    option(value="NC-17", selected=film.rating === 'NC-17') NC-17 - Adults Only
+
+              .row.mb-3
+                .col-md-6
+                  label.form-label(for="rental_rate") Rental Rate ($)
+                  .input-group
+                    span.input-group-text $
+                    input.form-control(type="number", id="rental_rate", name="rental_rate", value=film.rental_rate, step="0.01", min="0.01", max="99.99")
+                
+                .col-md-6
+                  label.form-label(for="category_id") Category
+                  select.form-select(id="category_id", name="category_id")
+                    option(value="") No Category
+                    if categories
+                      each category in categories
+                        option(value=category.category_id, selected=film.category_id == category.category_id) #{category.name}
+
+              // Action Buttons
+              .row.mt-4
+                .col-12
+                  .d-flex.gap-2
+                    button.btn.btn-primary(type="submit")
+                      i.fas.fa-save.me-2
+                      | Save Changes
+                    
+                    a.btn.btn-outline-secondary(href="/admin/films")
+                      i.fas.fa-times.me-2
+                      | Cancel
+                    
+                    a.btn.btn-outline-info(href=`/admin/films/inventory/${film.film_id}`)
+                      i.fas.fa-boxes.me-2
+                      | Manage Copies
+
+      .col-lg-4
+        // Film Preview
+        .card.mb-4
+          .card-header
+            h6.card-title.mb-0
+              i.fas.fa-eye.me-2
+              | Film Preview
+          
+          .card-body
+            .mb-3
+              .small.text-muted Current Title
+              .fw-bold #{film.title}
+            
+            if film.description
+              .mb-3
+                .small.text-muted Description
+                .small #{film.description.substring(0, 150)}#{film.description.length > 150 ? '...' : ''}
+            
+            .row.mb-3
+              .col-6
+                .small.text-muted Year
+                .fw-bold #{film.release_year || 'N/A'}
+              .col-6
+                .small.text-muted Rating
+                .badge.bg-info #{film.rating}
+            
+            .row.mb-3
+              .col-6
+                .small.text-muted Runtime
+                .fw-bold #{film.length} min
+              .col-6
+                .small.text-muted Rate
+                .fw-bold $#{parseFloat(film.rental_rate || 0).toFixed(2)}
+            
+            .mb-3
+              .small.text-muted Last Updated
+              .small #{new Date(film.last_update).toLocaleDateString()}
+
+        // Quick Actions
+        .card
+          .card-header
+            h6.card-title.mb-0
+              i.fas.fa-bolt.me-2
+              | Quick Actions
+          
+          .card-body
+            .d-grid.gap-2
+              a.btn.btn-outline-primary(href=`/films/${film.film_id}`)
+                i.fas.fa-eye.me-2
+                | View Public Page
+              
+              a.btn.btn-outline-success(href=`/admin/films/inventory/${film.film_id}`)
+                i.fas.fa-boxes.me-2
+                | Manage Inventory
+              
+              hr
+              
+              a.btn.btn-outline-secondary.btn-sm(href="/admin/films")
+                i.fas.fa-list.me-2
+                | All Films
+              
+              a.btn.btn-success.btn-sm(href="/admin/films/new")
+                i.fas.fa-plus.me-2
+                | Add New Film
+
+  // Form validation and enhancement
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Form validation
+      const form = document.querySelector('form');
+      const titleInput = document.getElementById('title');
+      const ratingSelect = document.getElementById('rating');
+
+      form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // Clear previous validation
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+
+        // Validate title
+        if (!titleInput.value.trim()) {
+          showFieldError(titleInput, 'Film title is required');
+          isValid = false;
+        }
+
+        // Validate rating
+        if (!ratingSelect.value) {
+          showFieldError(ratingSelect, 'Rating is required');
+          isValid = false;
+        }
+
+        if (!isValid) {
+          e.preventDefault();
+          document.querySelector('.is-invalid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+
+      function showFieldError(field, message) {
+        field.classList.add('is-invalid');
+        const feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback';
+        feedback.textContent = message;
+        field.parentNode.appendChild(feedback);
+      }
+
+      // Real-time character count for description
+      const descriptionTextarea = document.getElementById('description');
+      if (descriptionTextarea) {
+        const maxLength = 1000;
+        const counter = document.createElement('div');
+        counter.className = 'form-text text-end mt-1';
+        descriptionTextarea.parentNode.appendChild(counter);
+
+        function updateCounter() {
+          const remaining = maxLength - descriptionTextarea.value.length;
+          counter.textContent = `${descriptionTextarea.value.length}/${maxLength} characters`;
+          counter.className = remaining < 100 ? 'form-text text-warning text-end mt-1' : 'form-text text-muted text-end mt-1';
+        }
+
+        descriptionTextarea.addEventListener('input', updateCounter);
+        updateCounter();
+      }
+    });
+
+  style.
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .form-control:focus, .form-select:focus {
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+      border-color: #86b7fe;
+    }
+    .badge {
+      font-size: 0.75em;
+    }
+    .btn:focus {
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }

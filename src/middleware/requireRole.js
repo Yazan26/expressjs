@@ -13,18 +13,20 @@ const requireRole = (allowedRoles) => {
   const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
   
   return (req, res, next) => {
-    // Check if user has required role
-    if (!req.user || !req.user.role || !roles.includes(req.user.role)) {
+    // Check if user has required role - req.user should be set by requireAuth middleware
+    const user = req.user || req.session?.user;
+    
+    if (!user || !user.role || !roles.includes(user.role)) {
       req.session.error = `Access denied. Required role: ${roles.join(' or ')}`;
       
       // Redirect based on user's current role or to login
-      if (req.user && req.user.role) {
+      if (user && user.role) {
         // User is logged in but doesn't have the right role
-        if (req.user.role === 'customer') {
+        if (user.role === 'customer') {
           return res.redirect('/customer/dashboard');
-        } else if (req.user.role === 'staff') {
+        } else if (user.role === 'staff') {
           return res.redirect('/staff/offers');
-        } else if (req.user.role === 'admin') {
+        } else if (user.role === 'admin') {
           return res.redirect('/admin/films');
         } else {
           return res.redirect('/');

@@ -1,0 +1,303 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-boxes.me-2.text-primary
+          | Manage Film Copies
+        p.text-muted Manage inventory copies for #{film.title}
+        nav(aria-label="breadcrumb")
+          ol.breadcrumb
+            li.breadcrumb-item
+              a(href="/admin/films") Film Management
+            li.breadcrumb-item.active Manage Copies
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-secondary(href="/admin/films")
+            i.fas.fa-arrow-left.me-2
+            | Back to Films
+          a.btn.btn-outline-info(href=`/admin/films/edit/${film.film_id}`)
+            i.fas.fa-edit.me-2
+            | Edit Film
+
+    // Success/Error Messages
+    if success && success.length > 0
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error && error.length > 0
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    // Film Information
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-film.me-2
+              | #{film.title}
+          
+          .card-body
+            .row
+              .col-md-3
+                .small.text-muted Release Year
+                .fw-bold #{film.release_year || 'N/A'}
+              .col-md-2
+                .small.text-muted Rating
+                .badge.bg-info #{film.rating}
+              .col-md-2
+                .small.text-muted Runtime
+                .fw-bold #{film.length} min
+              .col-md-2
+                .small.text-muted Rental Rate
+                .fw-bold $#{parseFloat(film.rental_rate || 0).toFixed(2)}
+              .col-md-3
+                .small.text-muted Total Copies
+                .fw-bold.text-primary #{inventory ? inventory.length : 0}
+
+    // Add Copies Form
+    .row.mb-4
+      .col-lg-6
+        .card
+          .card-header
+            h6.card-title.mb-0
+              i.fas.fa-plus.me-2
+              | Add New Copies
+          
+          .card-body
+            form(method="POST", action=`/admin/films/inventory/${film.film_id}/add`)
+              .row
+                .col-md-6.mb-3
+                  label.form-label(for="copies") Number of Copies
+                  select.form-select(id="copies", name="copies")
+                    option(value="1", selected) 1 copy
+                    option(value="2") 2 copies
+                    option(value="3") 3 copies
+                    option(value="5") 5 copies
+                    option(value="10") 10 copies
+                  .form-text Add inventory copies to the store
+                
+                .col-md-6.mb-3.d-flex.align-items-end
+                  button.btn.btn-success.w-100(type="submit")
+                    i.fas.fa-plus.me-2
+                    | Add Copies
+
+      .col-lg-6
+        .card
+          .card-header
+            h6.card-title.mb-0
+              i.fas.fa-chart-pie.me-2
+              | Inventory Summary
+          
+          .card-body
+            if inventory
+              - var available = inventory.filter(item => item.status === 'AVAILABLE').length
+              - var rented = inventory.filter(item => item.status === 'RENTED').length
+              
+              .row
+                .col-4.text-center
+                  .display-6.text-primary.mb-2
+                    i.fas.fa-boxes
+                  .h4 #{inventory.length}
+                  .small.text-muted Total Copies
+                
+                .col-4.text-center
+                  .display-6.text-success.mb-2
+                    i.fas.fa-check-circle
+                  .h4 #{available}
+                  .small.text-muted Available
+                
+                .col-4.text-center
+                  .display-6.text-warning.mb-2
+                    i.fas.fa-clock
+                  .h4 #{rented}
+                  .small.text-muted Rented
+            else
+              .text-center.text-muted
+                i.fas.fa-exclamation-circle.fa-2x.mb-3
+                p No inventory data available
+
+    // Inventory List
+    if inventory && inventory.length > 0
+      .row
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-list.me-2
+                | Inventory Copies (#{inventory.length})
+            
+            .card-body
+              .table-responsive
+                table.table.table-hover
+                  thead.table-light
+                    tr
+                      th Copy ID
+                      th Status
+                      th Rented By
+                      th Rental Date
+                      th Actions
+                  
+                  tbody
+                    each item in inventory
+                      tr(class=item.status === 'RENTED' ? 'table-warning' : '')
+                        td
+                          .d-flex.align-items-center
+                            i.fas.fa-compact-disc.me-2.text-muted
+                            | ##{item.inventory_id}
+                        
+                        td
+                          if item.status === 'AVAILABLE'
+                            .badge.bg-success
+                              i.fas.fa-check-circle.me-1
+                              | Available
+                          else
+                            .badge.bg-warning
+                              i.fas.fa-clock.me-1
+                              | Rented
+                        
+                        td
+                          if item.first_name && item.last_name
+                            .d-flex.align-items-center
+                              i.fas.fa-user.me-2.text-muted
+                              | #{item.first_name} #{item.last_name}
+                          else
+                            .text-muted.small Not rented
+                        
+                        td
+                          if item.rental_date
+                            .small #{new Date(item.rental_date).toLocaleDateString()}
+                          else
+                            .text-muted.small -
+                        
+                        td
+                          if item.status === 'AVAILABLE'
+                            .btn-group.btn-group-sm
+                              button.btn.btn-outline-info.disabled
+                                i.fas.fa-check.me-1
+                                | Ready
+                          else
+                            .btn-group.btn-group-sm
+                              button.btn.btn-outline-warning.disabled
+                                i.fas.fa-clock.me-1
+                                | Rented
+
+    else
+      // Empty State
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-boxes.fa-4x.text-muted
+              h4.text-muted No Copies Available
+              p.text-muted.mb-4 This film doesn't have any inventory copies yet.
+              
+              form.d-inline(method="POST", action=`/admin/films/inventory/${film.film_id}/add`)
+                input(type="hidden", name="copies", value="3")
+                button.btn.btn-success(type="submit")
+                  i.fas.fa-plus.me-2
+                  | Add 3 Copies
+
+    // Quick Actions
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            h6.card-title
+              i.fas.fa-bolt.me-2
+              | Quick Actions
+            .row
+              .col-md-3.mb-2
+                a.btn.btn-outline-primary.w-100(href=`/films/${film.film_id}`)
+                  i.fas.fa-eye.me-2
+                  | View Public
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-info.w-100(href=`/admin/films/edit/${film.film_id}`)
+                  i.fas.fa-edit.me-2
+                  | Edit Film
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-secondary.w-100(href="/admin/films")
+                  i.fas.fa-list.me-2
+                  | All Films
+              
+              .col-md-3.mb-2
+                a.btn.btn-success.w-100(href="/admin/films/new")
+                  i.fas.fa-plus.me-2
+                  | Add New Film
+
+  // JavaScript for enhanced functionality
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add copy form validation
+      const addForm = document.querySelector('form[action*="/add"]');
+      if (addForm) {
+        addForm.addEventListener('submit', function(e) {
+          const copiesSelect = document.getElementById('copies');
+          const submitBtn = addForm.querySelector('button[type="submit"]');
+          
+          // Add visual feedback
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+          submitBtn.disabled = true;
+          
+          // Re-enable after a delay if needed (form will redirect on success)
+          setTimeout(() => {
+            submitBtn.innerHTML = '<i class="fas fa-plus me-2"></i>Add Copies';
+            submitBtn.disabled = false;
+          }, 5000);
+        });
+      }
+
+      // Add hover effects to inventory table rows
+      const tableRows = document.querySelectorAll('tbody tr');
+      tableRows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+          this.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+          this.style.backgroundColor = '';
+        });
+      });
+
+      // Auto-refresh inventory status (optional - for real-time updates)
+      // Uncomment if you want periodic updates
+      /*
+      setInterval(function() {
+        // Only refresh if no forms are being submitted
+        if (!document.querySelector('button:disabled')) {
+          window.location.reload();
+        }
+      }, 30000); // Refresh every 30 seconds
+      */
+    });
+
+  style.
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .table-hover tbody tr:hover {
+      background-color: rgba(13, 110, 253, 0.1);
+    }
+    .badge {
+      font-size: 0.75em;
+    }
+    .btn-group-sm .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+    .display-6 {
+      font-size: 2.5rem;
+    }

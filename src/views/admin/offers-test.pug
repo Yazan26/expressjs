@@ -1,0 +1,13 @@
+extends ../layout
+
+block content
+  .container-fluid
+    h1 Offers Management Test
+    
+    if offers && offers.length > 0
+      .row
+        each offer in offers
+          .col-12
+            p #{offer.title}
+    else
+      p No offers available

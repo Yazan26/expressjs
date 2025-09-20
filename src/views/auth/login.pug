@@ -11,13 +11,13 @@ block content
               | Sakila Video Store Login
           .card-body
             //- Display error messages if any
-            if error
+            if error && error.length > 0
               .alert.alert-danger.alert-dismissible.fade.show(role="alert")
                 = error
                 button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
             
             //- Display success messages if any
-            if success
+            if success && success.length > 0
               .alert.alert-success.alert-dismissible.fade.show(role="alert")
                 = success
                 button.btn-close(type="button" data-bs-dismiss="alert" aria-label="Close")
@@ -63,11 +63,11 @@ block content
             small
               | Demo Accounts: 
               br
-              | Staff: 
-              strong mike 
-              | (password: staff123)
+              | admin: 
+              strong admin 
+              | (password: admin123)
               br
-              | Customer: Use any email from customer table (password: customer123)
+              | Customer: eter (password: chipss)
             hr.my-2
             p.mb-0
               | Don't have an account? 

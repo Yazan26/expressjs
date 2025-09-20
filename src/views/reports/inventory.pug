@@ -1,0 +1,287 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-boxes.me-2.text-secondary
+          | Inventory Reports
+        p.text-muted Monitor inventory levels, utilization rates, and stock management
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-outline-primary(href="/reports") 
+            i.fas.fa-chart-bar.me-2
+            | All Reports
+          a.btn.btn-outline-success(href="/admin/films") 
+            i.fas.fa-cog.me-2
+            | Manage Inventory
+
+    // Summary Cards
+    if summary
+      .row.mb-4
+        .col-md-4.mb-3
+          .card.bg-primary.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 #{summary.totalFilms || 0}
+              .small Total Films in Inventory
+        .col-md-4.mb-3
+          .card.bg-info.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 #{summary.totalCopies || 0}
+              .small Total Film Copies
+        .col-md-4.mb-3
+          .card.bg-warning.bg-gradient.text-white
+            .card-body.text-center
+              .h3.mb-1 #{summary.avgUtilization || 0}%
+              .small Average Utilization Rate
+
+    // Inventory Alerts
+    if alerts && alerts.length > 0
+      .row.mb-4
+        .col-12
+          .card.border-warning
+            .card-header.bg-warning.text-dark
+              h5.card-title.mb-0
+                i.fas.fa-exclamation-triangle.me-2
+                | Inventory Alerts
+            .card-body
+              .row
+                for alert in alerts
+                  .col-md-6.mb-2
+                    .alert(class=alert.type === 'out_of_stock' ? 'alert-danger' : 'alert-warning', role="alert")
+                      strong #{alert.title}
+                      .small #{alert.message}
+
+    // Filters
+    .row.mb-4
+      .col-12
+        .card
+          .card-header
+            h5.card-title.mb-0
+              i.fas.fa-filter.me-2
+              | Filter Inventory
+          .card-body
+            form.row.g-3(method="GET", action="/reports/inventory")
+              .col-md-3
+                label.form-label Category
+                select.form-select(name="category")
+                  option(value="all", selected=filters.category === 'all') All Categories
+                  if categories
+                    for category in categories
+                      option(value=category.name, selected=filters.category === category.name) #{category.name}
+              
+              .col-md-3
+                label.form-label Stock Status
+                select.form-select(name="status")
+                  option(value="all", selected=filters.status === 'all') All Status
+                  option(value="low", selected=filters.status === 'low') Low Stock
+                  option(value="out", selected=filters.status === 'out') Out of Stock
+                  option(value="high_demand", selected=filters.status === 'high_demand') High Demand
+              
+              .col-md-3
+                label.form-label Utilization
+                select.form-select(name="utilization")
+                  option(value="all", selected=filters.utilization === 'all') All Levels
+                  option(value="high", selected=filters.utilization === 'high') High (>80%)
+                  option(value="medium", selected=filters.utilization === 'medium') Medium (40-80%)
+                  option(value="low", selected=filters.utilization === 'low') Low (<40%)
+              
+              .col-md-3.d-flex.align-items-end
+                button.btn.btn-primary.w-100(type="submit")
+                  i.fas.fa-search.me-2
+                  | Apply Filters
+
+    // Inventory Details Table
+    if inventory && inventory.length > 0
+      .row
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-table.me-2
+                | Detailed Inventory Analysis
+            .card-body
+              .table-responsive
+                table.table.table-hover
+                  thead.table-dark
+                    tr
+                      th Film Title
+                      th Category
+                      th Total Copies
+                      th Available
+                      th Rented
+                      th Utilization %
+                      th Rental Rate
+                      th Total Rentals
+                      th Revenue
+                      th Status
+                  tbody
+                    for item in inventory
+                      tr
+                        td
+                          strong #{item.title}
+                        td
+                          .badge.bg-secondary #{item.category_name || 'N/A'}
+                        td.text-center #{item.total_copies || 0}
+                        td.text-center.text-success #{item.available_copies || 0}
+                        td.text-center.text-info #{item.rented_copies || 0}
+                        td.text-center
+                          - var utilization = item.utilization_rate || 0
+                          span(class=utilization > 80 ? 'text-danger' : utilization > 40 ? 'text-warning' : 'text-success')
+                            strong #{utilization.toFixed(1)}%
+                        td.text-success $#{parseFloat(item.rental_rate || 0).toFixed(2)}
+                        td.text-center #{item.total_rentals || 0}
+                        td.text-success $#{parseFloat(item.total_revenue || 0).toFixed(2)}
+                        td
+                          if item.available_copies === 0 && item.rented_copies > 0
+                            .badge.bg-danger Out of Stock
+                          else if (item.utilization_rate || 0) > 90
+                            .badge.bg-warning High Demand
+                          else if (item.utilization_rate || 0) > 70
+                            .badge.bg-success Popular
+                          else if (item.utilization_rate || 0) < 20
+                            .badge.bg-secondary Low Demand
+                          else
+                            .badge.bg-info Normal
+
+      // Utilization Distribution Chart
+      .row.mt-4
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-chart-bar.me-2
+                | Utilization Distribution
+            .card-body
+              .row
+                - var highUtil = inventory.filter(i => (i.utilization_rate || 0) > 80).length
+                - var mediumUtil = inventory.filter(i => (i.utilization_rate || 0) >= 40 && (i.utilization_rate || 0) <= 80).length
+                - var lowUtil = inventory.filter(i => (i.utilization_rate || 0) < 40).length
+                
+                .col-md-4.mb-3
+                  .card.border-danger.h-100
+                    .card-body.text-center
+                      .display-6.text-danger.mb-2
+                        i.fas.fa-arrow-up
+                      h4.card-title #{highUtil}
+                      p.card-text High Utilization (>80%)
+                      .small.text-muted May need more copies
+                
+                .col-md-4.mb-3
+                  .card.border-warning.h-100
+                    .card-body.text-center
+                      .display-6.text-warning.mb-2
+                        i.fas.fa-equals
+                      h4.card-title #{mediumUtil}
+                      p.card-text Medium Utilization (40-80%)
+                      .small.text-muted Optimal range
+                
+                .col-md-4.mb-3
+                  .card.border-success.h-100
+                    .card-body.text-center
+                      .display-6.text-success.mb-2
+                        i.fas.fa-arrow-down
+                      h4.card-title #{lowUtil}
+                      p.card-text Low Utilization (<40%)
+                      .small.text-muted Consider reducing copies
+
+    else
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-boxes.fa-4x.text-muted
+              h4.text-muted No Inventory Data Available
+              p.text-muted No inventory data found for the selected criteria.
+
+    // Management Recommendations
+    .row.mt-4
+      .col-md-6.mb-4
+        .card.border-info
+          .card-header.bg-info.text-white
+            h6.card-title.mb-0
+              i.fas.fa-lightbulb.me-2
+              | Inventory Insights
+          .card-body
+            if inventory && inventory.length > 0
+              - var outOfStock = inventory.filter(i => i.available_copies === 0 && i.rented_copies > 0).length
+              - var highDemand = inventory.filter(i => (i.utilization_rate || 0) > 90).length
+              - var lowDemand = inventory.filter(i => (i.utilization_rate || 0) < 20).length
+              
+              ul.list-unstyled.mb-0
+                li.mb-2
+                  i.fas.fa-exclamation-circle.text-danger.me-2
+                  strong #{outOfStock} films completely out of stock
+                li.mb-2
+                  i.fas.fa-fire.text-warning.me-2
+                  | #{highDemand} films in high demand (>90% utilization)
+                li.mb-2
+                  i.fas.fa-chart-line.text-success.me-2
+                  | #{lowDemand} films with low demand (<20% utilization)
+                li
+                  i.fas.fa-dollar-sign.text-info.me-2
+                  | Avg revenue per film: $#{inventory.length > 0 ? (inventory.reduce((sum, i) => sum + (i.total_revenue || 0), 0) / inventory.length).toFixed(2) : 0}
+            else
+              p.text-muted No insights available without inventory data.
+
+      .col-md-6.mb-4
+        .card.border-success
+          .card-header.bg-success.text-white
+            h6.card-title.mb-0
+              i.fas.fa-tasks.me-2
+              | Action Items
+          .card-body
+            ul.list-unstyled.mb-0
+              li.mb-2
+                i.fas.fa-plus-circle.text-success.me-2
+                | Order more copies for high-demand films
+              li.mb-2
+                i.fas.fa-minus-circle.text-warning.me-2
+                | Consider reducing low-demand inventory
+              li.mb-2
+                i.fas.fa-sync.text-info.me-2
+                | Rotate seasonal or thematic collections
+              li
+                i.fas.fa-bell.text-primary.me-2
+                | Set up automated reorder alerts
+
+    // Export Options
+    .row.mt-4
+      .col-12
+        .card.bg-light
+          .card-body
+            .row
+              .col-md-8
+                h6.card-title
+                  i.fas.fa-download.me-2
+                  | Export Inventory Report
+                p.card-text.text-muted Download inventory data for purchasing decisions and stock management.
+              .col-md-4.text-end
+                .btn-group
+                  button.btn.btn-outline-success.btn-sm(onclick="exportReport('csv')")
+                    i.fas.fa-file-csv.me-1
+                    | CSV
+                  button.btn.btn-outline-danger.btn-sm(onclick="exportReport('pdf')")
+                    i.fas.fa-file-pdf.me-1
+                    | PDF
+                  button.btn.btn-outline-primary.btn-sm(onclick="exportReport('excel')")
+                    i.fas.fa-file-excel.me-1
+                    | Excel
+
+    script.
+        function exportReport(format) {
+            alert('Exporting inventory report in ' + format.toUpperCase() + ' format... (Feature coming soon)');
+        }
+
+    style.
+    .table th
+        font-size: 0.875rem
+        white-space: nowrap
+    .table td
+        font-size: 0.875rem
+    .card
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075)

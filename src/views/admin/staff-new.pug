@@ -12,7 +12,7 @@ block content
           
           .card-body
             // Error Messages
-            if error
+            if error && error.length > 0
               .alert.alert-danger.alert-dismissible.fade.show
                 i.fas.fa-exclamation-triangle.me-2
                 | #{error}
@@ -21,33 +21,48 @@ block content
             form(method="POST", action="/admin/staff")
               .row.mb-3
                 .col-md-6
-                  label.form-label(for="firstName") First Name
+                  label.form-label(for="first_name") First Name
                   input.form-control(
                     type="text", 
-                    id="firstName", 
-                    name="firstName", 
-                    value=formData.firstName || '',
+                    id="first_name", 
+                    name="first_name", 
+                    placeholder="pietje"
                     required
                   )
                 .col-md-6
-                  label.form-label(for="lastName") Last Name
+                  label.form-label(for="last_name") Last Name
                   input.form-control(
                     type="text", 
-                    id="lastName", 
-                    name="lastName", 
-                    value=formData.lastName || '',
+                    id="last_name", 
+                    name="last_name", 
+                    placeholder="puk"
                     required
                   )
               
               .mb-3
-                label.form-label(for="email") Email Address
+                label.form-label Email Address
+                .input-group
+                  input.form-control(
+                    type="text", 
+                    id="email_username", 
+                    name="email_username", 
+                    placeholder="example",
+                    pattern="[a-zA-Z0-9._-]+",
+                    required
+                  )
+                  span.input-group-text @
+                  select.form-select(
+                    id="email_domain", 
+                    name="email_domain",
+                    required
+                  )
+                    option(value="@moviesexpressrentals.com", selected) moviesexpressrentals.com
                 input.form-control(
-                  type="email", 
+                  type="hidden", 
                   id="email", 
-                  name="email", 
-                  value=formData.email || '',
-                  required
+                  name="email"
                 )
+                .form-text Enter the username part and select the domain. The email will be automatically combined.
               
               .mb-3
                 label.form-label(for="username") Username
@@ -55,10 +70,11 @@ block content
                   type="text", 
                   id="username", 
                   name="username", 
-                  value=formData.username || '',
+                  placeholder="pietjepuk",
+                  pattern="[a-zA-Z0-9._-]+",
                   required
                 )
-                .form-text Used for login. Must be unique.
+                .form-text Used for login. Only letters, numbers, dots, underscores, and hyphens allowed.
               
               .mb-3
                 label.form-label(for="password") Password
@@ -66,9 +82,10 @@ block content
                   type="password", 
                   id="password", 
                   name="password", 
+                  minlength="6",
                   required
                 )
-                .form-text Minimum 6 characters.
+                .form-text Minimum 6 characters for security.
               
               .mb-3
                 label.form-label(for="role") Role
@@ -77,11 +94,22 @@ block content
                   name="role",
                   required
                 )
-                  option(value="staff", selected=formData.role === 'staff' || !formData.role) Staff
-                  option(value="admin", selected=formData.role === 'admin') Admin
+                  option(value="staff", selected) Staff
+                  option(value="admin") Admin
                 .form-text 
                   | Staff members can handle rentals and basic operations. 
                   | Admins can manage staff accounts and system settings.
+              
+              .mb-3
+                label.form-label(for="store_id") Store Assignment
+                select.form-select(
+                  id="store_id", 
+                  name="store_id",
+                  required
+                )
+                  option(value="1", selected) Store 1
+                  option(value="2") Store 2
+                .form-text Store location for this staff member.
               
               .d-flex.gap-2.justify-content-between
                 a.btn.btn-outline-secondary(href="/admin/staff")
@@ -94,4 +122,41 @@ block content
 
           .card-footer.text-muted.small
             i.fas.fa-info-circle.me-1
-            | The new staff member will be able to login immediately with the provided credentials.
+            | The new staff member will be created with basic access. Contact system admin for login credentials.
+
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const usernameInput = document.getElementById('email_username');
+      const domainSelect = document.getElementById('email_domain');
+      const hiddenEmailInput = document.getElementById('email');
+      
+      function updateEmail() {
+        const username = usernameInput.value.trim();
+        const domain = domainSelect.value;
+        if (username && domain) {
+          hiddenEmailInput.value = username + domain;
+        } else {
+          hiddenEmailInput.value = '';
+        }
+      }
+      
+      // Update email on input changes
+      usernameInput.addEventListener('input', updateEmail);
+      domainSelect.addEventListener('change', updateEmail);
+      
+      // Update email on form submission to ensure it's current
+      document.querySelector('form').addEventListener('submit', function(e) {
+        updateEmail();
+        
+        // Validate that we have a complete email
+        if (!hiddenEmailInput.value) {
+          e.preventDefault();
+          alert('Please enter a valid email address.');
+          usernameInput.focus();
+          return false;
+        }
+      });
+      
+      // Initial update in case fields are pre-filled
+      updateEmail();
+    });

@@ -8,7 +8,7 @@ block content
           .card-header
             h3 Register
           .card-body
-            if error
+            if error && error.length > 0
               .alert.alert-danger= error
             
             form(action="/auth/register" method="POST")

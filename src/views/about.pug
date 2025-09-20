@@ -106,36 +106,36 @@ block content
                     .card-header.bg-warning.text-dark
                       h6.card-title.mb-0
                         i.fas.fa-tags.me-2
-                        | Film Offers
+                        | Employee Film Perks
                     .card-body
                       h6 User Story
-                      p.fst-italic "As a staff member, I want to access and select from available film offers so that I can benefit from employee discounts and discover new movies."
+                      p.fst-italic "As a staff member, I want to browse and select from films offered by management so that I can enjoy employee benefits and discover new movies at discounted rates."
                       
                       h6 Acceptance Criteria
                       ul.small
-                        li Browse current film offers with discount information
-                        li Filter offers by category, discount percentage, and availability
-                        li Select offers for personal use at discounted rates
-                        li View selected offers and expiration dates
-                        li Remove selections before expiration if desired
+                        li View current film offers activated by administrators
+                        li Filter offers by category, rating, and release year
+                        li Select multiple films for personal employee benefit use
+                        li Track my current selections and their expiration status
+                        li Remove selections if I change my mind before activation
                 
                 .col-lg-6.mb-4
                   .card.border-secondary.h-100
                     .card-header.bg-secondary.text-white
                       h6.card-title.mb-0
-                        i.fas.fa-chart-line.me-2
-                        | Performance Tracking
+                        i.fas.fa-star.me-2
+                        | Selection Management
                     .card-body
                       h6 User Story
-                      p.fst-italic "As a manager, I want to monitor staff performance and generate reports so that I can recognize top performers and identify areas for improvement."
+                      p.fst-italic "As a staff member, I want to manage my selected film offers so that I can track my employee benefits and make the most of available perks."
                       
                       h6 Acceptance Criteria
                       ul.small
-                        li View staff performance metrics and rankings
-                        li Generate reports for specific time periods
-                        li Track rental handling and revenue generation
-                        li Compare performance across different staff members
-                        li Export performance data for analysis
+                        li View my current film selections with selection dates
+                        li Track how many offers I've selected this period  
+                        li Review selection statistics and usage patterns
+                        li Remove selections if needed before activation
+                        li Access selection history for personal records
 
             // Administrator Stories
             .mb-4
@@ -144,41 +144,59 @@ block content
                 | Administrator Experience
               
               .row
-                .col-lg-6.mb-4
+                .col-lg-4.mb-4
                   .card.border-primary.h-100
                     .card-header.bg-primary.text-white
                       h6.card-title.mb-0
                         i.fas.fa-film.me-2
-                        | Film Management
+                        | Inventory Management
                     .card-body
                       h6 User Story
-                      p.fst-italic "As an administrator, I want to manage the film inventory and add new titles so that customers have access to a current and diverse selection."
+                      p.fst-italic "As an administrator, I want to manage our complete film catalog and inventory so that we maintain an optimal selection for customers."
                       
                       h6 Acceptance Criteria
                       ul.small
-                        li Add new films with complete metadata
-                        li Edit existing film information and pricing
-                        li Manage film copies and inventory levels
-                        li Set rental rates and special features
-                        li Monitor film popularity and performance
+                        li Add new films with complete details and categorization
+                        li Edit existing film information, pricing, and ratings
+                        li Manage physical inventory copies per film
+                        li Monitor rental availability and popular titles
+                        li Set competitive rental rates based on market demand
                 
-                .col-lg-6.mb-4
-                  .card.border-dark.h-100
-                    .card-header.bg-dark.text-white
+                .col-lg-4.mb-4
+                  .card.border-success.h-100
+                    .card-header.bg-success.text-white
                       h6.card-title.mb-0
                         i.fas.fa-users-cog.me-2
-                        | Staff Administration
+                        | Staff Administration  
                     .card-body
                       h6 User Story
-                      p.fst-italic "As an administrator, I want to manage staff accounts and permissions so that the right people have appropriate access to system features."
+                      p.fst-italic "As an administrator, I want to manage staff accounts and access control so that employees can perform their duties with appropriate system permissions."
                       
                       h6 Acceptance Criteria
                       ul.small
-                        li Create new staff accounts with company email domain
-                        li Assign appropriate roles and permissions
-                        li Activate/deactivate user accounts as needed
-                        li Monitor staff activity and access logs
-                        li Send welcome emails with login credentials
+                        li Create staff accounts with company email standardization
+                        li Assign role-based permissions (staff, manager, admin)
+                        li Activate and deactivate user accounts as needed
+                        li Monitor user activity and maintain security standards
+                        li Generate staff performance and activity reports
+                
+                .col-lg-4.mb-4
+                  .card.border-warning.h-100
+                    .card-header.bg-warning.text-dark
+                      h6.card-title.mb-0
+                        i.fas.fa-gift.me-2
+                        | Employee Benefits
+                    .card-body
+                      h6 User Story
+                      p.fst-italic "As an administrator, I want to manage film offers for staff so that employees receive benefits while helping promote less popular titles."
+                      
+                      h6 Acceptance Criteria
+                      ul.small
+                        li Activate individual film offers available to all staff members
+                        li Batch activate or deactivate offers by film category
+                        li Control which films are offered based on inventory and business needs
+                        li Monitor staff selections and offer utilization rates across the system
+                        li Toggle offer status to align with seasonal promotions and business goals
 
     // Technical Features
     .row.mb-5
@@ -200,10 +218,11 @@ block content
                   .card-body
                     ul.small
                       li Role-based access control (Customer, Staff, Manager, Admin)
-                      li Secure session management with express-session
-                      li Company email domain enforcement (@moviesexpressrentals.com)
-                      li Password hashing and protection
-                      li Protected routes with middleware authorization
+                      li Secure session management with persistent login options
+                      li Company email domain enforcement for staff accounts
+                      li Bcrypt password hashing with salt rounds
+                      li Protected routes with layered middleware authorization
+                      li CSRF protection on all forms with state modifications
               
               .col-lg-4.mb-4
                 .card.border-info.h-100
@@ -213,25 +232,27 @@ block content
                       | Database Architecture
                   .card-body
                     ul.small
-                      li MySQL with Sakila database schema
-                      li Parameterized queries for SQL injection prevention
+                      li MySQL with extended Sakila database schema
+                      li Parameterized queries preventing SQL injection attacks
                       li Layered architecture: Controller → Service → DAO → Database
-                      li Callback-based pattern (no async/await)
-                      li Connection pooling for optimal performance
+                      li Callback-based async pattern (Node.js style error handling)
+                      li Connection pooling with automatic failover handling
+                      li Custom tables for authentication, offers, and staff selections
               
               .col-lg-4.mb-4
                 .card.border-warning.h-100
                   .card-header.bg-warning.text-dark
                     h6.card-title.mb-0
                       i.fas.fa-palette.me-2
-                      | User Interface
+                      | User Interface & Experience
                   .card-body
                     ul.small
-                      li Server-side rendering with Pug templates
-                      li Bootstrap 5 for responsive design
-                      li FontAwesome icons for visual consistency
-                      li Role-based navigation and content display
-                      li Progressive enhancement with minimal JavaScript
+                      li Server-side rendering with Pug template engine
+                      li Bootstrap 5 responsive framework with custom styling
+                      li FontAwesome icons for consistent visual language
+                      li Role-based navigation and conditional content display
+                      li Flash messaging for user feedback and error handling
+                      li Progressive enhancement with minimal client-side JavaScript
 
     // Development Standards
     .row.mb-5

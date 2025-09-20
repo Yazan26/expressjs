@@ -12,13 +12,16 @@ const requireRole = require('../middleware/requireRole');
 router.use(requireAuth);
 router.use(requireRole(['staff', 'admin']));
 
-// GET /staff/offers - Staff offers dashboard
+// GET /staff/offers - Staff offers dashboard with discounts
 router.get('/offers', staffController.getOffers);
 
-// POST /staff/offers/select - Select an offer
+// POST /staff/offers/select - Select an offer for discount
 router.post('/offers/select', staffController.postSelectOffer);
 
-// GET /staff/selections - View staff selections
+// POST /staff/offers/unselect - Remove an offer selection
+router.post('/offers/unselect', staffController.postUnselectOffer);
+
+// GET /staff/selections - View staff selections with savings
 router.get('/selections', staffController.getSelections);
 
 module.exports = router;

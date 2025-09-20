@@ -17,13 +17,13 @@ block content
           a.btn.btn-outline-primary(href="/admin/films") Film Management
 
     // Success/Error Messages
-    if success
+    if success && success.length > 0
       .alert.alert-success.alert-dismissible.fade.show
         i.fas.fa-check-circle.me-2
         | #{success}
         button.btn-close(type="button", data-bs-dismiss="alert")
 
-    if error
+    if error && error.length > 0
       .alert.alert-danger.alert-dismissible.fade.show
         i.fas.fa-exclamation-triangle.me-2
         | #{error}
@@ -31,6 +31,13 @@ block content
 
     // Staff List
     if staff && staff.length > 0
+      .row.mb-4
+        .col-12
+          .alert.alert-info
+            i.fas.fa-info-circle.me-2
+            strong Staff Management Info:
+            |  Active staff can log in and perform their duties. Deactivated staff lose access but their data is preserved for reactivation. Only admins can manage staff accounts.
+      
       .row
         each member in staff
           .col-lg-6.col-xl-4.mb-4
@@ -63,6 +70,19 @@ block content
                   .mb-3
                     .small.text-muted Created
                     .small #{new Date(member.created_at).toLocaleDateString()}
+                
+                // Action Buttons
+                .d-flex.gap-2.mt-3
+                  if member.active
+                    form.d-inline(method="POST", action=`/admin/staff/${member.staff_id}/deactivate`)
+                      button.btn.btn-outline-danger.btn-sm(type="submit")
+                        i.fas.fa-user-times.me-1
+                        | Deactivate
+                  else
+                    form.d-inline(method="POST", action=`/admin/staff/${member.staff_id}/activate`)
+                      button.btn.btn-outline-success.btn-sm(type="submit")
+                        i.fas.fa-user-check.me-1
+                        | Activate
     else
       .row
         .col-12
@@ -76,3 +96,34 @@ block content
               a.btn.btn-success(href="/admin/staff/new")
                 i.fas.fa-user-plus.me-2
                 | Add New Staff
+
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add confirmation dialog for staff deactivation
+      const deactivateForms = document.querySelectorAll('form[action*="/deactivate"]');
+      deactivateForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+          const staffName = this.closest('.card').querySelector('.card-title').textContent.trim();
+          const confirmed = confirm(`Are you sure you want to deactivate ${staffName}? They will lose access to the system.`);
+          
+          if (!confirmed) {
+            e.preventDefault();
+            return false;
+          }
+        });
+      });
+      
+      // Add confirmation dialog for staff activation
+      const activateForms = document.querySelectorAll('form[action*="/activate"]');
+      activateForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+          const staffName = this.closest('.card').querySelector('.card-title').textContent.trim();
+          const confirmed = confirm(`Are you sure you want to reactivate ${staffName}? They will regain access to the system.`);
+          
+          if (!confirmed) {
+            e.preventDefault();
+            return false;
+          }
+        });
+      });
+    });

@@ -11,9 +11,9 @@ const filmsDao = {
     let query = `
       SELECT DISTINCT f.film_id, f.title, f.description, f.rating, f.rental_rate,
              f.length, f.release_year, c.name as category,
-             COUNT(i.inventory_id) as total_copies,
-             COUNT(CASE WHEN r.return_date IS NULL THEN 1 END) as rented_copies,
-             (COUNT(i.inventory_id) - COUNT(CASE WHEN r.return_date IS NULL THEN 1 END)) as available_copies
+             COUNT(DISTINCT i.inventory_id) as total_copies,
+             COUNT(DISTINCT CASE WHEN r.return_date IS NULL THEN r.rental_id END) as rented_copies,
+             (COUNT(DISTINCT i.inventory_id) - COUNT(DISTINCT CASE WHEN r.return_date IS NULL THEN r.rental_id END)) as available_copies
       FROM film f
       LEFT JOIN film_category fc ON f.film_id = fc.film_id
       LEFT JOIN category c ON fc.category_id = c.category_id
@@ -29,13 +29,13 @@ const filmsDao = {
     }
     
     // Add category filter
-    if (options.category && options.category !== 'all') {
-      filters.push('c.name = ?');
-      params.push(options.category);
+    if (options.category && options.category !== 'all' && options.category !== '' && options.category !== '0') {
+      filters.push('c.category_id = ?');
+      params.push(parseInt(options.category));
     }
     
     // Add rating filter
-    if (options.rating && options.rating !== 'all') {
+    if (options.rating && options.rating !== 'all' && options.rating !== '') {
       filters.push('f.rating = ?');
       params.push(options.rating);
     }
@@ -52,21 +52,53 @@ const filmsDao = {
     
     // Add grouping and ordering
     query += ' GROUP BY f.film_id, f.title, f.description, f.rating, f.rental_rate, f.length, f.release_year, c.name';
-    query += ' ORDER BY f.title';
     
-    // Add pagination
-    const limit = parseInt(options.limit) || 12;
-    const offset = (parseInt(options.page) - 1) * limit || 0;
-    query += ' LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    // Add sorting
+    switch (options.sort) {
+      case 'year':
+        query += ' ORDER BY f.release_year DESC, f.title';
+        break;
+      case 'length':
+        query += ' ORDER BY f.length DESC, f.title';
+        break;
+      case 'copies':
+        query += ' ORDER BY total_copies ASC, f.title';
+        break;
+      default:
+        query += ' ORDER BY f.title';
+    }
     
-    database.query(query, params, function(err, films) {
-      if (err) return callback(err);
+    // Count total films for pagination
+    const countQuery = query.replace(/SELECT.*?FROM/s, 'SELECT COUNT(DISTINCT f.film_id) as total FROM');
+    const countParams = [...params];
+    
+    database.query(countQuery, countParams, function(countErr, countResult) {
+      if (countErr) return callback(countErr);
       
-      callback(null, {
-        films: films,
-        page: parseInt(options.page) || 1,
-        limit: limit
+      const totalFilms = countResult[0]?.total || 0;
+      const limit = parseInt(options.limit) || 12;
+      const currentPage = parseInt(options.page) || 1;
+      const totalPages = Math.ceil(totalFilms / limit);
+      const offset = (currentPage - 1) * limit;
+      
+      // Add pagination to main query
+      query += ' LIMIT ? OFFSET ?';
+      params.push(limit, offset);
+      
+      database.query(query, params, function(err, films) {
+        if (err) return callback(err);
+        
+        callback(null, {
+          films: films || [],
+          pagination: {
+            currentPage: currentPage,
+            totalPages: totalPages,
+            totalFilms: totalFilms,
+            limit: limit,
+            hasNext: currentPage < totalPages,
+            hasPrev: currentPage > 1
+          }
+        });
       });
     });
   },
@@ -183,6 +215,11 @@ const filmsDao = {
       const ratings = results.map(r => r.rating);
       callback(null, ratings);
     });
+  },
+
+  // Get all languages for film creation
+  getLanguages: function(callback) {
+    database.query('SELECT language_id, name FROM language ORDER BY name', callback);
   }
 
 };
