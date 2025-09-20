@@ -1,6 +1,11 @@
 const mysql = require('mysql2');
 const logger = require('../../util/logger');
-require('dotenv').config();
+// Load dotenv only if .env file exists (safe for Azure deployment)
+try {
+  require('dotenv').config();
+} catch (err) {
+  console.log('No .env file found in database connection, using environment variables');
+}
 
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
