@@ -23,6 +23,7 @@ router.get('/films/edit/:id', adminController.getEditFilm);
 router.post('/films/edit/:id', adminController.postEditFilm);
 router.get('/films/inventory/:id', adminController.getFilmInventory);
 router.post('/films/inventory/:id/add', adminController.postAddFilmCopy);
+router.post('/films/inventory/:id/remove/:inventoryId', adminController.postRemoveFilmCopy);
 
 // Staff management routes
 router.get('/staff', adminController.getStaff);
@@ -37,6 +38,7 @@ router.get('/offers/new', adminController.getNewOffer);
 router.post('/offers/new', adminController.postCreateOffer);
 router.post('/offers/activate/:filmId', adminController.postToggleOffer);
 router.post('/offers/deactivate/:filmId', adminController.postToggleOffer);
+router.post('/offers/remove/:offerId', adminController.postRemoveOffer);
 router.post('/offers/batch', adminController.postBatchOffers);
 
 module.exports = router;

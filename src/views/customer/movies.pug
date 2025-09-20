@@ -21,8 +21,9 @@ block content
                     label(for='category') Category
                     select.form-control(id='category' name='category')
                       option(value='all' selected=(category === 'all')) All Categories
-                      each cat in categories
-                        option(value=cat.name selected=(category === cat.name))= cat.name
+                      if categories
+                        each cat in categories
+                          option(value=cat.category_id selected=(String(category) === String(cat.category_id)))= cat.name
                 
                 .col-md-2
                   .form-group
@@ -38,6 +39,18 @@ block content
                     select.form-control(id='available' name='available')
                       option(value='' selected=(!available)) All Movies
                       option(value='true' selected=(available === 'true')) Available Only
+                
+                .col-md-2
+                  .form-group
+                    label(for='sort') Sort By
+                    select.form-control(id='sort' name='sort')
+                      option(value='title' selected=(sort === 'title')) Title
+                      option(value='year' selected=(sort === 'year')) Year
+                      option(value='length' selected=(sort === 'length')) Length
+                      option(value='discount_desc' selected=(sort === 'discount_desc')) Discount (High → Low)
+                      option(value='discount_asc' selected=(sort === 'discount_asc')) Discount (Low → High)
+                      option(value='price_asc' selected=(sort === 'price_asc')) Price (Low → High)
+                      option(value='price_desc' selected=(sort === 'price_desc')) Price (High → Low)
                 
                 .col-md-2
                   .form-group
@@ -59,16 +72,21 @@ block content
                     .mt-auto
                       .d-flex.justify-content-between.align-items-center
                         .rental-info
-                          strong $#{movie.rental_rate}
+                          if movie.discounted_price
+                            span.text-muted.text-decoration-line-through $#{parseFloat(movie.rental_rate).toFixed(2)}
+                            br
+                            strong.text-success $#{parseFloat(movie.discounted_price).toFixed(2)}
+                          else
+                            strong $#{parseFloat(movie.rental_rate).toFixed(2)}
                           br
                           if movie.available_copies > 0
                             small.text-success #{movie.available_copies} available
                           else
                             small.text-danger Not available
                         .btn-group(role='group')
-                          a.btn.btn-outline-primary.btn-sm(href=`/customer/movies/${movie.film_id}`) Details
+                          a.btn.btn-outline-primary.btn-sm(href='/customer/movies/' + movie.film_id) Details
                           if movie.available_copies > 0
-                            form.d-inline(method='POST' action=`/customer/movies/${movie.film_id}/rent`)
+                            form.d-inline(method='POST' action=('/customer/movies/' + movie.film_id + '/rent'))
                               button.btn.btn-success.btn-sm(type='submit') Rent
         else
           .alert.alert-info
@@ -77,20 +95,22 @@ block content
               a(href='/customer/movies') browse all movies
             
         // Pagination (if needed)
-        if totalPages > 1
+        if totalPages && totalPages > 1
           nav(aria-label='Movie pagination')
             ul.pagination.justify-content-center
               if page > 1
                 li.page-item
-                  a.page-link(href=`/customer/movies?page=${page - 1}&search=${search}&category=${category}&rating=${rating}&available=${available}`) Previous
+                  a.page-link(href='/customer/movies?page=' + (page - 1) + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || '')) Previous
               
-              - for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 2); i++)
+              - var startPage = Math.max(1, page - 2)
+              - var endPage = Math.min(totalPages, page + 2)
+              - for (let i = startPage; i <= endPage; i++)
                 li.page-item(class=(i === page ? 'active' : ''))
-                  a.page-link(href=`/customer/movies?page=${i}&search=${search}&category=${category}&rating=${rating}&available=${available}`)= i
+                  a.page-link(href='/customer/movies?page=' + i + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || ''))= i
               
               if page < totalPages
                 li.page-item
-                  a.page-link(href=`/customer/movies?page=${page + 1}&search=${search}&category=${category}&rating=${rating}&available=${available}`) Next
+                  a.page-link(href='/customer/movies?page=' + (page + 1) + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || '')) Next
 
   script.
     // Add loading spinner to rental buttons

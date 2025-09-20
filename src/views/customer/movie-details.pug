@@ -22,9 +22,14 @@ block content
                     br
                     = movie.length + ' minutes'
                   .col-md-3
-                    strong Rental Rate:
+                    strong Price:
                     br
-                    strong.text-success $#{movie.rental_rate}
+                    if movie.discounted_price
+                      span.text-muted.text-decoration-line-through $#{parseFloat(movie.rental_rate).toFixed(2)}
+                      br
+                      strong.text-success $#{parseFloat(movie.discounted_price).toFixed(2)}
+                    else
+                      strong.text-success $#{parseFloat(movie.rental_rate).toFixed(2)}
                   .col-md-3
                     strong Year:
                     br
@@ -66,7 +71,7 @@ block content
                       form.d-inline(method='POST' action=`/customer/movies/${movie.film_id}/rent`)
                         button.btn.btn-success.btn-lg(type='submit' id='rentButton')
                           i.fas.fa-shopping-cart.mr-2
-                          | Rent Now ($#{movie.rental_rate})
+                          | Rent Now ($#{movie.discounted_price ? parseFloat(movie.discounted_price).toFixed(2) : parseFloat(movie.rental_rate).toFixed(2)})
       
       .col-md-4
         // Recommendations
@@ -79,12 +84,17 @@ block content
                 .media.mb-3
                   .media-body
                     h6.mt-0
-                      a(href=`/customer/movies/${rec.film_id}`)= rec.title
+                      a(href='/customer/movies/' + rec.film_id)= rec.title
                     p.small.text-muted= rec.category
                     p.small= rec.description.substring(0, 80) + '...'
                     .d-flex.justify-content-between.align-items-center
                       span.text-success
-                        strong $#{rec.rental_rate}
+                        if rec.discounted_price
+                          small.text-muted.text-decoration-line-through $#{parseFloat(rec.rental_rate).toFixed(2)}
+                          br
+                          strong $#{parseFloat(rec.discounted_price).toFixed(2)}
+                        else
+                          strong $#{parseFloat(rec.rental_rate).toFixed(2)}
                       if rec.available_copies > 0
                         small.text-success Available
                       else

@@ -9,7 +9,7 @@ block content
           i.fas.fa-tags.me-2.text-warning
           | Film Offers Management
         p.text-muted Create and manage film offers for staff selection
-      
+
       .col-lg-4.text-lg-end
         .btn-group
           a.btn.btn-success(href="/admin/offers/new")
@@ -18,121 +18,172 @@ block content
           a.btn.btn-outline-primary(href="/admin/films") Film Management
           a.btn.btn-outline-info(href="/admin/staff") Staff Management
 
-    // Success/Error Messages
+    // Flash Messages
     if success && success.length > 0
-      .alert.alert-success.alert-dismissible.fade.show
+      .alert.alert-success.alert-dismissible.fade.show(role="alert")
         i.fas.fa-check-circle.me-2
         | #{success[0]}
         button.btn-close(type="button", data-bs-dismiss="alert")
 
     if error && error.length > 0
-      .alert.alert-danger.alert-dismissible.fade.show
+      .alert.alert-danger.alert-dismissible.fade.show(role="alert")
         i.fas.fa-exclamation-triangle.me-2
         | #{error[0]}
         button.btn-close(type="button", data-bs-dismiss="alert")
 
-    // Films and Offers List
+    // Search and Filter
+    .card.mb-4
+      .card-body
+        form.row.g-3(method="GET", action="/admin/offers")
+          .col-md-4
+            label.form-label(for="search") Search Films
+            input.form-control#search(type="text", name="search", placeholder="Enter film title...", value=searchParams && searchParams.search ? searchParams.search : '')
+
+          .col-md-3
+            label.form-label(for="category") Category
+            select.form-select#category(name="category")
+              - var currentCategory = (searchParams && searchParams.category) ? searchParams.category : 'all'
+              option(value="all", selected=currentCategory === 'all') All Categories
+              if categories
+                each category in categories
+                  option(value=category.category_id, selected=String(currentCategory) == String(category.category_id)) #{category.name}
+
+          .col-md-2
+            label.form-label &nbsp;
+            .d-grid
+              button.btn.btn-primary(type="submit")
+                i.fas.fa-search.me-2
+                | Search
+
+          .col-md-3
+            label.form-label &nbsp;
+            .d-grid
+              a.btn.btn-outline-secondary(href="/admin/offers")
+                i.fas.fa-times.me-2
+                | Clear
+
+    // Offers Table
     if offers && offers.length > 0
-      .row
-        - for (var i = 0; i < offers.length; i++)
-          - var offer = offers[i]
-          .col-lg-6.col-xl-4.mb-4
-            .card.h-100(class=offer.is_offered ? 'border-success' : 'border-secondary')
-              .card-header
-                .d-flex.justify-content-between.align-items-start
-                  h5.card-title.mb-1 #{offer.title}
-                  if offer.is_offered
-                    .badge.bg-success Active Offer
-                  else
-                    .badge.bg-secondary Not Offered
-              
-              .card-body
-                .row.mb-3
-                  .col-6
-                    .small.text-muted Category
-                    .fw-bold #{offer.category_name || 'Uncategorized'}
-                  .col-6
-                    .small.text-muted Runtime
-                    .fw-bold #{offer.length || 0} min
-                
-                .row.mb-3
-                  .col-6
-                    .small.text-muted Rental Rate
-                    .fw-bold $#{parseFloat(offer.rental_rate || 0).toFixed(2)}
-                  .col-6
-                    .small.text-muted Staff Selections
-                    .fw-bold.text-info #{offer.selection_count || 0}
-                
-              .card-footer
-                .d-flex.gap-2.flex-wrap
-                  a.btn.btn-outline-info.btn-sm(href=`/films/${offer.film_id}`)
-                    i.fas.fa-eye.me-1
-                    | View Film
-                  
-                  if offer.is_offered
-                    form.d-inline(method="POST", action=`/admin/offers/deactivate/${offer.film_id}`)
-                      button.btn.btn-outline-warning.btn-sm(type="submit")
-                        i.fas.fa-pause.me-1
-                        | Deactivate Offer
-                  else
-                    form.d-inline(method="POST", action=`/admin/offers/activate/${offer.film_id}`)
-                      button.btn.btn-outline-success.btn-sm(type="submit")
-                        i.fas.fa-play.me-1
-                        | Create Offer
+      .card
+        .card-body.p-0
+          .table-responsive
+            table.table.table-hover.mb-0
+              thead.table-dark
+                tr
+                  th Film Title
+                  th Category
+                  th Rental Rate
+                  th Discount
+                  th Discounted Price
+                  th Created
+                  th Actions
+              tbody
+                //- Render each offer row without Pug 'each' (compatibility)
+                - var __offers = Array.isArray(offers) ? offers : []
+                - for (var __i = 0; __i < __offers.length; __i++) {
+                -   var offer = __offers[__i]
+                -   var rentalRate = Number(offer.rental_rate || 0)
+                -   var discountPct = Number(offer.discount_percentage || offer.discount_percent || 0)
+                -   var discountAmt = (offer.discount_amount !== undefined && offer.discount_amount !== null) ? Number(offer.discount_amount) : (rentalRate * discountPct / 100)
+                -   var discountedPrice = Math.max(0, rentalRate - discountAmt)
+                  tr
+                    td
+                      .fw-bold #{offer.title}
+                      .small.text-muted Rating: #{offer.rating}
+                    td #{offer.category_name || 'Uncategorized'}
+                    td $#{rentalRate.toFixed(2)}
+                    td
+                      .badge.bg-success #{discountPct}%
+                    td
+                      .fw-bold.text-success $#{discountedPrice.toFixed(2)}
+                      .small.text-muted Save $#{discountAmt.toFixed(2)}
+                    td.small #{offer.created_at ? new Date(offer.created_at).toLocaleDateString() : ''}
+                    td
+                      .btn-group.btn-group-sm
+                        a.btn.btn-outline-info(href='/films/' + offer.film_id)
+                          i.fas.fa-eye
+                        form.d-inline(method='POST', action='/admin/offers/remove/' + offer.offer_id, onsubmit="return confirm('Are you sure you want to remove this offer?')")
+                          button.btn.btn-outline-danger(type='submit')
+                            i.fas.fa-trash
+                - }
 
+      // Pagination
+      if pagination && pagination.totalPages > 1
+        - var page = Number(pagination.page || pagination.currentPage || 1)
+        - var totalPages = Number(pagination.totalPages || 1)
+        - var totalItems = Number(pagination.totalItems || offers.length)
+        - var qSearch = (searchParams && searchParams.search) ? searchParams.search : ''
+        - var qCategory = (searchParams && searchParams.category) ? searchParams.category : 'all'
+        nav.mt-4
+          .d-flex.justify-content-between.align-items-center
+            .text-muted
+              | Showing #{offers.length} of #{totalItems} offers
+
+            ul.pagination.pagination-sm.mb-0
+              if page > 1
+                li.page-item
+                  a.page-link(href='/admin/offers?page=' + (page - 1) + '&search=' + qSearch + '&category=' + qCategory) Previous
+              else
+                li.page-item.disabled
+                  span.page-link Previous
+
+              - var startPage = Math.max(1, page - 2)
+              - var endPage = Math.min(totalPages, page + 2)
+
+              if startPage > 1
+                li.page-item
+                  a.page-link(href='/admin/offers?page=1&search=' + qSearch + '&category=' + qCategory) 1
+                if startPage > 2
+                  li.page-item.disabled
+                    span.page-link ...
+
+              - for (var p = startPage; p <= endPage; p++)
+                li.page-item(class=p === page ? 'active' : '')
+                  a.page-link(href='/admin/offers?page=' + p + '&search=' + qSearch + '&category=' + qCategory) #{p}
+
+              if endPage < totalPages
+                if endPage < totalPages - 1
+                  li.page-item.disabled
+                    span.page-link ...
+                li.page-item
+                  a.page-link(href='/admin/offers?page=' + totalPages + '&search=' + qSearch + '&category=' + qCategory) #{totalPages}
+
+              if page < totalPages
+                li.page-item
+                  a.page-link(href='/admin/offers?page=' + (page + 1) + '&search=' + qSearch + '&category=' + qCategory) Next
+              else
+                li.page-item.disabled
+                  span.page-link Next
     else
-      // Empty State
-      .row
-        .col-12
-          .card
-            .card-body.text-center.py-5
-              .mb-4
-                i.fas.fa-tags.fa-4x.text-muted
-              h4.text-muted No Films Available
-              p.text-muted.mb-4 No films are currently available in the system to create offers.
-              
-              a.btn.btn-success(href="/admin/films")
-                i.fas.fa-plus.me-2
-                | Manage Films
+      .card.text-center.py-5
+        .card-body
+          i.fas.fa-tags.fa-3x.text-muted.mb-3
+          h4.text-muted No Offers Found
+          p.text-muted
+            - var hasFilters = (searchParams && (searchParams.search || (searchParams.category && searchParams.category !== 'all')))
+            if hasFilters
+              | No offers match your current search criteria.
+              br
+              a.btn.btn-outline-primary.mt-2(href="/admin/offers") Clear Search
+            else
+              | No film offers have been created yet.
+              br
+              a.btn.btn-success.mt-2(href="/admin/offers/new") Create Your First Offer
 
-    // Quick Stats
-    if totalFilms || activeOffers || staffSelections
-      .row.mt-5
-        .col-12
-          .card
-            .card-header
-              h5.card-title.mb-0
-                i.fas.fa-chart-pie.me-2
-                | Offers Statistics
-            
-            .card-body
-              .row
-                .col-md-4.mb-3
-                  .card.border-primary.text-center.h-100
-                    .card-body
-                      .display-6.text-primary.mb-2
-                        i.fas.fa-film
-                      h4.card-title #{totalFilms || 0}
-                      p.card-text.text-muted Total Films
-                
-                .col-md-4.mb-3
-                  .card.border-success.text-center.h-100
-                    .card-body
-                      .display-6.text-success.mb-2
-                        i.fas.fa-check-circle
-                      h4.card-title #{activeOffers || 0}
-                      p.card-text.text-muted Active Offers
-                
-                .col-md-4.mb-3
-                  .card.border-info.text-center.h-100
-                    .card-body
-                      .display-6.text-info.mb-2
-                        i.fas.fa-star
-                      h4.card-title #{staffSelections || 0}
-                      p.card-text.text-muted Staff Selections
-
+  // Custom CSS
   style.
-    .card { box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
-    .card:hover { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
-    .border-success { border-color: #198754 !important; }
-    .border-secondary { border-color: #6c757d !important; }
+    .table th {
+      border-top: none;
+      font-weight: 600;
+      font-size: 0.9em;
+    }
+    .card:hover {
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .pagination .page-link {
+      border-color: #dee2e6;
+    }
+    .pagination .page-item.active .page-link {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }

@@ -1,0 +1,138 @@
+extends ../layout
+
+block content
+  .container-fluid
+    // Page Header
+    .row.mb-4
+      .col-lg-8
+        h1.h2.mb-1
+          i.fas.fa-tags.me-2.text-warning
+          | Film Offers Management
+        p.text-muted Create and manage film offers for staff selection
+      
+      .col-lg-4.text-lg-end
+        .btn-group
+          a.btn.btn-success(href="/admin/offers/new")
+            i.fas.fa-plus.me-2
+            | Create New Offer
+          a.btn.btn-outline-primary(href="/admin/films") Film Management
+          a.btn.btn-outline-info(href="/admin/staff") Staff Management
+
+    // Success/Error Messages
+    if success && success.length > 0
+      .alert.alert-success.alert-dismissible.fade.show
+        i.fas.fa-check-circle.me-2
+        | #{success[0]}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    if error && error.length > 0
+      .alert.alert-danger.alert-dismissible.fade.show
+        i.fas.fa-exclamation-triangle.me-2
+        | #{error[0]}
+        button.btn-close(type="button", data-bs-dismiss="alert")
+
+    // Films and Offers List
+    if offers && offers.length > 0
+      .row
+        - for (var i = 0; i < offers.length; i++)
+          - var offer = offers[i]
+          .col-lg-6.col-xl-4.mb-4
+            .card.h-100(class=offer.is_offered ? 'border-success' : 'border-secondary')
+              .card-header
+                .d-flex.justify-content-between.align-items-start
+                  h5.card-title.mb-1 #{offer.title}
+                  if offer.is_offered
+                    .badge.bg-success Active Offer
+                  else
+                    .badge.bg-secondary Not Offered
+              
+              .card-body
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Category
+                    .fw-bold #{offer.category_name || 'Uncategorized'}
+                  .col-6
+                    .small.text-muted Runtime
+                    .fw-bold #{offer.length || 0} min
+                
+                .row.mb-3
+                  .col-6
+                    .small.text-muted Rental Rate
+                    .fw-bold $#{parseFloat(offer.rental_rate || 0).toFixed(2)}
+                  .col-6
+                    .small.text-muted Staff Selections
+                    .fw-bold.text-info #{offer.selection_count || 0}
+                
+              .card-footer
+                .d-flex.gap-2.flex-wrap
+                  a.btn.btn-outline-info.btn-sm(href=`/films/${offer.film_id}`)
+                    i.fas.fa-eye.me-1
+                    | View Film
+                  
+                  if offer.is_offered
+                    form.d-inline(method="POST", action=`/admin/offers/deactivate/${offer.film_id}`)
+                      button.btn.btn-outline-warning.btn-sm(type="submit")
+                        i.fas.fa-pause.me-1
+                        | Deactivate Offer
+                  else
+                    form.d-inline(method="POST", action=`/admin/offers/activate/${offer.film_id}`)
+                      button.btn.btn-outline-success.btn-sm(type="submit")
+                        i.fas.fa-play.me-1
+                        | Create Offer
+
+    else
+      // Empty State
+      .row
+        .col-12
+          .card
+            .card-body.text-center.py-5
+              .mb-4
+                i.fas.fa-tags.fa-4x.text-muted
+              h4.text-muted No Films Available
+              p.text-muted.mb-4 No films are currently available in the system to create offers.
+              
+              a.btn.btn-success(href="/admin/films")
+                i.fas.fa-plus.me-2
+                | Manage Films
+
+    // Quick Stats
+    if totalFilms || activeOffers || staffSelections
+      .row.mt-5
+        .col-12
+          .card
+            .card-header
+              h5.card-title.mb-0
+                i.fas.fa-chart-pie.me-2
+                | Offers Statistics
+            
+            .card-body
+              .row
+                .col-md-4.mb-3
+                  .card.border-primary.text-center.h-100
+                    .card-body
+                      .display-6.text-primary.mb-2
+                        i.fas.fa-film
+                      h4.card-title #{totalFilms || 0}
+                      p.card-text.text-muted Total Films
+                
+                .col-md-4.mb-3
+                  .card.border-success.text-center.h-100
+                    .card-body
+                      .display-6.text-success.mb-2
+                        i.fas.fa-check-circle
+                      h4.card-title #{activeOffers || 0}
+                      p.card-text.text-muted Active Offers
+                
+                .col-md-4.mb-3
+                  .card.border-info.text-center.h-100
+                    .card-body
+                      .display-6.text-info.mb-2
+                        i.fas.fa-star
+                      h4.card-title #{staffSelections || 0}
+                      p.card-text.text-muted Staff Selections
+
+  style.
+    .card { box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075); }
+    .card:hover { box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); }
+    .border-success { border-color: #198754 !important; }
+    .border-secondary { border-color: #6c757d !important; }

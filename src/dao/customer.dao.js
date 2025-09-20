@@ -249,7 +249,7 @@ const customerDao = {
   updateCustomer: function(customerId, profileData, callback) {
     // First get the customer's current address_id
     const getAddressQuery = 'SELECT address_id FROM customer WHERE customer_id = ?';
-    
+
     db.query(getAddressQuery, [customerId], function(err, results) {
       if (err) {
         return callback(err);
@@ -294,6 +294,17 @@ const customerDao = {
         }
       });
     });
+  },
+
+  getDiscountedOffersForFilms: function(filmIds, callback) {
+    if (!filmIds || filmIds.length === 0) return callback(null, []);
+    const placeholders = filmIds.map(() => '?').join(',');
+    const query = `SELECT film_id, discount_percentage FROM film_offers WHERE is_active = 1 AND film_id IN (${placeholders})`;
+    db.query(query, filmIds, callback);
+  },
+
+  getOfferDiscount: function(filmId, callback) {
+    db.query('SELECT discount_percentage FROM film_offers WHERE film_id = ? AND is_active = 1 LIMIT 1', [filmId], callback);
   }
 
 };

@@ -1,0 +1,34 @@
+extends ../layout
+
+block content
+  .container
+    h2.mb-3
+      i.fas.fa-film.me-2
+      | Rentals for Customer ##{userId}
+
+    if rentals && rentals.length > 0
+      table.table.table-striped.table-sm
+        thead
+          tr
+            th Rental ID
+            th Title
+            th Rented
+            th Returned
+            th Amount
+        tbody
+          each r in rentals
+            tr
+              td #{r.rental_id}
+              td #{r.title}
+              td #{new Date(r.rental_date).toLocaleString()}
+              td #{r.return_date ? new Date(r.return_date).toLocaleString() : 'Not returned'}
+              td $#{parseFloat(r.amount || 0).toFixed(2)}
+    else
+      .alert.alert-info
+        i.fas.fa-info-circle.me-2
+        | No rentals found for this user.
+
+    .mt-3
+      a.btn.btn-secondary(href='/users')
+        i.fas.fa-arrow-left.me-2
+        | Back to Users

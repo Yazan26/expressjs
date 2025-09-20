@@ -1,0 +1,38 @@
+extends ../layout
+
+block content
+  .container
+    h2.mb-3
+      i.fas.fa-coins.me-2
+      | Spending for Customer ##{userId}
+
+    .row
+      .col-md-4
+        .card.text-center
+          .card-body
+            .h5.text-muted Total Spent
+            .display-6.text-success $#{parseFloat(total || 0).toFixed(2)}
+            .small.text-muted #{paymentsCount || 0} payments
+      .col-md-8
+        if monthly && monthly.length > 0
+          table.table.table-striped.table-sm
+            thead
+              tr
+                th Period
+                th Payments
+                th Total
+            tbody
+              each m in monthly
+                tr
+                  td #{m.period}
+                  td #{m.count}
+                  td $#{parseFloat(m.total || 0).toFixed(2)}
+        else
+          .alert.alert-info
+            i.fas.fa-info-circle.me-2
+            | No payments found for this user.
+
+    .mt-3
+      a.btn.btn-secondary(href='/users')
+        i.fas.fa-arrow-left.me-2
+        | Back to Users

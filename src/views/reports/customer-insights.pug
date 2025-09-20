@@ -1,0 +1,187 @@
+﻿extends ../layout
+
+block content
+  .container-fluid
+    .d-flex.justify-content-between.align-items-center.mb-4
+      h1.h3.mb-0
+        i.fas.fa-users.me-2
+        | Customer Insights
+      form.row.g-2(method='GET' action='/reports/customer-insights')
+        .col-md-3
+          input.form-control.form-control-sm(type='search' name='q' placeholder='Search name or email' value=filters && filters.q)
+        .col-md-2
+          select.form-select.form-select-sm(name='segment')
+            option(value='all' selected=(filters && filters.segment === 'all')) All Segments
+            option(value='Premium' selected=(filters && filters.segment === 'Premium')) Premium
+            option(value='Regular' selected=(filters && filters.segment === 'Regular')) Regular
+            option(value='Occasional' selected=(filters && filters.segment === 'Occasional')) Occasional
+        .col-md-2
+          select.form-select.form-select-sm(name='sort')
+            option(value='value' selected=(filters && filters.sort === 'value')) Sort: Value
+            option(value='rentals' selected=(filters && filters.sort === 'rentals')) Sort: Rentals
+            option(value='recent' selected=(filters && filters.sort === 'recent')) Sort: Recent
+            option(value='avg_cost' selected=(filters && filters.sort === 'avg_cost')) Sort: Avg Cost
+            option(value='name' selected=(filters && filters.sort === 'name')) Sort: Name
+        .col-md-2
+          input.form-control.form-control-sm(type='number' min='0' name='min_rentals' placeholder='Min rentals' value=filters && filters.min_rentals)
+        .col-md-2
+          input.form-control.form-control-sm(type='number' min='0' name='inactive' placeholder='Inactive days' value=filters && filters.inactive)
+        .col-md-1
+          button.btn.btn-primary.btn-sm.w-100(type='submit') Filter
+
+    if summary
+      .row.mb-3
+        .col-md-3
+          .card.text-center
+            .card-body
+              .text-muted.small Total Customers
+              .h4 #{summary.totalCustomers || 0}
+        .col-md-3
+          .card.text-center
+            .card-body
+              .text-muted.small Active
+              .h4 #{summary.activeCustomers || 0}
+        .col-md-3
+          .card.text-center
+            .card-body
+              .text-muted.small Avg. Value
+              .h4 $#{parseFloat(summary.avgLifetimeValue || 0).toFixed(2)}
+        .col-md-3
+          .card.text-center
+            .card-body
+              .text-muted.small Top Segment
+              .h4 #{(summary && summary.topSegment) || 'N/A'}
+
+    if customers && customers.length
+      .card
+        .card-body.p-0
+           table.table.table-hover.mb-0
+             thead
+               tr
+                 th ID
+                 th Name
+                 th Email
+                 th Segment
+                 th Rentals
+                 th Total Spent
+                 th Last Activity
+                 th RFM
+                 th Actions
+             tbody
+               each c in customers
+                 tr
+                   td #{c.customer_id || c.id}
+                   td #{c.first_name} #{c.last_name}
+                   td #{c.email}
+                   td #{c.segment || ''}
+                   td #{c.total_rentals || 0}
+                   td $#{parseFloat(c.total_spent || 0).toFixed(2)}
+                   td #{c.last_rental_date ? new Date(c.last_rental_date).toLocaleDateString() : ''}
+                   td #{c.rfm || ''}
+                   td
+                     .btn-group.btn-group-sm
+                       a.btn.btn-outline-primary(href='/users/' + (c.customer_id || c.id) + '/details') Details
+                       a.btn.btn-outline-info(href='/users/' + (c.customer_id || c.id) + '/spending') Spending
+                       a.btn.btn-outline-secondary(href='/users/' + (c.customer_id || c.id) + '/rentals') Rentals
+        if filters && filters.totalPages && filters.totalPages > 1
+          nav.mt-3
+            ul.pagination.pagination-sm
+              li.page-item(class=(filters.page <= 1 ? 'disabled' : ''))
+                a.page-link(href='?'+`q=${filters.q||''}&segment=${filters.segment||'all'}&sort=${filters.sort||'value'}&min_rentals=${filters.min_rentals||''}&inactive=${filters.inactive||''}&page=${(filters.page||1)-1}&limit=${filters.limit||100}`) Prev
+              - for (var p = Math.max(1,(filters.page||1)-2); p <= Math.min(filters.totalPages, (filters.page||1)+2); p++)
+                li.page-item(class=(p === filters.page ? 'active' : ''))
+                  a.page-link(href='?'+`q=${filters.q||''}&segment=${filters.segment||'all'}&sort=${filters.sort||'value'}&min_rentals=${filters.min_rentals||''}&inactive=${filters.inactive||''}&page=${p}&limit=${filters.limit||100}`) #{p}
+              li.page-item(class=(filters.page >= filters.totalPages ? 'disabled' : ''))
+                a.page-link(href='?'+`q=${filters.q||''}&segment=${filters.segment||'all'}&sort=${filters.sort||'value'}&min_rentals=${filters.min_rentals||''}&inactive=${filters.inactive||''}&page=${(filters.page||1)+1}&limit=${filters.limit||100}`) Next
+    else
+      .alert.alert-info
+        i.fas.fa-info-circle.me-2
+        | No customer insights available.
+
+    // Additional Insights
+    if inactivity
+      .row.mt-4
+        .col-md-3
+          .card.text-center
+            .card-body
+              .text-muted.small Inactive > 30 days
+              .h4 #{inactivity.gt30 || 0}
+        .col-md-3
+          .card.text-center
+            .card-body
+              .text-muted.small Inactive > 60 days
+              .h4 #{inactivity.gt60 || 0}
+        .col-md-3
+          .card.text-center
+            .card-body
+              .text-muted.small Inactive > 90 days
+              .h4 #{inactivity.gt90 || 0}
+
+    if rfmSummary && Object.keys(rfmSummary).length
+      .mt-4
+        h4 RFM Segments
+        table.table.table-sm.table-striped
+          thead
+            tr
+              th RFM Code
+              th Customers
+          tbody
+            each val, key in rfmSummary
+              tr
+                td #{key}
+                td #{val}
+
+    if cohorts && cohorts.length
+      .mt-4
+        h4 Customer Cohorts (by create month)
+        table.table.table-sm.table-striped
+          thead
+            tr
+              th Cohort
+              th Customers
+              th Rentals
+              th Revenue
+          tbody
+            each row in cohorts
+              tr
+                td #{row.cohort}
+                td #{row.customers}
+                td #{row.rentals}
+                td $#{parseFloat(row.revenue || 0).toFixed(2)}
+
+    if geography && geography.length
+      .mt-4
+        h4 Top Locations by Revenue
+        table.table.table-sm.table-striped
+          thead
+            tr
+              th Country
+              th City
+              th Customers
+              th Revenue
+          tbody
+            each g in geography
+              tr
+                td #{g.country}
+                td #{g.city}
+                td #{g.customers}
+                td $#{parseFloat(g.revenue || 0).toFixed(2)}
+
+    if lateReturns && lateReturns.length
+      .mt-4
+        h4 Customers with Most Late Returns
+        table.table.table-sm.table-striped
+          thead
+            tr
+              th ID
+              th Name
+              th Late Returns
+              th Total Rentals
+          tbody
+            each lr in lateReturns
+              tr
+                td #{lr.customer_id}
+                td #{lr.first_name} #{lr.last_name}
+                td #{lr.late_returns}
+                td #{lr.total_rentals}
+

@@ -110,6 +110,38 @@ block content
               a.btn.btn-info(href="/reports/revenue")
                 i.fas.fa-money-bill-wave.me-2
                 | View Revenue Report
+
+      .col-md-6.col-lg-4.mb-4
+        .card.border-warning.h-100
+          .card-header.bg-warning.text-white
+            h5.card-title.mb-0
+              i.fas.fa-clock.me-2
+              | customer insights & activity
+
+          .card-body
+            p.card-text Gain insights into customer behavior, rental activity, and engagement trends.
+
+            .row.mb-3
+              .col-6
+                .small.text-muted What's Included
+                ul.small
+                  li Rental activity
+                  li New vs returning customers
+                  li Popular genres
+                  li Engagement trends
+              .col-6
+                .small.text-muted Available For
+                ul.small
+                  li Customer segments
+                  li Time period analysis
+                  li Genre preferences
+                  li Activity patterns
+
+            
+            .d-grid
+              a.btn.btn-warning(href="/reports/customer-insights")
+                i.fas.fa-clock.me-2
+                | View Activity Report
           
     // Recent Activity Summary
     if recentActivity
@@ -155,6 +187,7 @@ block content
                         i.fas.fa-star
                       h4.card-title #{recentActivity.offerSelections || 0}
                       p.card-text.text-muted Offer Selections
+
 
 
   script.

@@ -8,16 +8,16 @@ block content
         h1.h2.mb-1
           i.fas.fa-star.me-2.text-warning
           | My Film Selections
-        p.text-muted Your selected film offers and recommendations
+        p.text-muted Your selected film offers and employee benefits
       
       .col-lg-4.text-lg-end
         .btn-group
-          a.btn.btn-outline-primary(href="/staff/offers")
+          a.btn.btn-outline-primary(href="/staff/dashboard")
+            i.fas.fa-tachometer-alt.me-2
+            | Dashboard
+          a.btn.btn-success(href="/staff/offers")
             i.fas.fa-tags.me-2
             | Browse Offers
-          a.btn.btn-outline-info(href="/reports") 
-            i.fas.fa-chart-bar.me-2
-            | Reports
 
     // Success/Error Messages
     if success && success.length > 0
@@ -91,8 +91,11 @@ block content
                 select.form-select(name="category")
                   option(value="", selected=!selectedCategory) All Categories
                   if categories
-                    each category in categories
+                    - var catIndex = 0
+                    - while (catIndex < categories.length)
+                      - var category = categories[catIndex]
                       option(value=category.name, selected=selectedCategory === category.name) #{category.name}
+                      - catIndex++
               
               .col-md-3
                 label.form-label Sort By
@@ -110,7 +113,9 @@ block content
     // My Selections
     if selections && selections.length > 0
       .row
-        each selection in selections
+        - var selIndex = 0
+        - while (selIndex < selections.length)
+          - var selection = selections[selIndex]
           .col-lg-6.col-xl-4.mb-4
             - var isExpiring = new Date(selection.endDate) - new Date() < (7 * 24 * 60 * 60 * 1000)
             - var isExpired = new Date(selection.endDate) < new Date()
@@ -167,12 +172,12 @@ block content
                 
                 // Action Buttons
                 .d-flex.gap-2
-                  a.btn.btn-outline-info.btn-sm(href=`/films/${selection.filmId}`)
+                  a.btn.btn-outline-info.btn-sm(href="/films/" + selection.filmId)
                     i.fas.fa-eye.me-1
                     | View Film
                   
                   if !isExpired
-                    a.btn.btn-success.btn-sm(href=`/films/${selection.filmId}`)
+                    a.btn.btn-success.btn-sm(href="/films/" + selection.filmId)
                       i.fas.fa-shopping-cart.me-1
                       | Rent Now
                   
@@ -181,6 +186,7 @@ block content
                     button.btn.btn-outline-danger.btn-sm(type="submit")
                       i.fas.fa-times.me-1
                       | Remove
+          - selIndex++
 
       // Pagination
       if pagination && pagination.totalPages > 1
@@ -191,7 +197,7 @@ block content
                 ul.pagination
                   if pagination.currentPage > 1
                     li.page-item
-                      a.page-link(href=`?page=${pagination.currentPage - 1}&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`)
+                      a.page-link(href="?page=" + (pagination.currentPage - 1) + "&status=" + (selectedStatus || '') + "&category=" + (selectedCategory || '') + "&sort=" + (selectedSort || ''))
                         i.fas.fa-chevron-left
                   
                   - var startPage = Math.max(1, pagination.currentPage - 2)
@@ -199,7 +205,7 @@ block content
                   
                   if startPage > 1
                     li.page-item
-                      a.page-link(href=`?page=1&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`) 1
+                      a.page-link(href="?page=1&status=" + (selectedStatus || '') + "&category=" + (selectedCategory || '') + "&sort=" + (selectedSort || '')) 1
                     if startPage > 2
                       li.page-item.disabled
                         span.page-link ...
@@ -209,18 +215,18 @@ block content
                       if i === pagination.currentPage
                         span.page-link #{i}
                       else
-                        a.page-link(href=`?page=${i}&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`) #{i}
+                        a.page-link(href="?page=" + i + "&status=" + (selectedStatus || '') + "&category=" + (selectedCategory || '') + "&sort=" + (selectedSort || '')) #{i}
                   
                   if endPage < pagination.totalPages
                     if endPage < pagination.totalPages - 1
                       li.page-item.disabled
                         span.page-link ...
                     li.page-item
-                      a.page-link(href=`?page=${pagination.totalPages}&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`) #{pagination.totalPages}
+                      a.page-link(href="?page=" + pagination.totalPages + "&status=" + (selectedStatus || '') + "&category=" + (selectedCategory || '') + "&sort=" + (selectedSort || '')) #{pagination.totalPages}
                   
                   if pagination.currentPage < pagination.totalPages
                     li.page-item
-                      a.page-link(href=`?page=${pagination.currentPage + 1}&status=${selectedStatus || ''}&category=${selectedCategory || ''}&sort=${selectedSort || ''}`)
+                      a.page-link(href="?page=" + (pagination.currentPage + 1) + "&status=" + (selectedStatus || '') + "&category=" + (selectedCategory || '') + "&sort=" + (selectedSort || ''))
                         i.fas.fa-chevron-right
 
     else
@@ -259,7 +265,9 @@ block content
             
             .card-body
               .row
-                each rec in recommendations
+                - var recIndex = 0
+                - while (recIndex < recommendations.length)
+                  - var rec = recommendations[recIndex]
                   .col-md-6.col-lg-4.mb-3
                     .card.border-info.bg-light
                       .card-body
@@ -277,9 +285,10 @@ block content
                           p.card-text.small.text-muted #{rec.description.substring(0, 80)}...
                         
                         .d-flex.gap-1
-                          a.btn.btn-outline-info.btn-sm(href=`/films/${rec.filmId}`)
+                          a.btn.btn-outline-info.btn-sm(href="/films/" + rec.filmId)
                             i.fas.fa-eye.me-1
                             | View Film
+                  - recIndex++
 
     // Quick Actions
     .row.mt-4
@@ -291,37 +300,37 @@ block content
               | Quick Actions
             .row
               .col-md-3.mb-2
-                a.btn.btn-outline-primary.w-100(href="/staff/offers")
+                a.btn.btn-outline-primary.w-100(href="/staff/dashboard")
+                  i.fas.fa-tachometer-alt.me-2
+                  | Dashboard
+              
+              .col-md-3.mb-2
+                a.btn.btn-outline-success.w-100(href="/staff/offers")
                   i.fas.fa-tags.me-2
                   | Browse Offers
               
               .col-md-3.mb-2
-                a.btn.btn-outline-success.w-100(href="/films")
+                a.btn.btn-outline-info.w-100(href="/films")
                   i.fas.fa-film.me-2
                   | Browse Films
               
               .col-md-3.mb-2
-                a.btn.btn-outline-info.w-100(href="/staff/selections?status=expiring")
+                a.btn.btn-outline-warning.w-100(href="/staff/selections?status=expiring")
                   i.fas.fa-clock.me-2
                   | Expiring Soon
-              
-              .col-md-3.mb-2
-                a.btn.btn-outline-warning.w-100(href="/reports")
-                  i.fas.fa-chart-bar.me-2
-                  | View Reports
 
-style.
-  .card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    border: 1px solid rgba(0, 0, 0, 0.125);
-    transition: box-shadow 0.2s;
-  }
-  .card:hover {
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-  }
-  .badge {
-    font-size: 0.75em;
-  }
-  .text-decoration-line-through {
-    text-decoration: line-through;
-  }
+  style.
+    .card {
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      border: 1px solid rgba(0, 0, 0, 0.125);
+      transition: box-shadow 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .badge {
+      font-size: 0.75em;
+    }
+    .text-decoration-line-through {
+      text-decoration: line-through;
+    }

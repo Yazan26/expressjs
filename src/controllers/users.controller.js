@@ -15,16 +15,23 @@ const usersController={
     },
 
     get:(req,res,next)=>{
-        let userId = req.params.userId;
-    userService.get(userId,(error,users)=>{
-        if(error) next (error);
-        if (users){
-            userId == undefined
-                ? res.render('users/table', {users:users})
-                : res.render('users/details', {user:users[0]});
-        }
-    });
+      let userId = req.params.userId;
+      userService.get(userId,(error,users)=>{
+        if(error) return next(error);
+        if (!users) return next(new Error('No users found'));
 
+        // Normalize fields for views (ensure customer_id exists)
+        const normalize = (u) => ({
+          ...u,
+          customer_id: u.customer_id || u.id,
+        });
+
+        if (userId == undefined) {
+          return res.render('users/table', { users: users.map(normalize) });
+        } else {
+          return res.render('users/details', { user: normalize(users[0]) });
+        }
+      });
     },
 
      update: (req, res, next) => {
@@ -34,7 +41,10 @@ const usersController={
     if (req.method === "GET") {
       userService.get(userId, (error, users) => {
         if (error) return next(error);
-        if (users) return res.render("users/edit", { user: users[0] });
+        if (!users) return next(new Error('User not found'));
+        const u = users[0] || users;
+        const normalized = { ...u, customer_id: u.customer_id || u.id };
+        return res.render("users/edit", { user: normalized });
       });
     } else {
       userService.update(email, userId, first_name, last_name, active, (error, result) => {
@@ -72,6 +82,48 @@ const usersController={
       next();
     });
   },
+  
+  getRentals: (req, res, next) => {
+    const userId = req.params.userId;
+    const usersDao = require('../dao/users.dao');
+    const sql = `SELECT r.rental_id, f.title, r.rental_date, r.return_date,
+                        COALESCE(p.amount, 0) as amount
+                 FROM rental r
+                 JOIN inventory i ON r.inventory_id = i.inventory_id
+                 JOIN film f ON i.film_id = f.film_id
+                 LEFT JOIN payment p ON p.rental_id = r.rental_id AND p.customer_id = r.customer_id
+                 WHERE r.customer_id = ?
+                 ORDER BY r.rental_date DESC`;
+    usersDao.query(sql, [userId], function(err, rows){
+      if (err) return next(err);
+      res.render('users/rentals', { userId, rentals: rows || [] });
+    });
+  },
+
+  getSpending: (req, res, next) => {
+    const userId = req.params.userId;
+    const usersDao = require('../dao/users.dao');
+    const summarySql = `SELECT COALESCE(SUM(amount),0) as total, COUNT(*) as payments
+                        FROM payment WHERE customer_id = ?`;
+    const monthlySql = `SELECT DATE_FORMAT(payment_date, '%Y-%m') as period,
+                               COALESCE(SUM(amount),0) as total,
+                               COUNT(*) as count
+                        FROM payment WHERE customer_id = ?
+                        GROUP BY DATE_FORMAT(payment_date, '%Y-%m')
+                        ORDER BY period DESC`;
+    usersDao.query(summarySql, [userId], function(err, sumRows){
+      if (err) return next(err);
+      usersDao.query(monthlySql, [userId], function(err2, monthRows){
+        if (err2) return next(err2);
+        res.render('users/spending', {
+          userId,
+          total: sumRows && sumRows[0] ? sumRows[0].total : 0,
+          paymentsCount: sumRows && sumRows[0] ? sumRows[0].payments : 0,
+          monthly: monthRows || []
+        });
+      });
+    });
+  }
 
 };
 

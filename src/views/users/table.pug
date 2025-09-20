@@ -19,7 +19,13 @@ block content
                 td #{user.email}
                 td #{user.active == 1 ? 'active' : 'inactive'}
                 td 
-                    a.btn.btn-dark(href=`/users/${user.customer_id}/details`) details
+                    a.btn.btn-dark(href='/users/' + user.customer_id + '/details') details
+                td 
+                    a.btn.btn-outline-secondary(href='/users/' + user.customer_id + '/edit') edit
+                td 
+                    a.btn.btn-outline-primary(href='/users/' + user.customer_id + '/rentals') rentals
+                td 
+                    a.btn.btn-outline-info(href='/users/' + user.customer_id + '/spending') spending
                 td 
                     a.btn.btn-danger(onclick=`deleteButtonClicked('${user.customer_id}', this)`) delete
       div#deleteAlertContainer

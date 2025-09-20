@@ -1,14 +1,24 @@
 function deleteFetch(userId, callback) {
-  fetch(`/users/${userId}`, {method: 'DELETE'})
-    .then((response) => {
-      if (!response.ok) {
-        return response.json().then((data) => {
-          return callback(new Error(data.message || 'Delete failed'), undefined);
-        });
+  fetch(`/users/${userId}`, { method: 'DELETE', headers: { 'Accept': 'application/json' } })
+    .then(async (response) => {
+      const contentType = response.headers.get('content-type') || '';
+      let text;
+      try {
+        text = await response.text();
+      } catch (e) {
+        text = '';
       }
-      return response.json().then((data) => {
-        return callback(undefined, data);
-      });
+
+      let data;
+      if (contentType.includes('application/json')) {
+        try { data = text ? JSON.parse(text) : undefined; } catch (e) { /* ignore parse error */ }
+      }
+
+      if (!response.ok) {
+        const message = (data && (data.message || data.error)) || (text || 'Delete failed');
+        return callback(new Error(message), undefined);
+      }
+      return callback(undefined, data || { message: 'User deleted' });
     })
     .catch((err) => {
       callback(err, undefined);
