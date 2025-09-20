@@ -1,6 +1,7 @@
 # 🎬 Movies Express Rentals
 
 A comprehensive movie rental management system built with Node.js, Express.js, and MySQL. This application provides a complete solution for managing film rentals with role-based access control for customers, staff, and administrators.
+
 the website is hosted in Azure on https://moviezexpressrentals.azurewebsites.net
 ## 📋 Table of Contents
 
