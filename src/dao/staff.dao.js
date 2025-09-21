@@ -65,6 +65,12 @@ module.exports = {
     query(sql, [staffId], cb);
   },
 
+  // Retrieve discount percentage for an active offer by film
+  selectOfferDiscount(filmId, cb) {
+    const sql = `SELECT discount_percentage FROM film_offers WHERE film_id = ? AND is_active = 1 LIMIT 1`;
+    query(sql, [filmId], cb);
+  },
+
   insertSelection(staffId, offerId, discountPercentage, cb) {
     const sql = `INSERT INTO staff_offer_selections (staff_id, offer_id, discount_percentage, selected_at)
                  VALUES (?, ?, ?, NOW())

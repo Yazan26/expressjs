@@ -104,7 +104,8 @@ const staffService = {
    * Get staff member's selected offers with savings summary
    */
   getSelections: function(staffId, callback) {
-    staffDao.selectStaffOfferSelections(staffId, function(err, selections) {
+    // Corrected DAO method name (was selectStaffOfferSelections which didn't exist)
+    staffDao.getStaffOfferSelections(staffId, function(err, selections) {
       if (err && err.message.includes("doesn't exist")) {
         const fallback = Array.from({ length: 5 }).map((_, idx) => {
           const rate = 3.99 + idx * 0.5;
@@ -189,6 +190,7 @@ const staffService = {
    * Calculate rental price with staff discounts applied
    */
   calculateRentalPrice: function(staffId, filmId, callback) {
+    // Use DAO helper to retrieve active offer discount
     staffDao.selectOfferDiscount(filmId, function(err, results) {
       if (err) return fallbackPrice(filmId, callback);
       const discountPercent = results && results[0] ? parseFloat(results[0].discount_percentage || results[0].discount_percent || 0) : 0;

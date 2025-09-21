@@ -113,6 +113,10 @@ html(lang='en' data-bs-theme='dark')
               a.nav-link.py-2.px-lg-3(class=req && req.path === '/about' ? 'active' : '')(href='/about')
                 i.fas.fa-circle-info.me-2
                 | About
+            li.nav-item
+              a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/stories') ? 'active' : '')(href='/stories')
+                i.fas.fa-list-check.me-2
+                | User Stories
           form.d-flex.ms-lg-4.my-3.my-lg-0(role='search' action='/search' method='GET')
             input.form-control.form-control-sm.me-2(type='search' name='q' placeholder='Search movies' aria-label='Search')
             button.btn.btn-outline-accent.btn-sm(type='submit')

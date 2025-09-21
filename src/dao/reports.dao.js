@@ -34,9 +34,16 @@ module.exports = {
 
   // Film analytics
   getFilmAnalytics(whereSql, params, limit, cb) {
-    const sql = `SELECT f.film_id, f.title, f.rental_rate, f.rating, c.name as category_name,
-                        COUNT(DISTINCT r.rental_id) as total_rentals,
-                        COALESCE(SUM(p.amount),0) as total_revenue
+    const sql = `SELECT 
+                    f.film_id,
+                    f.title,
+                    f.rental_rate,
+                    f.rating,
+                    c.name AS category_name,
+                    COUNT(DISTINCT r.rental_id) AS rental_count,
+                    COUNT(DISTINCT r.customer_id) AS unique_renters,
+                    COALESCE(SUM(p.amount),0) AS total_revenue,
+                    COALESCE(SUM(p.amount),0) / NULLIF(COUNT(DISTINCT r.rental_id),0) AS revenue_per_rental
                  FROM film f
                  LEFT JOIN film_category fc ON fc.film_id = f.film_id
                  LEFT JOIN category c ON c.category_id = fc.category_id
@@ -45,7 +52,7 @@ module.exports = {
                  LEFT JOIN payment p ON p.rental_id = r.rental_id
                  ${whereSql}
                  GROUP BY f.film_id, f.title, f.rental_rate, f.rating, c.name
-                 ORDER BY total_rentals DESC, total_revenue DESC
+                 ORDER BY rental_count DESC, total_revenue DESC
                  LIMIT ?`;
     query(sql, [...params, limit], cb);
   },

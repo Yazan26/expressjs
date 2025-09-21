@@ -1,0 +1,61 @@
+extends ../layout
+
+block content
+  section.mx-section.pt-0
+    .mx-card.p-5.mb-5
+      h1.h3.fw-semibold.mb-2
+        i.fas.fa-list-check.me-2.text-danger
+        | User Stories & Acceptance Criteria
+      p.text-muted.mb-0 A consolidated view of functional requirements across customer, staff, and admin roles. All stories below are currently fulfilled by the platform implementation.
+
+  // Tabs Navigation
+  - const roles = [{key:'customer', label:'Customer'}, {key:'staff', label:'Staff'}, {key:'admin', label:'Admin'}];
+  ul.nav.nav-pills.mb-4(role='tablist')
+    each r, idx in roles
+      li.nav-item
+        a.nav-link(class=idx===0?'active':'')(data-bs-toggle='tab' href='#tab-'+r.key role='tab' aria-selected=idx===0)= r.label
+
+  .tab-content
+    each r, idx in roles
+      // Each tab-pane needs a unique id; Pug doesn't support #id-{expr} shorthand, so use explicit id attribute
+      .tab-pane.fade(id='tab-'+r.key class=idx===0?'show active':'')
+        if stories && stories[r.key] && stories[r.key].length
+          .row.g-4
+            each story in stories[r.key]
+              .col-md-6.col-xl-4
+                .mx-card.h-100.p-4.shadow-hover
+                  .d-flex.justify-content-between.align-items-start.mb-2
+                    span.badge.mx-pill.mx-pill-soft #{story.code}
+                    span.badge(class=story.priority==='High'?'bg-danger':'bg-secondary')= story.priority
+                  h5.fw-semibold.mb-2= story.title
+                  p.text-muted.small.mb-3= story.story
+                  h6.text-uppercase.text-muted.small.mb-2 Acceptance
+                  ul.list-unstyled.small.vstack.gap-1.text-muted
+                    each ac in story.acceptance
+                      li
+                        i.fas.fa-check.text-success.me-1
+                        | #{ac}
+        else
+          .mx-card.p-5.text-center
+            i.fas.fa-inbox.fa-2x.text-muted.mb-3
+            p.text-muted.mb-0 No stories defined for this role.
+
+  // Summary Section
+  if summaries && summaries.length
+    section.mx-section.pt-0
+      .mx-card.p-4
+        h2.h5.fw-semibold.mb-3
+          i.fas.fa-chart-pie.me-2.text-warning
+          | Coverage Summary
+        .row.g-4
+          each s in summaries
+            .col-md-4
+              .mx-card.h-100.p-4
+                h6.text-uppercase.text-muted.mb-2= s.role
+                p.mb-2
+                  strong= s.total
+                  |  total stories
+                if s.priorities
+                  ul.list-unstyled.small.text-muted.mb-0
+                    each val, key in s.priorities
+                      li #{key}: #{val}

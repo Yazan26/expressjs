@@ -25,6 +25,7 @@ var staffRouter = require('./src/routes/staff.route');
 var adminRouter = require('./src/routes/admin.route');
 var reportsRouter = require('./src/routes/reports.route');
 var aboutRouter = require('./src/routes/about.route');
+var storiesRouter = require('./src/routes/stories.route');
 
 var app = express();
 
@@ -78,6 +79,7 @@ app.use('/staff', staffRouter);
 app.use('/admin', adminRouter);
 app.use('/reports', reportsRouter);
 app.use('/about', aboutRouter);
+app.use('/stories', storiesRouter);
 
 // 404 handler
 app.use(notFoundHandler);
