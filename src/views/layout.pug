@@ -11,8 +11,9 @@ html(lang='en' data-bs-theme='dark')
     link(rel='stylesheet', href='/bootstrap/css/bootstrap.min.css')
     link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
-    script(src='/bootstrap/js/bootstrap.bundle.min.js')
-    script(src='/javascripts/delete.user.js')
+  script(src='/bootstrap/js/bootstrap.bundle.min.js')
+  script(src='/javascripts/alerts.js')
+  script(src='/javascripts/delete.user.js')
   body.d-flex.flex-column.min-vh-100
     nav.navbar.navbar-expand-lg.navbar-dark.navbar-glass.sticky-top.py-3
       .container-xxl
@@ -144,19 +145,20 @@ html(lang='en' data-bs-theme='dark')
                   i.fas.fa-arrow-right-to-bracket.me-2
                   | Login
     if messages && (messages.success || messages.error)
-      .position-relative
+      // Unified flash alerts region (server-rendered)
+      #globalFlashAlerts.position-relative
         .container-xxl.mt-4
           if messages.success && messages.success.length
             each msg in messages.success
-              .alert.alert-success.alert-dismissible.fade.show.text-white.bg-success.border-0(role='alert')
+              .alert.alert-success.alert-dismissible.fade.show.mx-alert.border-0(role='alert')
                 i.fas.fa-circle-check.me-2
-                | #{msg}
+                span= msg
                 button.btn-close.btn-close-white(type='button' data-bs-dismiss='alert' aria-label='Close')
           if messages.error && messages.error.length
             each msg in messages.error
-              .alert.alert-danger.alert-dismissible.fade.show.text-white.bg-danger.border-0(role='alert')
+              .alert.alert-danger.alert-dismissible.fade.show.mx-alert.border-0(role='alert')
                 i.fas.fa-triangle-exclamation.me-2
-                | #{msg}
+                span= msg
                 button.btn-close.btn-close-white(type='button' data-bs-dismiss='alert' aria-label='Close')
     main.flex-grow-1.py-5
       .container-xxl

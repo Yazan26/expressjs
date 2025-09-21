@@ -20,6 +20,8 @@ router.get('/:userId/edit', usersController.update);
 router.post('/:userId/edit', usersController.validate, usersController.update);
 router.get('/:userId/rentals', usersController.getRentals);
 router.get('/:userId/spending', usersController.getSpending);
+
+//check rentals before deleting a user
 router.delete('/:userId', usersController.CheckRentals, usersController.delete);
 
 module.exports = router;

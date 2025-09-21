@@ -25,19 +25,13 @@ function deleteFetch(userId, callback) {
     });
 }
 
+// Deprecated inline alert; use mxAlert helper from alerts.js
 function showAlert(message, type = 'success') {
-  const alertDiv = document.getElementById('deleteAlert');
-  if (alertDiv) {
-    const msg = alertDiv.querySelector('.alert-message');
-    if (msg) msg.textContent = message;
-    alertDiv.classList.remove('d-none');
-    alertDiv.classList.remove('alert-success', 'alert-danger');
-    alertDiv.classList.add('show', type === 'success' ? 'alert-success' : 'alert-danger');
-    // Auto-hide after 3 seconds
-    setTimeout(() => {
-      alertDiv.classList.add('d-none');
-      alertDiv.classList.remove('show');
-    }, 3000);
+  if (window.mxAlert) {
+    mxAlert(message, type === 'danger' ? 'danger' : type, { timeout: 4000 });
+  } else {
+    // Fallback to native alert if mxAlert not loaded
+    alert(message);
   }
 }
 
@@ -54,13 +48,7 @@ function deleteButtonClicked(userId, buttonElement) {
 
 
 document.addEventListener('DOMContentLoaded', function () {
-  const alertDiv = document.getElementById('deleteAlert');
-  if (alertDiv) {
-    alertDiv.addEventListener('closed.bs.alert', function () {
-      alertDiv.classList.remove('d-none');
-      alertDiv.classList.remove('show');
-    });
-  }
+  // Removed legacy alertDiv listeners; handled by mxAlert
 
   // Confirm delete button handler
   const confirmBtn = document.getElementById('confirmDeleteBtn');

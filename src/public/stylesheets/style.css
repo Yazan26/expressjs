@@ -221,3 +221,18 @@ main {
 .pricing {
   color: #38d39f;
 }
+
+/* Themed alerts */
+.mx-alert {
+  background: linear-gradient(135deg, rgba(18,26,44,0.95), rgba(27,36,55,0.95));
+  border: 1px solid var(--mx-border) !important;
+  color: var(--mx-text);
+  box-shadow: 0 8px 24px -4px rgba(0,0,0,0.5);
+}
+.mx-alert.alert-success { border-color: rgba(16,185,129,0.4) !important; }
+.mx-alert.alert-danger { border-color: rgba(239,68,68,0.4) !important; }
+.mx-alert.alert-warning { border-color: rgba(245,197,24,0.5) !important; }
+.mx-alert.alert-info    { border-color: rgba(59,130,246,0.4) !important; }
+
+#globalAlertRegion { width: min(640px, 100%); pointer-events: none; }
+#globalAlertRegion .alert { pointer-events: auto; }

@@ -50,8 +50,10 @@ block content
             .mx-card.h-100.p-4.shadow-hover
               span.badge.mx-pill.mx-pill-soft.text-uppercase.mb-3= movie.category || 'All genres'
               h2.h5.fw-semibold.mb-2= movie.title
-              p.text-muted.small.mb-3 Rating #{movie.rating || 'NR'} · #{movie.length || '—'} min
-              p.text-muted.flex-grow-1.mb-4= movie.description ? movie.description.substring(0, 120) + '…' : 'Explore more details inside the film profile.'
+              // Replace stray replacement characters with proper separator and ellipsis logic
+              p.text-muted.small.mb-3 Rating #{movie.rating || 'NR'} Â· #{movie.length || 'N/A'} min
+              - let movieShortDesc = movie.description ? (movie.description.length > 120 ? movie.description.substring(0,120) + 'â€¦' : movie.description) : null;
+              p.text-muted.flex-grow-1.mb-4= movieShortDesc || 'Explore more details inside the film profile.'
               .d-flex.justify-content-between.align-items-center.mb-4
                 if movie.discounted_price
                   div
@@ -67,11 +69,13 @@ block content
                 else
                   span.badge.bg-danger.bg-opacity-25.text-danger Out of stock
               .d-flex.gap-2
-                a.btn.btn-outline-accent.rounded-pill.flex-grow-1(href=/customer/movies/)
+                // Add film id to details link
+                a.btn.btn-outline-accent.rounded-pill.flex-grow-1(href=`/customer/movies/${movie.film_id}`)
                   i.fas.fa-eye.me-2
                   | Details
                 if movie.available_copies > 0
-                  form.flex-grow-1(method='POST' action=/customer/movies//rent)
+                  // Correct malformed action URL and include film id
+                  form.flex-grow-1(method='POST' action=`/customer/movies/${movie.film_id}/rent`)
                     button.btn.btn-accent.rounded-pill.w-100(type='submit')
                       i.fas.fa-cart-plus.me-2
                       | Rent

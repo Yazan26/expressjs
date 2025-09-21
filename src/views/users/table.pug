@@ -253,10 +253,10 @@ block content
             const confirmBtn = document.getElementById('confirmDeleteBtn');
             
             confirmBtn.onclick = function() {
-                fetch(`/users/${userId}/delete`, {
+                fetch(`/users/${userId}`, {
                     method: 'DELETE',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
                     },
                 })
                 .then(response => response.json())

@@ -55,7 +55,8 @@ block content
                 i.fas.fa-arrow-left.me-2
                 | Back to movies
               if movie.available_copies > 0
-                form.d-inline(method='POST' action=/customer/movies//rent)
+                // Fixed malformed action URL (double slash) and added dynamic film id
+                form.d-inline(method='POST' action=`/customer/movies/${movie.film_id}/rent`)
                   button.btn.btn-accent.btn-lg.rounded-pill.mt-3.mt-md-0(type='submit' id='rentButton')
                     i.fas.fa-cart-plus.me-2
                     | Rent now ($#{Number(movie.discounted_price || movie.rental_rate).toFixed(2)})
@@ -67,9 +68,12 @@ block content
               each rec in recommendations
                 div
                   h3.h6.fw-semibold.mb-1
-                    a.text-decoration-none(href=/customer/movies/)= rec.title
+                    // Added film id to recommendation link
+                    a.text-decoration-none(href=`/customer/movies/${rec.film_id}`)= rec.title
                   p.text-muted.small.mb-2= rec.category
-                  p.text-muted.small.mb-3= rec.description ? rec.description.substring(0, 120) + '…' : 'Discover more from this collection.'
+                  // Use safe truncation with ellipsis only if description exists and is longer than 120 chars
+                  - let shortDesc = rec.description ? (rec.description.length > 120 ? rec.description.substring(0, 120) + 'â€¦' : rec.description) : null;
+                  p.text-muted.small.mb-3= shortDesc || 'Discover more from this collection.'
                   .d-flex.justify-content-between.align-items-center
                     span.text-success.fw-semibold
                       if rec.discounted_price
