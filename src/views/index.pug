@@ -1,183 +1,131 @@
 extends layout
 
 block content
-  //- Hero Section
-  .hero-section.bg-primary.text-white.py-5.mb-5
-    .container
-      .row.align-items-center
-        .col-lg-6
-          h1.display-3.fw-bold.mb-3 🎬 Movie Express
-          h2.h4.mb-4.text-white-75 Your Ultimate Movie Rental Experience
-          p.lead.mb-4 Discover thousands of movies, from timeless classics to the latest blockbusters. Rent, watch, and enjoy from the comfort of your home.
-          if user
-            .d-flex.flex-wrap.gap-3
-              a.btn.btn-light.btn-lg(href='/films')
-                i.fas.fa-film.me-2
-                | Browse Movies
-              a.btn.btn-outline-light.btn-lg(href='/customer/dashboard')
-                i.fas.fa-tachometer-alt.me-2
-                | My Dashboard
-              form(action="/auth/logout" method="POST" style="display: inline;")
-                button.btn.btn-outline-light.btn-lg(type="submit" name="logout")
-                  i.fas.fa-sign-out-alt.me-2
-                  | Logout
-          else
-            .d-flex.flex-wrap.gap-3
-              a.btn.btn-light.btn-lg(href='/auth/register')
-                i.fas.fa-user-plus.me-2
-                | Get Started
-              a.btn.btn-outline-light.btn-lg(href='/auth/login')
-                i.fas.fa-sign-in-alt.me-2
-                | Sign In
-        .col-lg-6.text-center.mt-4.mt-lg-0
-          .hero-graphic
-            i.fas.fa-play-circle.fa-8x.text-white-50.mb-3
-            .d-flex.justify-content-center.gap-3
-              i.fas.fa-star.fa-2x.text-warning
-              i.fas.fa-heart.fa-2x.text-danger
-              i.fas.fa-thumbs-up.fa-2x.text-success
+  section.mx-section.pt-0
+    .row.align-items-center.gy-5
+      .col-lg-7
+        span.mx-section-title.d-inline-flex.align-items-center.gap-2
+          span.badge.mx-pill.mx-pill-soft.text-uppercase.fw-semibold Latest Releases Await
+        h1.display-4.fw-bold.mt-3
+          | Your next movie night starts with 
+          span.text-danger MoviezExpressRentals
+        p.lead.text-muted.mt-3 Dive into thousands of blockbusters, indie treasures, and award-winning stories ready to stream or schedule for the perfect premiere at home.
+        if user
+          .d-flex.flex-wrap.gap-3.mt-4
+            a.btn.btn-accent.btn-lg.px-4.rounded-pill.shadow(href='/films')
+              i.fas.fa-compass.me-2
+              | Explore Films
+            a.btn.btn-outline-accent.btn-lg.px-4.rounded-pill(href='/customer/dashboard')
+              i.fas.fa-gauge-high.me-2
+              | My Dashboard
+            a.btn.btn-outline-light.btn-lg.px-4.rounded-pill(href='/customer/profile')
+              i.fas.fa-user-gear.me-2
+              | Profile
+        else
+          .d-flex.flex-wrap.gap-3.mt-4
+            a.btn.btn-accent.btn-lg.px-4.rounded-pill.shadow(href='/auth/register')
+              i.fas.fa-user-plus.me-2
+              | Create Account
+            a.btn.btn-outline-accent.btn-lg.px-4.rounded-pill(href='/auth/login')
+              i.fas.fa-right-to-bracket.me-2
+              | Sign In
+      .col-lg-5
+        .mx-card.p-0.overflow-hidden.shadow-hover(style='background: radial-gradient(circle at top, rgba(229,9,20,.25), transparent 60%), radial-gradient(circle at bottom, rgba(245,197,24,.25), transparent 65%), linear-gradient(160deg, rgba(18,26,44,.85), rgba(27,36,55,.95));')
+          .p-5.position-relative
+            span.badge.mx-highlight-badge.mx-pill.fw-semibold.mb-4 Top Picks Now
+            h3.fw-semibold.mb-3 Binge-worthy Collections
+            p.text-muted.mb-4 Curated lists from our staff to keep your watchlist fresh and exciting.
+            ul.list-unstyled.vstack.gap-3.mb-4
+              li.d-flex.align-items-center.gap-3
+                span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center(style='width: 46px; height: 46px;')
+                  i.fas.fa-bolt.text-warning
+                span
+                  strong Lightning Rentals
+                  br
+                  span.text-muted Instant digital access
+              li.d-flex.align-items-center.gap-3
+                span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center(style='width: 46px; height: 46px;')
+                  i.fas.fa-crown.text-danger
+                span
+                  strong Premium Premieres
+                  br
+                  span.text-muted Exclusive early releases
+              li.d-flex.align-items-center.gap-3
+                span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center(style='width: 46px; height: 46px;')
+                  i.fas.fa-people-group.text-info
+                span
+                  strong Family Favorites
+                  br
+                  span.text-muted Handpicked weekend picks
+            a.btn.btn-outline-light.rounded-pill.px-4(href='/films')
+              i.fas.fa-ticket.me-2
+              | View Collections
 
-  .container
-    //- Welcome Message with Flash Messages
-    if messages && (messages.success || messages.error)
-      .row.mb-4
-        .col-12
-          if messages.success && messages.success.length
-            each msg in messages.success
-              .alert.alert-success.alert-dismissible.fade.show(role='alert')
-                i.fas.fa-check-circle.me-2
-                | #{msg}
-                button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
-          if messages.error && messages.error.length
-            each msg in messages.error
-              .alert.alert-danger.alert-dismissible.fade.show(role='alert')
-                i.fas.fa-exclamation-triangle.me-2
-                | #{msg}
-                button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+  section.mx-section.pt-0
+    .row.g-4
+      .col-md-4
+        .mx-card.h-100.p-4.shadow-hover
+          span.badge.mx-pill.mx-pill-soft.text-uppercase.mb-3.fw-semibold Seamless
+          h4.fw-semibold.mb-3 Unlimited Selection
+          p.text-muted.mb-0 Browse by genre, rating, cast, or curated collections with intelligent search.
+      .col-md-4
+        .mx-card.h-100.p-4.shadow-hover
+          span.badge.mx-pill.mx-pill-soft.text-uppercase.mb-3.fw-semibold Instant
+          h4.fw-semibold.mb-3 One-Click Rentals
+          p.text-muted.mb-0 Reserve physical copies or unlock HD streaming in seconds.
+      .col-md-4
+        .mx-card.h-100.p-4.shadow-hover
+          span.badge.mx-pill.mx-pill-soft.text-uppercase.mb-3.fw-semibold Secure
+          h4.fw-semibold.mb-3 Smart, Safe Access
+          p.text-muted.mb-0 Role-based controls keep team workflows smooth for customers, staff, and admins.
 
-    //- User Welcome Section
-    if user
-      .row.mb-5
-        .col-12
-          .card.border-0.shadow-sm.bg-light
-            .card-body.text-center.py-4
-              h3.text-primary.mb-3
-                i.fas.fa-user-circle.me-2
-                | Welcome back, #{user.first_name || user.firstName}!
-              p.text-muted.mb-4 Ready to discover your next favorite movie?
-              .row.g-3
-                .col-md-3
-                  a.btn.btn-outline-primary.w-100(href='/films')
-                    i.fas.fa-search.me-2
-                    | Browse Movies
-                .col-md-3
-                  a.btn.btn-outline-success.w-100(href='/customer/dashboard')
-                    i.fas.fa-list.me-2
-                    | My Rentals
-                .col-md-3
-                  a.btn.btn-outline-info.w-100(href='/customer/spending')
-                    i.fas.fa-chart-line.me-2
-                    | Spending History
-                .col-md-3
-                  a.btn.btn-outline-secondary.w-100(href='/customer/profile')
-                    i.fas.fa-cog.me-2
-                    | My Profile
-
-    //- Features Section
-    .row.mb-5
-      .col-12
-        h2.text-center.mb-4.display-6 Why Choose Movie Express?
-      .col-lg-4.mb-4
-        .card.h-100.border-0.shadow-sm.text-center
-          .card-body.py-4
-            .mb-3
-              i.fas.fa-infinity.fa-3x.text-primary
-            h4.card-title Unlimited Selection
-            p.card-text Thousands of movies across all genres. From action-packed blockbusters to indie gems, we have something for everyone.
-      .col-lg-4.mb-4
-        .card.h-100.border-0.shadow-sm.text-center
-          .card-body.py-4
-            .mb-3
-              i.fas.fa-bolt.fa-3x.text-warning
-            h4.card-title Instant Rental
-            p.card-text Rent movies instantly with just a click. No waiting, no hassle. Start watching your favorites right away.
-      .col-lg-4.mb-4
-        .card.h-100.border-0.shadow-sm.text-center
-          .card-body.py-4
-            .mb-3
-              i.fas.fa-shield-alt.fa-3x.text-success
-            h4.card-title Secure & Reliable
-            p.card-text Your data is safe with us. Secure payments and reliable service you can trust.
-
-    //- Featured Movies Section
-    if featuredFilms && featuredFilms.length
-      .row.mb-5
-        .col-12
-          h2.text-center.mb-4.display-6 Featured Movies
+  if featuredFilms && featuredFilms.length
+    section.mx-section.pt-0
+      .d-flex.flex-wrap.align-items-center.justify-content-between.mb-4
+        h2.h3.mb-0.fw-semibold Featured Films
+        a.text-muted.small(href='/films')
+          | View all films
+          i.fas.fa-arrow-right.ms-2
+      .row.row-cols-1.row-cols-md-2.row-cols-xl-3.g-4
         each film in featuredFilms.slice(0, 6)
-          .col-lg-4.col-md-6.mb-4
-            .card.h-100.shadow-hover.border-0
+          .col
+            .mx-card.h-100.shadow-hover
               if film.image_url
-                img.card-img-top(src=film.image_url alt=film.title style="height: 250px; object-fit: cover;")
+                img(src=film.image_url alt=Poster for  class='card-img-top' style='height: 260px; object-fit: cover;')
               else
-                .card-img-top.bg-gradient.d-flex.align-items-center.justify-content-center(style="height: 250px; background: linear-gradient(45deg, #007bff, #6f42c1);")
-                  .text-center.text-white
-                    i.fas.fa-film.fa-3x.mb-2
-                    div.fw-bold= film.title
-              .card-body.d-flex.flex-column
-                h5.card-title= film.title
-                p.text-muted.small
+                .d-flex.align-items-center.justify-content-center.bg-dark.bg-opacity-50(style='height: 260px;')
+                  i.fas.fa-film.fa-3x.text-muted
+              .p-4.d-flex.flex-column
+                h5.fw-semibold.mb-2= film.title
+                p.text-muted.small.mb-3
                   if film.release_year
-                    i.fas.fa-calendar.me-1
+                    i.fas.fa-calendar-day.me-2
                     | #{film.release_year}
                   if film.rating
                     span.ms-3
-                      i.fas.fa-star.me-1
+                      i.fas.fa-star.me-1.text-warning
                       | #{film.rating}
-                p.card-text.flex-grow-1= film.description || 'Discover this amazing movie.'
-                .mt-auto
-                  a.btn.btn-primary.w-100(href=`/films/${film.film_id || film.id}`)
+                p.flex-grow-1.text-muted= film.description || 'Discover this cinematic highlight available now.'
+                .mt-4
+                  a.btn.btn-accent.w-100.rounded-pill(href=/films/)
                     i.fas.fa-eye.me-2
-                    | View Details
+                    | View details
+  else
+    section.mx-section.pt-0
+      .mx-card.p-5.text-center
+        h3.fw-semibold.mb-2 Featured titles are on the way
+        p.text-muted.mb-0 Check back soon to see curated picks from the MoviezExpressRentals team.
 
-    //- Call to Action
-    if !user
-      .row.mb-5
-        .col-12
-          .card.bg-primary.text-white.border-0
-            .card-body.text-center.py-5
-              h2.display-6.mb-3 Ready to Start Your Movie Journey?
-              p.lead.mb-4 Join thousands of movie lovers who trust Movie Express for their entertainment needs.
-              .d-flex.justify-content-center.gap-3
-                a.btn.btn-light.btn-lg(href='/auth/register')
-                  i.fas.fa-user-plus.me-2
-                  | Create Account
-                a.btn.btn-outline-light.btn-lg(href='/films')
-                  i.fas.fa-eye.me-2
-                  | Browse Movies
-
-
-  //- Custom Styles
-  style.
-    .hero-section {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    .text-white-75 {
-      color: rgba(255, 255, 255, 0.75);
-    }
-    .shadow-hover {
-      transition: all 0.3s ease;
-    }
-    .shadow-hover:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-    }
-    .hero-graphic i {
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.05); }
-      100% { transform: scale(1); }
-    }
-  
+  if !user
+    section.mx-section.pt-0
+      .mx-card.p-5.text-center.shadow-hover
+        span.mx-section-title.text-uppercase.fw-semibold Ready When You Are
+        h2.display-6.fw-bold.mt-3 Join a streaming experience built for movie lovers
+        p.lead.text-muted.mb-4 Build watchlists, unlock premieres, and manage rentals across devices.
+        .d-flex.justify-content-center.flex-wrap.gap-3
+          a.btn.btn-accent.btn-lg.px-4.rounded-pill(href='/auth/register')
+            i.fas.fa-user-plus.me-2
+            | Create free account
+          a.btn.btn-outline-accent.btn-lg.px-4.rounded-pill(href='/films')
+            i.fas.fa-film.me-2
+            | Browse films

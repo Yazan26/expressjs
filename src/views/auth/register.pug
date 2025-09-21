@@ -1,44 +1,73 @@
 extends ../layout
 
 block content
-  .container.mt-5
+  section.mx-section.pt-0
     .row.justify-content-center
-      .col-md-6
-        .card
-          .card-header
-            h3 Register
-          .card-body
-            if error && error.length > 0
-              .alert.alert-danger= error
-            
-            form(action="/auth/register" method="POST")
-              .mb-3
-                label.form-label(for="firstName") First Name
-                input.form-control(type="text" id="firstName" name="firstName" required)
-              
-              .mb-3
-                label.form-label(for="lastName") Last Name
-                input.form-control(type="text" id="lastName" name="lastName" required)
-              
-              .mb-3
-                label.form-label(for="email") Email
-                input.form-control(type="email" id="email" name="email" required)
-              
-              .mb-3
-                label.form-label(for="username") Username
-                input.form-control(type="text" id="username" name="username" required)
-              
-              .mb-3
-                label.form-label(for="password") Password
-                input.form-control(type="password" id="password" name="password" required)
-              
-              .mb-3
-                label.form-label(for="confirmPassword") Confirm Password
-                input.form-control(type="password" id="confirmPassword" name="confirmPassword" required)
-              
-              .d-grid
-                button.btn.btn-primary(type="submit")(name="register") Register
-            
-            .text-center.mt-3
-              p Already have an account? 
-                a(href="/auth/login") Login here
+      .col-lg-6.col-xl-5
+        .mx-card.p-5.shadow-hover
+          h1.h4.fw-semibold.mb-4.text-center
+            i.fas.fa-user-plus.me-2.text-danger
+            | Create your MoviezExpress account
+          if error && error.length > 0
+            .alert.alert-danger.alert-dismissible.fade.show(role='alert')
+              = error
+              button.btn-close(type='button' data-bs-dismiss='alert' aria-label='Close')
+          form.needs-validation(action='/auth/register' method='POST' novalidate)
+            .row.g-3
+              .col-md-6
+                label.form-label.fw-semibold(for='firstName') First name
+                input.form-control.form-control-lg(type='text' id='firstName' name='firstName' required placeholder='Your first name' autocomplete='given-name')
+                .invalid-feedback Please enter your first name.
+              .col-md-6
+                label.form-label.fw-semibold(for='lastName') Last name
+                input.form-control.form-control-lg(type='text' id='lastName' name='lastName' required placeholder='Your last name' autocomplete='family-name')
+                .invalid-feedback Please enter your last name.
+              .col-12
+                label.form-label.fw-semibold(for='email') Email address
+                input.form-control.form-control-lg(type='email' id='email' name='email' required placeholder='name@example.com' autocomplete='email')
+                .form-text.text-muted Company addresses are required for staff accounts.
+                .invalid-feedback A valid email address is required.
+              .col-md-6
+                label.form-label.fw-semibold(for='username') Username
+                input.form-control.form-control-lg(type='text' id='username' name='username' required placeholder='Choose a username' autocomplete='username')
+                .invalid-feedback Choose a unique username.
+              .col-md-6
+                label.form-label.fw-semibold(for='password') Password
+                input.form-control.form-control-lg(type='password' id='password' name='password' required placeholder='Create a password' autocomplete='new-password' minlength='6')
+                .invalid-feedback Password must be at least 6 characters.
+              .col-12
+                label.form-label.fw-semibold(for='confirmPassword') Confirm password
+                input.form-control.form-control-lg(type='password' id='confirmPassword' name='confirmPassword' required placeholder='Repeat your password' autocomplete='new-password')
+                .invalid-feedback Password confirmation is required.
+            button.btn.btn-accent.btn-lg.w-100.rounded-pill.mt-4(type='submit' name='register')
+              i.fas.fa-user-plus.me-2
+              | Create account
+          .text-center.mt-4
+            p.text-muted.mb-0 Already registered?
+            a.btn.btn-outline-accent.btn-sm.rounded-pill.mt-2(href='/auth/login')
+              i.fas.fa-arrow-right-to-bracket.me-2
+              | Sign in
+
+  script.
+    (function () {
+      'use strict';
+      const forms = document.querySelectorAll('.needs-validation');
+      Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          const password = form.querySelector('#password');
+          const confirm = form.querySelector('#confirmPassword');
+          if (password && confirm && password.value !== confirm.value) {
+            event.preventDefault();
+            event.stopPropagation();
+            confirm.setCustomValidity('Passwords do not match');
+          } else if (confirm) {
+            confirm.setCustomValidity('');
+          }
+          form.classList.add('was-validated');
+        }, false);
+      });
+    })();

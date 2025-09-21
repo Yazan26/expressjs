@@ -56,9 +56,16 @@ const aboutController = {
       }
     ];
 
+    const featureItems = [
+      { icon: 'fa-star', title: 'Curated Selection', text: 'An editorial mix of blockbusters, indie gems, and timeless classics ready for spotlight moments.' },
+      { icon: 'fa-heart', title: 'Customer First', text: 'Personalized recommendations, wish lists, and transparent rental tracking keep members engaged.' },
+      { icon: 'fa-rocket', title: 'Built for Scale', text: 'Robust architecture, multi-role tooling, and automation-friendly workflows for growing teams.' }
+    ];
+
     res.render('about', {
       title: 'About Movies Express Rentals',
-      userStories: userStories
+      userStories: userStories,
+      featureItems: featureItems
     });
   }
 

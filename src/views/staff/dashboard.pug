@@ -1,309 +1,197 @@
 extends ../layout
 
 block content
-  .container-fluid
-    // Page Header
-    .row.mb-4
-      .col-lg-8
-        h1.h2.mb-1
-          i.fas.fa-tachometer-alt.me-2.text-primary
-          | Staff Dashboard
-        p.text-muted Welcome back! Your employee benefits and film selections
-      
-      .col-lg-4.text-lg-end
-        .btn-group
-          a.btn.btn-success(href="/staff/offers")
-            i.fas.fa-tags.me-2
-            | Browse Film Offers
-          a.btn.btn-outline-info(href="/staff/selections")
-            i.fas.fa-star.me-2
-            | My Selections
+  section.mx-section.pt-0
+    .d-flex.flex-wrap.align-items-center.justify-content-between.mb-4
+      div
+        h1.h3.fw-semibold.mb-1
+          i.fas.fa-gauge-high.me-2.text-danger
+          | Staff dashboard
+        p.text-muted.mb-0 Welcome back - unlock offers, manage selections, and track your savings.
+      .btn-group
+        a.btn.btn-accent.rounded-pill(href='/staff/offers')
+          i.fas.fa-tags.me-2
+          | Film offers
+        a.btn.btn-outline-light.rounded-pill(href='/staff/selections')
+          i.fas.fa-star.me-2
+          | My selections
+  
+  section.mx-section.pt-0
+    .row.g-4
+      .col-md-3
+        .mx-card.h-100.p-4.text-center
+          span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center.mb-3(style='width:58px;height:58px;')
+            i.fas.fa-tags.text-danger
+          h3.h4.fw-semibold.mb-1 #{offerStats && offerStats.available ? offerStats.available : 0}
+          p.text-muted.small.mb-0 Available offers
+      .col-md-3
+        .mx-card.h-100.p-4.text-center
+          span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center.mb-3(style='width:58px;height:58px;')
+            i.fas.fa-star.text-warning
+          h3.h4.fw-semibold.mb-1 #{selectionStats && selectionStats.total ? selectionStats.total : 0}
+          p.text-muted.small.mb-0 My selections
+      .col-md-3
+        .mx-card.h-100.p-4.text-center
+          span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center.mb-3(style='width:58px;height:58px;')
+            i.fas.fa-sack-dollar.text-success
+          h3.h4.fw-semibold.mb-1 $#{Number(selectionStats && (selectionStats.totalSavings || selectionStats.savings) ? (selectionStats.totalSavings || selectionStats.savings) : 0).toFixed(2)}
+          p.text-muted.small.mb-0 Total savings
+      .col-md-3
+        .mx-card.h-100.p-4.text-center
+          span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center.mb-3(style='width:58px;height:58px;')
+            i.fas.fa-clock.text-info
+          h3.h4.fw-semibold.mb-1 #{selectionStats && selectionStats.expiringSoon ? selectionStats.expiringSoon : 0}
+          p.text-muted.small.mb-0 Expiring soon
 
-    // Quick Stats
-    .row.mb-4
-      .col-md-3.mb-3
-        .card.border-primary.text-center.h-100
-          .card-body
-            .display-6.text-primary.mb-2
-              i.fas.fa-tags
-            h4.card-title #{offerStats && offerStats.available ? offerStats.available : 0}
-            p.card-text.text-muted Available Offers
-        
-      .col-md-3.mb-3
-        .card.border-success.text-center.h-100
-          .card-body
-            .display-6.text-success.mb-2
-              i.fas.fa-star
-            h4.card-title #{selectionStats && selectionStats.total ? selectionStats.total : 0}
-            p.card-text.text-muted My Selections
-      
-      .col-md-3.mb-3
-        .card.border-info.text-center.h-100
-          .card-body
-            .display-6.text-info.mb-2
-              i.fas.fa-dollar-sign
-            h4.card-title $#{parseFloat(selectionStats && (selectionStats.totalSavings || selectionStats.savings) ? (selectionStats.totalSavings || selectionStats.savings) : 0).toFixed(2)}
-            p.card-text.text-muted Total Savings
-      
-      .col-md-3.mb-3
-        .card.border-warning.text-center.h-100
-          .card-body
-            .display-6.text-warning.mb-2
-              i.fas.fa-clock
-            h4.card-title #{selectionStats && selectionStats.expiringSoon ? selectionStats.expiringSoon : 0}
-            p.card-text.text-muted Expiring Soon
-
-    // Recent Activity & Quick Actions
-    .row
+  section.mx-section.pt-0
+    .row.g-4
       .col-lg-8
-        // Current Active Selections
-        .card.mb-4
-          .card-header
-            h5.card-title.mb-0
+        .mx-card.p-4.mb-4
+          .d-flex.align-items-center.justify-content-between.mb-3
+            h2.h5.fw-semibold.mb-0
               i.fas.fa-star.me-2
-              | Active Film Selections
-              if activeSelections && activeSelections.length > 0
-                .badge.bg-success.ms-2 #{activeSelections.length} Active
-          
-          .card-body
+              | Active selections
             if activeSelections && activeSelections.length > 0
-              .row
-                - var selIndex = 0
-                - while (selIndex < activeSelections.length && selIndex < 4)
-                  - var selection = activeSelections[selIndex]
-                  .col-md-6.mb-3
-                      .card.border-success.bg-light
-                        .card-body
-                          .d-flex.justify-content-between.align-items-start.mb-2
-                            h6.card-title.mb-0 #{selection.filmTitle}
-                            .badge.bg-success #{selection.discountPercent}% OFF
-                          
-                          .d-flex.justify-content-between.align-items-center
-                            .small.text-muted
-                              | Save $#{parseFloat(selection.savingsAmount || 0).toFixed(2)}
-                            .small.text-success
-                              | Expires #{new Date(selection.endDate).toLocaleDateString()}
-                  - selIndex++
-              
-              if activeSelections.length > 4
-                .text-center.mt-3
-                  a.btn.btn-outline-primary(href="/staff/selections")
-                    i.fas.fa-eye.me-2
-                    | View All #{activeSelections.length} Selections
-            else
-              .text-center.py-4
-                i.fas.fa-star-o.fa-3x.text-muted.mb-3
-                h6.text-muted No Active Selections
-                p.text-muted Browse available film offers to start saving!
-                a.btn.btn-success(href="/staff/offers")
-                  i.fas.fa-tags.me-2
-                  | Browse Film Offers
-
-        // Recent Offers
-        .card
-          .card-header
-            h5.card-title.mb-0
-              i.fas.fa-gift.me-2
-              | Latest Film Offers
-          
-          .card-body
-            if recentOffers && recentOffers.length > 0
-              .row
-                - var offerIndex = 0
-                - var recentOffers4 = recentOffers.slice(0, 4)
-                - while (offerIndex < recentOffers4.length)
-                  - var offer = recentOffers4[offerIndex]
-                  .col-md-6.mb-3
-                    .card.border-primary
-                      .card-body
-                        .d-flex.justify-content-between.align-items-start.mb-2
-                          h6.card-title.mb-0 #{offer.title}
-                          .badge.bg-primary #{offer.discount_percent}% OFF
-                        
-                        .small.text-muted.mb-2 #{offer.category_name} • #{offer.rating}
-                        
-                .d-flex.justify-content-between.align-items-center
-                  .small
-                    span.text-muted.text-decoration-line-through $#{parseFloat(offer.rental_rate).toFixed(2)}
-                    span.text-success.ms-2 $#{parseFloat(offer.discounted_price).toFixed(2)}
-                          
-                          button.btn.btn-outline-success.btn-sm.select-offer-btn(
-                            data-film-id=offer.film_id,
-                            data-film-title=offer.title
-                          )
-                            i.fas.fa-plus.me-1
-                            | Select
-                  - offerIndex++
-              
+              span.badge.mx-pill.mx-pill-soft #{activeSelections.length}
+          if activeSelections && activeSelections.length > 0
+            .row.g-3
+              each selection, index in activeSelections.slice(0, 4)
+                .col-md-6
+                  .mx-card.h-100.p-4.bg-dark.bg-opacity-25
+                    h3.h6.fw-semibold.mb-2 #{selection.filmTitle}
+                    .d-flex.justify-content-between.align-items-center
+                      span.badge.bg-success.bg-opacity-25.text-success #{selection.discountPercent}% off
+                      span.text-muted.small Expires #{new Date(selection.endDate).toLocaleDateString()}
+                    p.text-muted.small.mt-3 Savings $#{Number(selection.savingsAmount || 0).toFixed(2)}
+            if activeSelections.length > 4
               .text-center.mt-3
-                a.btn.btn-outline-primary(href="/staff/offers")
+                a.btn.btn-outline-accent.rounded-pill.px-4(href='/staff/selections')
                   i.fas.fa-eye.me-2
-                  | Browse All Offers
-            else
-              .text-center.py-4
-                i.fas.fa-gift.fa-3x.text-muted.mb-3
-                h6.text-muted No Offers Available
-                p.text-muted Check back later for new employee film benefits!
-
-      .col-lg-4
-        // Quick Actions Panel
-        .card.mb-4
-          .card-header
-            h6.card-title.mb-0
-              i.fas.fa-bolt.me-2
-              | Quick Actions
-          
-          .card-body
-            .d-grid.gap-2
-              a.btn.btn-primary(href="/staff/offers")
+                  | View all #{activeSelections.length}
+          else
+            .text-center.py-5
+              i.fas.fa-star-half-stroke.fa-2x.text-muted.mb-3
+              p.text-muted.mb-3 You have no active selections yet.
+              a.btn.btn-accent.rounded-pill.px-4(href='/staff/offers')
                 i.fas.fa-tags.me-2
-                | Browse Film Offers
-              
-              a.btn.btn-outline-success(href="/staff/selections")
-                i.fas.fa-star.me-2
-                | My Selections (#{selectionStats && selectionStats.total ? selectionStats.total : 0})
-              
-              a.btn.btn-outline-info(href="/films")
-                i.fas.fa-film.me-2
-                | Browse All Films
+                | Browse film offers
+        .mx-card.p-4
+          h2.h5.fw-semibold.mb-3
+            i.fas.fa-gift.me-2
+            | Latest film offers
+          if recentOffers && recentOffers.length > 0
+            .row.g-3
+              each offer in recentOffers.slice(0, 4)
+                .col-md-6
+                  .mx-card.h-100.p-4.shadow-hover
+                    .d-flex.justify-content-between.align-items-start.mb-2
+                      h3.h6.fw-semibold.mb-0 #{offer.title}
+                      span.badge.bg-primary.bg-opacity-25.text-primary #{offer.discount_percent}%
+                    p.text-muted.small.mb-2 #{offer.category_name} | #{offer.rating}
+                    .d-flex.justify-content-between.align-items-center.mb-3
+                      span.text-muted.small
+                        span.text-decoration-line-through.text-muted $#{Number(offer.rental_rate).toFixed(2)}
+                        span.text-success.fw-semibold.ms-2 $#{Number(offer.discounted_price).toFixed(2)}
+                      button.btn.btn-outline-accent.btn-sm.rounded-pill.select-offer-btn(data-film-id=offer.film_id data-film-title=offer.title)
+                        i.fas.fa-plus.me-2
+                        | Select
+            .text-center.mt-3
+              a.btn.btn-outline-light.rounded-pill.px-4(href='/staff/offers')
+                i.fas.fa-eye.me-2
+                | Browse all offers
+          else
+            .text-center.py-4
+              i.fas.fa-gift.fa-2x.text-muted.mb-3
+              p.text-muted.mb-0 No offers available right now. Please check back soon.
+      .col-lg-4
+        .mx-card.p-4.mb-4
+          h2.h6.text-uppercase.text-muted.mb-3
+            i.fas.fa-bolt.me-2
+            | Quick actions
+          .vstack.gap-3
+            a.btn.btn-accent.rounded-pill(href='/staff/offers')
+              i.fas.fa-tags.me-2
+              | Browse film offers
+            a.btn.btn-outline-light.rounded-pill(href='/staff/selections')
+              i.fas.fa-star.me-2
+              | My selections (#{selectionStats && selectionStats.total ? selectionStats.total : 0})
+            a.btn.btn-outline-light.rounded-pill(href='/films')
+              i.fas.fa-film.me-2
+              | Explore catalogue
+            a.btn.btn-outline-light.rounded-pill(href='/about')
+              i.fas.fa-circle-info.me-2
+              | Help & tips
+        .mx-card.p-4.mb-4
+          h2.h6.text-uppercase.text-muted.mb-3
+            i.fas.fa-chart-pie.me-2
+            | Savings snapshot
+          if selectionStats
+            .d-flex.justify-content-between.align-items-center.mb-2
+              span.text-muted.small Original price
+              span.fw-semibold $#{Number(selectionStats.totalOriginalPrice || 0).toFixed(2)}
+            .d-flex.justify-content-between.align-items-center.mb-2
+              span.text-muted.small You're saving
+              span.text-success.fw-semibold $#{Number(selectionStats.totalSavings || selectionStats.savings || 0).toFixed(2)}
+            .d-flex.justify-content-between.align-items-center.mb-3
+              span.text-muted.small Avg. discount
+              span.text-primary.fw-semibold #{selectionStats.averageDiscount || 0}%
+            - const base = selectionStats.totalOriginalPrice || 0
+            - const ratio = base ? Math.min(((selectionStats.totalSavings || 0) / base) * 100, 100) : 0
+            .progress.bg-dark.bg-opacity-50(style='height:8px;')
+              .progress-bar.bg-success(style=`width: ${ratio}%`)
+            p.text-muted.small.text-center.mt-3 Savings rate
+          else
+            p.text-muted.small.mb-0 No savings data yet - add selections to start tracking.
+        .mx-card.p-4
+          h2.h6.text-uppercase.text-muted.mb-3
+            i.fas.fa-lightbulb.me-2
+            | Benefit tips
+          ul.text-muted.small.mb-0
+            li Select high-demand titles early - the best deals go fast.
+            li Monitor expiry dates so you never miss a redemption window.
+            li Mix genres to discover unexpected favorites for customers.
+            li Pair staff offers with customer promos to stack savings.
+            li Ask admin for new titles you would like to feature.
 
-              
-              hr
-              
-              a.btn.btn-outline-secondary.btn-sm(href="/about")
-                i.fas.fa-info-circle.me-2
-                | About & Help
-
-        // Savings Summary
-        .card.mb-4
-          .card-header
-            h6.card-title.mb-0
-              i.fas.fa-chart-pie.me-2
-              | Savings Summary
-          
-          .card-body
-            if selectionStats
-              .mb-3
-                .d-flex.justify-content-between.align-items-center
-                  .small.text-muted Total Original Price
-                  .fw-bold $#{parseFloat(selectionStats.totalOriginalPrice || 0).toFixed(2)}
-              
-              .mb-3
-                .d-flex.justify-content-between.align-items-center
-                  .small.text-muted You're Saving
-                  .fw-bold.text-success $#{parseFloat((selectionStats.totalSavings || selectionStats.savings || 0)).toFixed(2)}
-              
-              .mb-3
-                .d-flex.justify-content-between.align-items-center
-                  .small.text-muted Average Discount
-                  .fw-bold.text-primary #{selectionStats.averageDiscount || 0}%
-              
-              .progress.mb-2
-                .progress-bar.bg-success(
-                  style=`width: ${Math.min((selectionStats.totalSavings / (selectionStats.totalOriginalPrice || 1)) * 100, 100)}%`
-                )
-              
-              .small.text-center.text-muted Savings Rate
-            else
-              .text-center.py-3
-                i.fas.fa-chart-pie.fa-2x.text-muted.mb-2
-                p.text-muted.mb-0 No savings data yet
-
-        // Tips & Information
-        .card
-          .card-header.bg-info.text-white
-            h6.card-title.mb-0
-              i.fas.fa-lightbulb.me-2
-              | Employee Benefits Tips
-          
-          .card-body
-            ul.small.mb-0
-              li
-                strong Select Early: 
-                | Popular films get selected quickly by other staff
-              li
-                strong Check Expiry: 
-                | Keep track of offer expiration dates  
-              li
-                strong Mix Genres: 
-                | Try different categories to discover new favorites
-              li
-                strong Save More: 
-                | Combine with customer discounts when available
-              li
-                strong Ask Admin: 
-                | Request specific films to be added to offers
-
-  // JavaScript for offer selection
   script.
-    document.addEventListener('DOMContentLoaded', function() {
-      // Handle offer selection from dashboard
+    document.addEventListener('DOMContentLoaded', function () {
       const selectButtons = document.querySelectorAll('.select-offer-btn');
-      selectButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-          e.preventDefault();
-          
+      selectButtons.forEach(function (btn) {
+        btn.addEventListener('click', function (event) {
+          event.preventDefault();
           const filmId = this.dataset.filmId;
-          const filmTitle = this.dataset.filmTitle;
-          
-          if (confirm(`Select "${filmTitle}" for your employee benefits?`)) {
-            // Show loading state
-            const originalContent = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Selecting...';
-            this.disabled = true;
-            
-            fetch('/staff/offers/select', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify({ film_id: filmId })
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                this.innerHTML = '<i class="fas fa-check me-1"></i>Selected!';
-                this.classList.remove('btn-outline-success');
-                this.classList.add('btn-success');
-                
-                // Show success message
-                alert(`Successfully selected "${filmTitle}"! You'll save $${data.data?.savings || '0.00'}`);
-                
-                // Refresh page after short delay
-                setTimeout(() => {
-                  window.location.reload();
-                }, 1500);
+          const title = this.dataset.filmTitle;
+          if (!confirm('Select "' + title + '" for your employee benefits?')) {
+            return;
+          }
+          const original = this.innerHTML;
+          const button = this;
+          button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Selecting';
+          button.disabled = true;
+          fetch('/staff/offers/select', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({ film_id: filmId })
+          })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+              if (data && data.success) {
+                var savings = data.data && data.data.savings ? data.data.savings : '0.00';
+                alert('"' + title + '" added to your selections. Savings: $' + savings);
+                window.location.reload();
               } else {
-                throw new Error(data.message || 'Failed to select offer');
+                throw new Error(data && data.message ? data.message : 'Selection failed');
               }
             })
-            .catch(error => {
-              console.error('Error selecting offer:', error);
+            .catch(function (error) {
+              console.error(error);
               alert('Error selecting offer: ' + error.message);
-              this.innerHTML = originalContent;
-              this.disabled = false;
+              button.innerHTML = original;
+              button.disabled = false;
             });
-          }
         });
       });
     });
-
-  style.
-    .card {
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      border: 1px solid rgba(0, 0, 0, 0.125);
-      transition: box-shadow 0.2s;
-    }
-    .card:hover {
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-    .progress {
-      height: 8px;
-    }
-    .text-decoration-line-through {
-      text-decoration: line-through;
-    }
-    .display-6 {
-      font-size: 2rem;
-    }

@@ -1,175 +1,178 @@
 doctype html
-html
+html(lang='en' data-bs-theme='dark')
   head
-    link(rel="icon", type="image/x-icon", href="/favicon.ico")
-    title= title || 'Movies Express Rentals'
-    link(rel="stylesheet", href="/bootstrap/css/bootstrap.min.css")
-    link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
-    script(src="/bootstrap/js/bootstrap.bundle.min.js")
+    meta(charset='utf-8')
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    link(rel='icon', type='image/x-icon', href='/favicon.ico')
+    title= title || 'MoviezExpressRentals'
+    link(rel='preconnect', href='https://fonts.googleapis.com')
+    link(rel='preconnect', href='https://fonts.gstatic.com' crossorigin='')
+    link(rel='stylesheet', href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap')
+    link(rel='stylesheet', href='/bootstrap/css/bootstrap.min.css')
+    link(rel='stylesheet', href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src='/bootstrap/js/bootstrap.bundle.min.js')
     script(src='/javascripts/delete.user.js')
-  body
-    nav.navbar.navbar-expand-lg.bg-dark.border-bottom.border-body(data-bs-theme='dark')
-      .container-fluid
-        a.navbar-brand(href='/') 
-          i.fas.fa-video.me-2
-          | Movies Express Rentals
-        button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#navbarSupportedContent' aria-controls='navbarSupportedContent' aria-expanded='false' aria-label='Toggle navigation')
+  body.d-flex.flex-column.min-vh-100
+    nav.navbar.navbar-expand-lg.navbar-dark.navbar-glass.sticky-top.py-3
+      .container-xxl
+        a.navbar-brand.mx-brand.d-flex.align-items-center.gap-2(href='/')
+          span.rounded-circle.bg-danger.bg-opacity-25.text-danger.d-inline-flex.align-items-center.justify-content-center(style='width: 44px; height: 44px;')
+            i.fas.fa-clapperboard
+          span MoviezExpressRentals
+        button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#primaryNav' aria-controls='primaryNav' aria-expanded='false' aria-label='Toggle navigation')
           span.navbar-toggler-icon
-        
-        .collapse.navbar-collapse#navbarSupportedContent
-          ul.navbar-nav.me-auto.mb-2.mb-lg-0
+        .collapse.navbar-collapse#primaryNav
+          ul.navbar-nav.me-auto.align-items-lg-center.gap-lg-2
             li.nav-item
-              a.nav-link(href='/' class=req && req.path === '/' ? 'active' : '') 
-                i.fas.fa-home.me-1
+              a.nav-link.py-2.px-lg-3(class=req && req.path === '/' ? 'active' : '')(href='/')
+                i.fas.fa-home.me-2
                 | Home
-            
             li.nav-item
-              a.nav-link(href='/films' class=req && req.path.includes('/films') ? 'active' : '')
-                i.fas.fa-film.me-1
+              a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/films') ? 'active' : '')(href='/films')
+                i.fas.fa-film.me-2
                 | Films
-            
-            //- Show different navigation based on user role
             if authenticated && user
               if user.role === 'customer'
                 li.nav-item
-                  a.nav-link(href='/customer/dashboard' class=req && req.path.includes('/customer') ? 'active' : '')
-                    i.fas.fa-tachometer-alt.me-1
+                  a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/customer') ? 'active' : '')(href='/customer/dashboard')
+                    i.fas.fa-gauge-high.me-2
                     | Customer Dashboard
               else if user.role === 'staff'
                 li.nav-item.dropdown
-                  a.nav-link.dropdown-toggle(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false' class=req && req.path.includes('/staff') ? 'active' : '')
-                    i.fas.fa-user-tie.me-1
+                  a.nav-link.dropdown-toggle.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/staff') ? 'active' : '')(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
+                    i.fas.fa-user-tie.me-2
                     | Staff
-                  ul.dropdown-menu
+                  ul.dropdown-menu.dropdown-menu-dark.border-secondary.shadow
                     li
                       a.dropdown-item(href='/staff/dashboard')
-                        i.fas.fa-tachometer-alt.me-1
+                        i.fas.fa-gauge-high.me-2
                         | Dashboard
                     li
                       a.dropdown-item(href='/staff/offers')
-                        i.fas.fa-tags.me-1
+                        i.fas.fa-tags.me-2
                         | Film Offers
                     li
                       a.dropdown-item(href='/staff/selections')
-                        i.fas.fa-star.me-1
+                        i.fas.fa-star.me-2
                         | My Selections
                     li
                       a.dropdown-item(href='/users')
-                        i.fas.fa-users.me-1
+                        i.fas.fa-users.me-2
                         | Users
-
               else if user.role === 'manager'
                 li.nav-item.dropdown
-                  a.nav-link.dropdown-toggle(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false' class=req && req.path.includes('/staff') ? 'active' : '')
-                    i.fas.fa-user-tie.me-1
+                  a.nav-link.dropdown-toggle.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/staff') ? 'active' : '')(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
+                    i.fas.fa-user-tie.me-2
                     | Staff
-                  ul.dropdown-menu
+                  ul.dropdown-menu.dropdown-menu-dark.border-secondary.shadow
                     li
                       a.dropdown-item(href='/staff/dashboard')
-                        i.fas.fa-tachometer-alt.me-1
+                        i.fas.fa-gauge-high.me-2
                         | Dashboard
                     li
                       a.dropdown-item(href='/staff/offers')
-                        i.fas.fa-tags.me-1
+                        i.fas.fa-tags.me-2
                         | Film Offers
                     li
                       a.dropdown-item(href='/staff/selections')
-                        i.fas.fa-star.me-1
+                        i.fas.fa-star.me-2
                         | My Selections
                 li.nav-item
-                  a.nav-link(href='/reports' class=req && req.path.includes('/reports') ? 'active' : '')
-                    i.fas.fa-chart-bar.me-1
+                  a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/reports') ? 'active' : '')(href='/reports')
+                    i.fas.fa-chart-bar.me-2
                     | Reports
               else if user.role === 'admin'
                 li.nav-item.dropdown
-                  a.nav-link.dropdown-toggle(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false' class=req && req.path.includes('/admin') ? 'active' : '')
-                    i.fas.fa-user-shield.me-1
+                  a.nav-link.dropdown-toggle.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/admin') ? 'active' : '')(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
+                    i.fas.fa-user-shield.me-2
                     | Admin
-                  ul.dropdown-menu
+                  ul.dropdown-menu.dropdown-menu-dark.border-secondary.shadow
                     li
                       a.dropdown-item(href='/users')
-                        i.fas.fa-users.me-1
+                        i.fas.fa-users.me-2
                         | Users
                     li
                       a.dropdown-item(href='/admin/films')
-                        i.fas.fa-film.me-1
+                        i.fas.fa-film.me-2
                         | Films
                     li
                       a.dropdown-item(href='/admin/staff')
-                        i.fas.fa-users.me-1
+                        i.fas.fa-users-gear.me-2
                         | Staff
                     li
                       a.dropdown-item(href='/admin/offers')
-                        i.fas.fa-tags.me-1
+                        i.fas.fa-tags.me-2
                         | Offers
                 li.nav-item
-                  a.nav-link(href='/reports' class=req && req.path.includes('/reports') ? 'active' : '')
-                    i.fas.fa-chart-bar.me-1
+                  a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/reports') ? 'active' : '')(href='/reports')
+                    i.fas.fa-chart-bar.me-2
                     | Reports
-              
-              li.nav-item
-                a.nav-link(href='/about' class=req && req.path === '/about' ? 'active' : '')
-                  i.fas.fa-info-circle.me-1
-                  | About
-            else
-              li.nav-item
-                a.nav-link(href='/about' class=req && req.path === '/about' ? 'active' : '')
-                  i.fas.fa-info-circle.me-1
-                  | About
-          
-          //- Search form (always show)
-          form.d-flex.me-3(role='search' action='/search' method='GET')
-            input.form-control.me-2(type='search' name='q' placeholder='Search movies...' aria-label='Search')
-            button.btn.btn-outline-light(type='submit')
+            li.nav-item
+              a.nav-link.py-2.px-lg-3(class=req && req.path === '/about' ? 'active' : '')(href='/about')
+                i.fas.fa-circle-info.me-2
+                | About
+          form.d-flex.ms-lg-4.my-3.my-lg-0(role='search' action='/search' method='GET')
+            input.form-control.form-control-sm.me-2(type='search' name='q' placeholder='Search movies…' aria-label='Search')
+            button.btn.btn-outline-accent.btn-sm(type='submit')
               i.fas.fa-search
-          
-          //- User authentication section
-          ul.navbar-nav
+          ul.navbar-nav.ms-lg-4.align-items-lg-center.gap-lg-2
             if authenticated && user
               li.nav-item.dropdown
-                a.nav-link.dropdown-toggle(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
-                  i.fas.fa-user.me-1
-                  | #{user.name || user.username}
-                  span.badge.bg-secondary.ms-1= user.role
-                ul.dropdown-menu.dropdown-menu-end
+                a.nav-link.dropdown-toggle.d-flex.align-items-center.gap-2.py-2.px-lg-3(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
+                  span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center(style='width: 36px; height: 36px;')
+                    i.fas.fa-user
+                  span.d-flex.flex-column.text-start
+                    span.fw-semibold= user.name || user.username
+                    small.text-muted.text-uppercase #{user.role}
+                ul.dropdown-menu.dropdown-menu-end.dropdown-menu-dark.border-secondary.shadow
                   li
-                    h6.dropdown-header
-                      i.fas.fa-info-circle.me-1
-                      | Account Info
+                    h6.dropdown-header.text-uppercase.text-muted Account
                   li
                     span.dropdown-item-text
                       small Role: #{user.role}
                   li
                     hr.dropdown-divider
                   li
-                    form(action='/auth/logout' method='POST' style='display: inline;')
+                    form(action='/auth/logout' method='POST' style='display:inline;')
                       button.dropdown-item(type='submit')
-                        i.fas.fa-sign-out-alt.me-1
+                        i.fas.fa-right-from-bracket.me-2
                         | Logout
             else
               li.nav-item
-                a.nav-link(href='/auth/login')
-                  i.fas.fa-sign-in-alt.me-1
+                a.btn.btn-outline-accent.mx-pill.px-4.py-2(href='/auth/login')
+                  i.fas.fa-arrow-right-to-bracket.me-2
                   | Login
-
-    //- Main content area
-    main.container-fluid.py-4
-      block content
-
-    //- Footer
-    footer.bg-dark.text-light.py-4.mt-5
-      .container
-        .row
-          .col-md-6
-            h5
-              i.fas.fa-video.me-2
-              | Movies Express Rentals
-            p.small Enterprise film rental management system with role-based access control.
-          .col-md-6.text-md-end
-            p.small
-              | Â© 2024 Movies Express Rentals. Professional film rental management system.
+    if messages && (messages.success || messages.error)
+      .position-relative
+        .container-xxl.mt-4
+          if messages.success && messages.success.length
+            each msg in messages.success
+              .alert.alert-success.alert-dismissible.fade.show.text-white.bg-success.border-0(role='alert')
+                i.fas.fa-circle-check.me-2
+                | #{msg}
+                button.btn-close.btn-close-white(type='button' data-bs-dismiss='alert' aria-label='Close')
+          if messages.error && messages.error.length
+            each msg in messages.error
+              .alert.alert-danger.alert-dismissible.fade.show.text-white.bg-danger.border-0(role='alert')
+                i.fas.fa-triangle-exclamation.me-2
+                | #{msg}
+                button.btn-close.btn-close-white(type='button' data-bs-dismiss='alert' aria-label='Close')
+    main.flex-grow-1.py-5
+      .container-xxl
+        block content
+    footer.bg-black.py-5.mt-5
+      .container-xxl
+        .row.gy-4.align-items-center
+          .col-lg-6
+            h5.fw-semibold.d-flex.align-items-center.gap-2.mb-3
+              i.fas.fa-play-circle.text-danger
+              | MoviezExpressRentals
+            p.text-muted.mb-0 Comprehensive film rental management with role-based control for growing teams.
+          .col-lg-6.text-lg-end
+            p.text-muted.mb-2
+              | © #{new Date().getFullYear()} MoviezExpressRentals. All rights reserved.
             if authenticated && user
-              p.small
-                i.fas.fa-user-check.me-1
-                | Logged in as: #{user.name || user.username} (#{user.role})
+              p.text-muted.mb-0
+                i.fas.fa-user-check.me-2
+                | Signed in as #{user.name || user.username} (#{user.role})

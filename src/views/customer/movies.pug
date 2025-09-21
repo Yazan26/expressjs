@@ -1,126 +1,113 @@
 extends ../layout
 
 block content
-  .container.mt-4
-    .row
-      .col-md-12
-        h2.mb-4 Browse Movies
-        
-        // Search and Filter Form
-        .card.mb-4
-          .card-body
-            form(method='GET' action='/customer/movies')
-              .row
-                .col-md-4
-                  .form-group
-                    label(for='search') Search Movies
-                    input.form-control(type='text' id='search' name='search' value=search placeholder='Search by title or description')
-                
-                .col-md-2
-                  .form-group
-                    label(for='category') Category
-                    select.form-control(id='category' name='category')
-                      option(value='all' selected=(category === 'all')) All Categories
-                      if categories
-                        each cat in categories
-                          option(value=cat.category_id selected=(String(category) === String(cat.category_id)))= cat.name
-                
-                .col-md-2
-                  .form-group
-                    label(for='rating') Rating
-                    select.form-control(id='rating' name='rating')
-                      option(value='all' selected=(rating === 'all')) All Ratings
-                      each r in ratings
-                        option(value=r selected=(rating === r))= r
-                
-                .col-md-2
-                  .form-group
-                    label(for='available') Availability
-                    select.form-control(id='available' name='available')
-                      option(value='' selected=(!available)) All Movies
-                      option(value='true' selected=(available === 'true')) Available Only
-                
-                .col-md-2
-                  .form-group
-                    label(for='sort') Sort By
-                    select.form-control(id='sort' name='sort')
-                      option(value='title' selected=(sort === 'title')) Title
-                      option(value='year' selected=(sort === 'year')) Year
-                      option(value='length' selected=(sort === 'length')) Length
-                      option(value='discount_desc' selected=(sort === 'discount_desc')) Discount (High â†’ Low)
-                      option(value='discount_asc' selected=(sort === 'discount_asc')) Discount (Low â†’ High)
-                      option(value='price_asc' selected=(sort === 'price_asc')) Price (Low â†’ High)
-                      option(value='price_desc' selected=(sort === 'price_desc')) Price (High â†’ Low)
-                
-                .col-md-2
-                  .form-group
-                    label &nbsp;
-                    button.btn.btn-primary.btn-block(type='submit') Search
+  section.mx-section.pt-0
+    h1.h3.fw-semibold.mb-3 Browse movies
+    p.text-muted.mb-4 Discover curated picks, special offers, and staff recommendations tailored for you.
+    .mx-card.p-4.mb-5
+      form(method='GET' action='/customer/movies')
+        .row.g-3
+          .col-md-4
+            label.form-label.fw-semibold(for='search') Search movies
+            input.form-control.form-control-lg(type='text' id='search' name='search' value=search placeholder='Title, keywords, or description')
+          .col-sm-6.col-md-2
+            label.form-label.fw-semibold(for='category') Category
+            select.form-select(id='category' name='category')
+              option(value='all' selected=(category === 'all')) All categories
+              if categories
+                each cat in categories
+                  option(value=cat.category_id selected=(String(category) === String(cat.category_id)))= cat.name
+          .col-sm-6.col-md-2
+            label.form-label.fw-semibold(for='rating') Rating
+            select.form-select(id='rating' name='rating')
+              option(value='all' selected=(rating === 'all')) All ratings
+              each r in ratings
+                option(value=r selected=(rating === r))= r
+          .col-sm-6.col-md-2
+            label.form-label.fw-semibold(for='available') Availability
+            select.form-select(id='available' name='available')
+              option(value='' selected=(!available)) All movies
+              option(value='true' selected=(available === 'true')) Available only
+          .col-sm-6.col-md-2
+            label.form-label.fw-semibold(for='sort') Sort by
+            select.form-select(id='sort' name='sort')
+              option(value='title' selected=(sort === 'title')) Title
+              option(value='year' selected=(sort === 'year')) Release year
+              option(value='length' selected=(sort === 'length')) Length
+              option(value='discount_desc' selected=(sort === 'discount_desc')) Discount (High ? Low)
+              option(value='discount_asc' selected=(sort === 'discount_asc')) Discount (Low ? High)
+              option(value='price_asc' selected=(sort === 'price_asc')) Price (Low ? High)
+              option(value='price_desc' selected=(sort === 'price_desc')) Price (High ? Low)
+          .col-12.text-end
+            button.btn.btn-accent.btn-lg.rounded-pill(type='submit')
+              i.fas.fa-magnifying-glass.me-2
+              | Search catalogue
 
-        // Results
-        if movies && movies.length > 0
-          .row
-            each movie in movies
-              .col-md-4.mb-4
-                .card.h-100
-                  .card-body
-                    h5.card-title= movie.title
-                    p.card-text.text-muted= movie.category
-                    p.card-text
-                      small.text-muted Rating: #{movie.rating} | #{movie.length} min
-                    p.card-text= movie.description.substring(0, 100) + '...'
-                    .mt-auto
-                      .d-flex.justify-content-between.align-items-center
-                        .rental-info
-                          if movie.discounted_price
-                            span.text-muted.text-decoration-line-through $#{parseFloat(movie.rental_rate).toFixed(2)}
-                            br
-                            strong.text-success $#{parseFloat(movie.discounted_price).toFixed(2)}
-                          else
-                            strong $#{parseFloat(movie.rental_rate).toFixed(2)}
-                          br
-                          if movie.available_copies > 0
-                            small.text-success #{movie.available_copies} available
-                          else
-                            small.text-danger Not available
-                        .btn-group(role='group')
-                          a.btn.btn-outline-primary.btn-sm(href='/customer/movies/' + movie.film_id) Details
-                          if movie.available_copies > 0
-                            form.d-inline(method='POST' action=('/customer/movies/' + movie.film_id + '/rent'))
-                              button.btn.btn-success.btn-sm(type='submit') Rent
-        else
-          .alert.alert-info
-            h4 No Movies Found
-            p Try adjusting your search criteria or 
-              a(href='/customer/movies') browse all movies
-            
-        // Pagination (if needed)
-        if totalPages && totalPages > 1
-          nav(aria-label='Movie pagination')
-            ul.pagination.justify-content-center
-              if page > 1
-                li.page-item
-                  a.page-link(href='/customer/movies?page=' + (page - 1) + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || '')) Previous
-              
-              - var startPage = Math.max(1, page - 2)
-              - var endPage = Math.min(totalPages, page + 2)
-              - for (let i = startPage; i <= endPage; i++)
-                li.page-item(class=(i === page ? 'active' : ''))
-                  a.page-link(href='/customer/movies?page=' + i + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || ''))= i
-              
-              if page < totalPages
-                li.page-item
-                  a.page-link(href='/customer/movies?page=' + (page + 1) + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || '')) Next
+    if movies && movies.length > 0
+      .row.row-cols-1.row-cols-sm-2.row-cols-lg-3.g-4
+        each movie in movies
+          .col
+            .mx-card.h-100.p-4.shadow-hover
+              span.badge.mx-pill.mx-pill-soft.text-uppercase.mb-3= movie.category || 'All genres'
+              h2.h5.fw-semibold.mb-2= movie.title
+              p.text-muted.small.mb-3 Rating #{movie.rating || 'NR'} · #{movie.length || '—'} min
+              p.text-muted.flex-grow-1.mb-4= movie.description ? movie.description.substring(0, 120) + '…' : 'Explore more details inside the film profile.'
+              .d-flex.justify-content-between.align-items-center.mb-4
+                if movie.discounted_price
+                  div
+                    span.text-muted.text-decoration-line-through.d-block
+                      | $#{Number(movie.rental_rate).toFixed(2)}
+                    span.text-success.fw-semibold
+                      | $#{Number(movie.discounted_price).toFixed(2)}
+                else
+                  span.text-success.fw-semibold
+                    | $#{Number(movie.rental_rate).toFixed(2)}
+                if movie.available_copies > 0
+                  span.badge.bg-success.bg-opacity-25.text-success #{movie.available_copies} available
+                else
+                  span.badge.bg-danger.bg-opacity-25.text-danger Out of stock
+              .d-flex.gap-2
+                a.btn.btn-outline-accent.rounded-pill.flex-grow-1(href=/customer/movies/)
+                  i.fas.fa-eye.me-2
+                  | Details
+                if movie.available_copies > 0
+                  form.flex-grow-1(method='POST' action=/customer/movies//rent)
+                    button.btn.btn-accent.rounded-pill.w-100(type='submit')
+                      i.fas.fa-cart-plus.me-2
+                      | Rent
+    else
+      .mx-card.p-5.text-center
+        i.fas.fa-ghost.fa-3x.text-muted.mb-3
+        h2.h5.fw-semibold.mb-2 No movies found
+        p.text-muted.mb-0 Try adjusting your filters or
+          | 
+          a.text-decoration-none(href='/customer/movies') reset your search.
+
+    if totalPages && totalPages > 1
+      nav.mt-5(aria-label='Movie pagination')
+        ul.pagination.justify-content-center.pagination-lg
+          if page > 1
+            li.page-item
+              a.page-link(href='/customer/movies?page=' + (page - 1) + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || '')) Previous
+          - var startPage = Math.max(1, page - 2)
+          - var endPage = Math.min(totalPages, page + 2)
+          - for (let i = startPage; i <= endPage; i++)
+            li.page-item(class=(i === page ? 'active' : ''))
+              a.page-link(href='/customer/movies?page=' + i + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || ''))= i
+          if page < totalPages
+            li.page-item
+              a.page-link(href='/customer/movies?page=' + (page + 1) + '&search=' + encodeURIComponent(search) + '&category=' + category + '&rating=' + rating + '&available=' + (available || '') + '&sort=' + (sort || '')) Next
 
   script.
-    // Add loading spinner to rental buttons
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const rentalForms = document.querySelectorAll('form[action*="/rent"]');
-      rentalForms.forEach(form => {
-        form.addEventListener('submit', function() {
+      rentalForms.forEach(function (form) {
+        form.addEventListener('submit', function () {
           const button = form.querySelector('button[type="submit"]');
-          button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Renting...';
-          button.disabled = true;
+          if (button) {
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Renting';
+            button.disabled = true;
+          }
         });
       });
     });

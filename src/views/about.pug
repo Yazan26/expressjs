@@ -1,474 +1,255 @@
 extends layout
 
 block content
-  .container-fluid
-    // Page Header
-    .row.mb-4
-      .col-12.text-center
-        h1.h2.mb-1
-          i.fas.fa-info-circle.me-2.text-primary
-          | About Movies Express Rentals
-        p.lead.text-muted Your premier destination for film entertainment
+  section.mx-section.pt-0
+    .mx-card.p-5.mb-5
+      .row.align-items-center.gy-4
+        .col-lg-7
+          span.mx-section-title.text-uppercase.fw-semibold About the platform
+          h1.display-5.fw-bold.mt-3 MoviezExpressRentals
+          p.lead.text-muted.mt-3 An enterprise-ready movie rental experience that blends curated entertainment with powerful staff workflows and solid operational tooling.
+        .col-lg-5
+          .d-flex.flex-column.gap-3
+            .d-flex.align-items-center.gap-3
+              span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center(style='width: 52px; height: 52px;')
+                i.fas.fa-clapperboard.text-danger
+              div
+                h5.fw-semibold.mb-1 Cinematic Library
+                p.text-muted.mb-0 Thousands of titles across genres, eras, and formats.
+            .d-flex.align-items-center.gap-3
+              span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center(style='width: 52px; height: 52px;')
+                i.fas.fa-users-gear.text-warning
+              div
+                h5.fw-semibold.mb-1 Team Collaboration
+                p.text-muted.mb-0 Purpose-built dashboards for customers, staff, managers, and admins.
+            .d-flex.align-items-center.gap-3
+              span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center(style='width: 52px; height: 52px;')
+                i.fas.fa-shield-halved.text-info
+              div
+                h5.fw-semibold.mb-1 Secure Operations
+                p.text-muted.mb-0 Role-based access, audit trails, and hardened data workflows.
 
-    // Company Overview
-    .row.mb-5
-      .col-lg-8.mx-auto
-        .card.border-primary
-          .card-header.bg-primary.text-white.text-center
-            h4.card-title.mb-0
-              i.fas.fa-film.me-2
-              | Our Mission
-          
-          .card-body.text-center
-            p.card-text.lead Movies Express Rentals is committed to providing exceptional film entertainment experiences through our comprehensive rental service, personalized staff recommendations, and customer-focused approach.
-            
-            .row.mt-4
-              .col-md-4.mb-3
-                .d-flex.flex-column.align-items-center
-                  i.fas.fa-star.fa-3x.text-warning.mb-2
-                  h5 Quality Selection
-                  p.text-muted Curated collection of films across all genres and eras
-              
-              .col-md-4.mb-3
-                .d-flex.flex-column.align-items-center
-                  i.fas.fa-users.fa-3x.text-info.mb-2
-                  h5 Expert Staff
-                  p.text-muted Knowledgeable team providing personalized recommendations
-              
-              .col-md-4.mb-3
-                .d-flex.flex-column.align-items-center
-                  i.fas.fa-heart.fa-3x.text-danger.mb-2
-                  h5 Customer Focus
-                  p.text-muted Dedicated to exceptional customer service and satisfaction
+  section.mx-section.pt-0
+    .row.g-4
+      each item in featureItems
+        .col-md-4
+          .mx-card.h-100.p-4.shadow-hover
+            span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center.mb-4(style='width: 56px; height: 56px;')
+              i.fas.fa-lg.text-danger(class=item.icon)
+            h4.fw-semibold=item.title
+            p.text-muted.mb-0=item.text
 
-    // Privacy & Cookies Section
-    .row.mb-5
-      .col-12
-        .card
-          .card-header.bg-success.text-white
-            h4.card-title.mb-0
-              i.fas.fa-shield-alt.me-2
-              | Privacy & Cookies Policy
-          
-          .card-body
-            .row
-              .col-lg-6
-                h5.text-success
-                  i.fas.fa-cookie-bite.me-2
-                  | Cookie Usage
-                ul.list-unstyled.ms-3
-                  li
-                    i.fas.fa-check-circle.text-success.me-2
-                    strong Session Cookies: 
-                    | We use express-session to maintain your login state
-                  li
-                    i.fas.fa-check-circle.text-success.me-2
-                    strong Authentication: 
-                    | Secure session management for role-based access
-                  li
-                    i.fas.fa-check-circle.text-success.me-2
-                    strong No Tracking: 
-                    | We don't use analytics or third-party tracking cookies
-                  li
-                    i.fas.fa-check-circle.text-success.me-2
-                    strong Remember Me: 
-                    | Optional persistent login for convenience
-              
-              .col-lg-6
-                h5.text-success
-                  i.fas.fa-user-shield.me-2
-                  | Data Protection
-                ul.list-unstyled.ms-3
-                  li
-                    i.fas.fa-lock.text-success.me-2
-                    strong Password Security: 
-                    | Passwords are hashed using industry-standard methods
-                  li
-                    i.fas.fa-database.text-success.me-2
-                    strong Data Storage: 
-                    | Information stored securely in our MySQL database
-                  li
-                    i.fas.fa-eye-slash.text-success.me-2
-                    strong Privacy First: 
-                    | We never share personal information with third parties
-                  li
-                    i.fas.fa-history.text-success.me-2
-                    strong Data Retention: 
-                    | Account data retained as long as account is active
+  section.mx-section.pt-0
+    .mx-card.p-5
+      .row.g-4
+        .col-lg-6
+          h2.h4.fw-semibold.mb-3
+            i.fas.fa-cookie-bite.me-3.text-warning
+            | Privacy & Cookies
+          ul.list-unstyled.vstack.gap-3
+            li.d-flex.gap-3
+              i.fas.fa-check-circle.text-success.mt-1
+              span
+                strong Session cookies: 
+                | express-session maintains authentication contexts securely.
+            li.d-flex.gap-3
+              i.fas.fa-check-circle.text-success.mt-1
+              span
+                strong Secure sessions: 
+                | HTTP-only cookies with proper expiration and domain settings.
+            li.d-flex.gap-3
+              i.fas.fa-check-circle.text-success.mt-1
+              span
+                strong No third-party tracking: 
+                | We avoid analytics pixels or advertising scripts.
+        .col-lg-6
+          h2.h4.fw-semibold.mb-3
+            i.fas.fa-user-shield.me-3.text-info
+            | Data Protection
+          ul.list-unstyled.vstack.gap-3
+            li.d-flex.gap-3
+              i.fas.fa-lock.text-info.mt-1
+              span
+                strong Password security: 
+                | BCrypt hashing with adaptive salt rounds protects credentials.
+            li.d-flex.gap-3
+              i.fas.fa-database.text-info.mt-1
+              span
+                strong MySQL storage: 
+                | Extended Sakila schema with parameterized queries prevents SQL injection.
+            li.d-flex.gap-3
+              i.fas.fa-eye-slash.text-info.mt-1
+              span
+                strong Privacy first: 
+                | No data sharing outside operational requirements.
+            li.d-flex.gap-3
+              i.fas.fa-shield-halved.text-info.mt-1
+              span
+                strong Role-based access: 
+                | Middleware-enforced permissions for customer, staff, manager, and admin roles.
 
-    // Developer Information Section
-    .row.mb-5
-      .col-12
-        .card
-          .card-header.bg-info.text-white
-            h4.card-title.mb-0
-              i.fas.fa-code.me-2
-              | Developer Information
-          
-          .card-body
-            .row
-              .col-lg-4
-                h5.text-info
-                  i.fas.fa-layer-group.me-2
-                  | Architecture
-                ul.list-unstyled.ms-3
-                  li
-                    i.fas.fa-server.text-info.me-2
-                    strong Backend: 
-                    | Node.js with Express.js framework
-                  li
-                    i.fas.fa-eye.text-info.me-2
-                    strong Templates: 
-                    | Pug server-side rendering
-                  li
-                    i.fas.fa-database.text-info.me-2
-                    strong Database: 
-                    | MySQL with Sakila schema
-                  li
-                    i.fas.fa-paint-brush.text-info.me-2
-                    strong UI Framework: 
-                    | Bootstrap 5 with Font Awesome
-              
-              .col-lg-4
-                h5.text-info
-                  i.fas.fa-cogs.me-2
-                  | Technical Stack
-                ul.list-unstyled.ms-3
-                  li
-                    i.fas.fa-shield-alt.text-info.me-2
-                    strong Authentication: 
-                    | express-session with role-based access
-                  li
-                    i.fas.fa-route.text-info.me-2
-                    strong Routing: 
-                    | RESTful API design patterns
-                  li
-                    i.fas.fa-bug.text-info.me-2
-                    strong Testing: 
-                    | Cypress end-to-end testing suite
-                  li
-                    i.fas.fa-chart-line.text-info.me-2
-                    strong Logging: 
-                    | Winston logger with file rotation
-              
-              .col-lg-4
-                h5.text-info
-                  i.fas.fa-users-cog.me-2
-                  | User Roles
-                ul.list-unstyled.ms-3
-                  li
-                    i.fas.fa-user.text-info.me-2
-                    strong Customer: 
-                    | Film browsing, rentals, dashboard
-                  li
-                    i.fas.fa-user-tie.text-info.me-2
-                    strong Staff: 
-                    | Film recommendations, offer selections
-                  li
-                    i.fas.fa-user-shield.text-info.me-2
-                    strong Admin: 
-                    | Full system management and reporting
+  section.mx-section.pt-0
+    .row.g-4
+      .col-xl-4
+        .mx-card.h-100.p-4
+          span.mx-section-title.text-uppercase.fw-semibold.mb-3 Platform stack
+          h3.h5.fw-semibold.mb-3
+            i.fas.fa-layer-group.me-3.text-danger
+            | Core Technologies
+          ul.list-unstyled.vstack.gap-2.text-muted
+            li
+              strong Node.js & Express.js:
+              |  RESTful API with layered architecture (Controller → Service → DAO).
+            li
+              strong Pug Templates:
+              |  Server-side rendering with Bootstrap 5 responsive components.
+            li
+              strong MySQL2:
+              |  Database driver with connection pooling and parameterized queries.
+            li
+              strong BCrypt:
+              |  Secure password hashing with adaptive salt rounds.
+      .col-xl-4
+        .mx-card.h-100.p-4
+          span.mx-section-title.text-uppercase.fw-semibold.mb-3 Open Source Libraries
+          h3.h5.fw-semibold.mb-3
+            i.fas.fa-code-branch.me-3.text-warning
+            | Dependencies
+          ul.list-unstyled.vstack.gap-2.text-muted
+            li
+              strong Authentication:
+              |  express-session, connect-flash, cookie-parser for secure user sessions.
+            li
+              strong Logging:
+              |  Winston with file rotation and structured logging levels.
+            li
+              strong Environment:
+              |  dotenv for configuration management and environment variables.
+            li
+              strong Utilities:
+              |  serve-favicon, http-errors, debug for enhanced development experience.
+      .col-xl-4
+        .mx-card.h-100.p-4
+          span.mx-section-title.text-uppercase.fw-semibold.mb-3 Development Tools
+          h3.h5.fw-semibold.mb-3
+            i.fas.fa-tools.me-3.text-info
+            | Quality & Testing
+          ul.list-unstyled.vstack.gap-2.text-muted
+            li
+              strong Cypress Testing:
+              |  End-to-end testing suite covering authentication, rentals, and admin workflows.
+            li
+              strong Code Quality:
+              |  Prettier for consistent formatting and code style standards.
+            li
+              strong CI/CD Pipeline:
+              |  GitHub Actions with automated testing using start-server-and-test.
+            li
+              strong Development:
+              |  Callback-only async pattern following Node.js conventions.
 
-    // User Stories Section
-    .row.mb-5
-      .col-12
-        .card
-          .card-header
-            h4.card-title.mb-0
-              i.fas.fa-book-open.me-2
-              | User Stories & Features
-          
-          .card-body
-            // Customer Stories
-            .mb-4
-              h5.text-primary
-                i.fas.fa-user.me-2
-                | Customer Experience
-              
-              .row
-                .col-lg-6.mb-4
-                  .card.border-success.h-100
-                    .card-header.bg-success.text-white
-                      h6.card-title.mb-0
-                        i.fas.fa-search.me-2
-                        | Film Discovery
-                    .card-body
-                      h6 User Story
-                      p.fst-italic "As a customer, I want to easily browse and search for films so that I can find movies that match my interests and mood."
-                      
-                      h6 Acceptance Criteria
-                      ul.small
-                        li Search films by title, category, or rating
-                        li Filter results by multiple criteria simultaneously
-                        li View detailed film information including cast, plot, and ratings
-                        li See film availability and rental pricing
-                        li Access personalized recommendations based on rental history
-                
-                .col-lg-6.mb-4
-                  .card.border-info.h-100
-                    .card-header.bg-info.text-white
-                      h6.card-title.mb-0
-                        i.fas.fa-tachometer-alt.me-2
-                        | Account Management
-                    .card-body
-                      h6 User Story
-                      p.fst-italic "As a customer, I want to manage my account and track my rental activity so that I can stay informed about my movie-watching habits and expenses."
-                      
-                      h6 Acceptance Criteria
-                      ul.small
-                        li View current active rentals with due dates
-                        li Access rental history and spending analysis
-                        li Receive alerts for overdue items and fees
-                        li Update personal information and preferences
-                        li Track spending patterns over time
+  section.mx-section.pt-0
+    h2.h3.fw-semibold.mb-4 User stories
+    .row.g-4
+      .col-lg-6
+        .mx-card.h-100.p-4
+          span.badge.mx-pill.mx-pill-soft.text-uppercase.fw-semibold.mb-3 Customer
+          h4.fw-semibold.mb-3 "As a customer, I want to discover and rent movies so that I can enjoy curated entertainment at home."
+          h5.text-muted.small.text-uppercase.mb-3 Acceptance criteria
+          ul.list-unstyled.vstack.gap-2.text-muted
+            li - Search by title, category, rating, or staff recommendations.
+            li - Add and manage rentals with clear due dates and pricing.
+            li - Monitor spending history, loyalty offers, and membership status.
+            li - Receive alerts for expiring rentals or new releases.
+      .col-lg-6
+        .mx-card.h-100.p-4
+          span.badge.mx-pill.mx-pill-soft.text-uppercase.fw-semibold.mb-3 Staff
+          h4.fw-semibold.mb-3 "As a staff member, I want to curate offers and track selections so that customers discover hidden gems."
+          h5.text-muted.small.text-uppercase.mb-3 Acceptance criteria
+          ul.list-unstyled.vstack.gap-2.text-muted
+            li - Approve or retire promotional film offers in one click.
+            li - Maintain watchlists and featured rows for homepage placement.
+            li - Review customer interest and inventory levels before recommending titles.
+            li - Collaborate with managers on seasonal programming.
+            li - Access role-specific dashboards with performance metrics.
+      .col-lg-6
+        .mx-card.h-100.p-4
+          span.badge.mx-pill.mx-pill-soft.text-uppercase.fw-semibold.mb-3 Admin
+          h4.fw-semibold.mb-3 "As an administrator, I want governance over users, films, and security so that the platform remains compliant."
+          h5.text-muted.small.text-uppercase.mb-3 Acceptance criteria
+          ul.list-unstyled.vstack.gap-2.text-muted
+            li - provide and deactivate staff accounts with company email validation and role assignments.
+            li - Manage film catalog metadata, availability, pricing, and procurement notes.
+            li - delete and update user accounts with audit history.
+            li - create promotional offers with custom discount percentages and durations, for the staff to approve.
+            li - add and remove movie stocks, respecting current rentals.
 
-            // Staff Stories
-            .mb-4
-              h5.text-info
-                i.fas.fa-user-tie.me-2
-                | Staff Experience
-              
-              .row
-                .col-lg-6.mb-4
-                  .card.border-warning.h-100
-                    .card-header.bg-warning.text-dark
-                      h6.card-title.mb-0
-                        i.fas.fa-tags.me-2
-                        | Employee Film Perks
-                    .card-body
-                      h6 User Story
-                      p.fst-italic "As a staff member, I want to browse and select from films offered by management so that I can enjoy employee benefits and discover new movies at discounted rates."
-                      
-                      h6 Acceptance Criteria
-                      ul.small
-                        li View current film offers activated by administrators
-                        li Filter offers by category, rating, and release year
-                        li Select multiple films for personal employee benefit use
-                        li Track my current selections and their expiration status
-                        li Remove selections if I change my mind before activation
-                
-                .col-lg-6.mb-4
-                  .card.border-secondary.h-100
-                    .card-header.bg-secondary.text-white
-                      h6.card-title.mb-0
-                        i.fas.fa-star.me-2
-                        | Selection Management
-                    .card-body
-                      h6 User Story
-                      p.fst-italic "As a staff member, I want to manage my selected film offers so that I can track my employee benefits and make the most of available perks."
-                      
-                      h6 Acceptance Criteria
-                      ul.small
-                        li View my current film selections with selection dates
-                        li Track how many offers I've selected this period  
-                        li Review selection statistics and usage patterns
-                        li Remove selections if needed before activation
-                        li Access selection history for personal records
+  section.mx-section.pt-0
+    .mx-card.p-5
+      h2.h3.fw-semibold.mb-4 Technical pillars
+      .row.g-4
+        .col-md-4
+          .mx-card.h-100.p-4
+            h5.fw-semibold.mb-3
+              i.fas.fa-shield-halved.me-2.text-danger
+              | Security & Authentication
+            ul.list-unstyled.vstack.gap-2.text-muted
+              li Role-based access control with middleware protection on all routes.
+              li BCrypt password hashing with secure session management.
+              li Parameterized SQL queries preventing injection attacks.
+              li Environment-based configuration with secure defaults.
+        .col-md-4
+          .mx-card.h-100.p-4
+            h5.fw-semibold.mb-3
+              i.fas.fa-chart-simple.me-2.text-warning
+              | Analytics & Reporting
+            ul.list-unstyled.vstack.gap-2.text-muted
+              li Staff performance reports with rental and revenue metrics.
+              li Customer spending analysis with period-based breakdowns.
+              li Film inventory management with availability tracking.
+              li Custom dashboard views for different user roles.
+        .col-md-4
+          .mx-card.h-100.p-4
+            h5.fw-semibold.mb-3
+              i.fas.fa-sparkles.me-2.text-info
+              | Experience Design
+            ul.list-unstyled.vstack.gap-2.text-muted
+              li Bootstrap 5 theming for consistent responsive layouts.
+              li FontAwesome iconography drives recognizable actions.
+              li Smooth hover states and subtle motion cues delight users.
+              li Accessibility-first semantics and keyboard-friendly flows.
 
-            // Administrator Stories
-            .mb-4
-              h5.text-danger
-                i.fas.fa-user-shield.me-2
-                | Administrator Experience
-              
-              .row
-                .col-lg-4.mb-4
-                  .card.border-primary.h-100
-                    .card-header.bg-primary.text-white
-                      h6.card-title.mb-0
-                        i.fas.fa-film.me-2
-                        | Inventory Management
-                    .card-body
-                      h6 User Story
-                      p.fst-italic "As an administrator, I want to manage our complete film catalog and inventory so that we maintain an optimal selection for customers."
-                      
-                      h6 Acceptance Criteria
-                      ul.small
-                        li Add new films with complete details and categorization
-                        li Edit existing film information, pricing, and ratings
-                        li Manage physical inventory copies per film
-                        li Monitor rental availability and popular titles
-                        li Set competitive rental rates based on market demand
-                
-                .col-lg-4.mb-4
-                  .card.border-success.h-100
-                    .card-header.bg-success.text-white
-                      h6.card-title.mb-0
-                        i.fas.fa-users-cog.me-2
-                        | Staff Administration  
-                    .card-body
-                      h6 User Story
-                      p.fst-italic "As an administrator, I want to manage staff accounts and access control so that employees can perform their duties with appropriate system permissions."
-                      
-                      h6 Acceptance Criteria
-                      ul.small
-                        li Create staff accounts with company email standardization
-                        li Assign role-based permissions (staff, manager, admin)
-                        li Activate and deactivate user accounts as needed
-                        li Monitor user activity and maintain security standards
-                        li Generate staff performance and activity reports
-                
-                .col-lg-4.mb-4
-                  .card.border-warning.h-100
-                    .card-header.bg-warning.text-dark
-                      h6.card-title.mb-0
-                        i.fas.fa-gift.me-2
-                        | Employee Benefits
-                    .card-body
-                      h6 User Story
-                      p.fst-italic "As an administrator, I want to manage film offers for staff so that employees receive benefits while helping promote less popular titles."
-                      
-                      h6 Acceptance Criteria
-                      ul.small
-                        li Activate individual film offers available to all staff members
-                        li Batch activate or deactivate offers by film category
-                        li Control which films are offered based on inventory and business needs
-                        li Monitor staff selections and offer utilization rates across the system
-                        li Toggle offer status to align with seasonal promotions and business goals
+  section.mx-section.pt-0
+    .row.g-4
+      .col-lg-6
+        .mx-card.h-100.p-4
+          h3.h5.fw-semibold.mb-3
+            i.fas.fa-clipboard-list-check.me-3.text-success
+            | Development Standards
+          ul.list-unstyled.vstack.gap-2.text-muted
+            li Layered architecture with strict separation of concerns (Controller → Service → DAO).
+            li Callback-only async pattern following Node.js error-first conventions.
+            li Comprehensive input validation and sanitization at service layer.
+            li Cypress end-to-end test coverage for authentication, rentals, and admin workflows.
+      .col-lg-6
+        .mx-card.h-100.p-4
+          h3.h5.fw-semibold.mb-3
+            i.fas.fa-graduation-cap.me-3.text-info
+            | Academic Project
+          ul.list-unstyled.vstack.gap-2.text-muted
+            li Educational demonstration of enterprise-level web application development.
+            li Comprehensive feature set covering multiple user roles and workflows.
+            li Real-world technologies and best practices for learning purposes.
+            li GitHub repository with complete documentation and setup instructions.
 
-    // Technical Features
-    .row.mb-5
-      .col-12
-        .card
-          .card-header
-            h4.card-title.mb-0
-              i.fas.fa-cogs.me-2
-              | Technical Implementation
-          
-          .card-body
-            .row
-              .col-lg-4.mb-4
-                .card.border-success.h-100
-                  .card-header.bg-success.text-white
-                    h6.card-title.mb-0
-                      i.fas.fa-shield-alt.me-2
-                      | Security & Authentication
-                  .card-body
-                    ul.small
-                      li Role-based access control (Customer, Staff, Manager, Admin)
-                      li Secure session management with persistent login options
-                      li Company email domain enforcement for staff accounts
-                      li Bcrypt password hashing with salt rounds
-                      li Protected routes with layered middleware authorization
-                      li CSRF protection on all forms with state modifications
-              
-              .col-lg-4.mb-4
-                .card.border-info.h-100
-                  .card-header.bg-info.text-white
-                    h6.card-title.mb-0
-                      i.fas.fa-database.me-2
-                      | Database Architecture
-                  .card-body
-                    ul.small
-                      li MySQL with extended Sakila database schema
-                      li Parameterized queries preventing SQL injection attacks
-                      li Layered architecture: Controller → Service → DAO → Database
-                      li Callback-based async pattern (Node.js style error handling)
-                      li Connection pooling with automatic failover handling
-                      li Custom tables for authentication, offers, and staff selections
-              
-              .col-lg-4.mb-4
-                .card.border-warning.h-100
-                  .card-header.bg-warning.text-dark
-                    h6.card-title.mb-0
-                      i.fas.fa-palette.me-2
-                      | User Interface & Experience
-                  .card-body
-                    ul.small
-                      li Server-side rendering with Pug template engine
-                      li Bootstrap 5 responsive framework with custom styling
-                      li FontAwesome icons for consistent visual language
-                      li Role-based navigation and conditional content display
-                      li Flash messaging for user feedback and error handling
-                      li Progressive enhancement with minimal client-side JavaScript
-
-    // Development Standards
-    .row.mb-5
-      .col-12
-        .card
-          .card-header
-            h4.card-title.mb-0
-              i.fas.fa-code.me-2
-              | Development Standards
-          
-          .card-body
-            .row
-              .col-md-6
-                h6
-                  i.fas.fa-check-circle.me-2.text-success
-                  | Code Quality Standards
-                
-                ul
-                  li Layered architecture with clear separation of concerns
-                  li Consistent error handling and logging throughout
-                  li Parameterized SQL queries for security
-                  li Callback-only pattern (no promises or async/await)
-                  li Comprehensive input validation and sanitization
-                  li Role-based authorization on all protected endpoints
-              
-              .col-md-6
-                h6
-                  i.fas.fa-flask.me-2.text-info
-                  | Testing & Quality Assurance
-                
-                ul
-                  li Cypress end-to-end testing for critical user flows
-                  li Authentication and authorization testing
-                  li Database interaction testing
-                  li Role-based feature access validation
-                  li Cross-browser compatibility testing
-                  li Performance and load testing coverage
-
-    // Contact Information
-    .row.mb-4
-      .col-md-6.mx-auto
-        .card.border-primary
-          .card-header.bg-primary.text-white.text-center
-            h5.card-title.mb-0
-              i.fas.fa-envelope.me-2
-              | Contact Information
-          
-          .card-body.text-center
-            p.card-text For questions, support, or business inquiries, please contact our team:
-            
-            .row
-              .col-md-6.mb-3
-                .d-flex.flex-column.align-items-center
-                  i.fas.fa-phone.fa-2x.text-primary.mb-2
-                  h6 Phone Support
-                  p.text-muted 1-800-MOVIES-1
-                  p.small.text-muted Mon-Fri 9AM-6PM PST
-              
-              .col-md-6.mb-3
-                .d-flex.flex-column.align-items-center
-                  i.fas.fa-envelope.fa-2x.text-info.mb-2
-                  h6 Email Support
-                  p.text-muted support@moviesexpressrentals.com
-                  p.small.text-muted 24-48 hour response time
-
-    // Version Information
-    .row.mt-5
-      .col-12.text-center
-        .card.bg-light
-          .card-body
-            p.card-text.text-muted.mb-0
-              | Movies Express Rentals System v2.0.0 | Built with Node.js, Express.js, MySQL, and Pug
-            .small.text-muted
-              | © 2024 Movies Express Rentals. All rights reserved. | Last updated: #{new Date().toLocaleDateString()}
-
-  // Custom styles for this page
-  style.
-    .card {
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      border: 1px solid rgba(0, 0, 0, 0.125);
-      transition: box-shadow 0.2s;
-    }
-    .card:hover {
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-    }
-    .fst-italic {
-      font-style: italic;
-    }
-    ul.small li {
-      margin-bottom: 0.25rem;
-    }
+  section.mx-section.pt-0
+    .mx-card.p-5.text-center.shadow-hover
+      h2.h3.fw-semibold.mb-3 Ready to explore more?
+      p.lead.text-muted.mb-4 Dive into the full catalog, manage rentals, or collaborate with your team�all inside MoviezExpressRentals.
+      .d-flex.justify-content-center.flex-wrap.gap-3
+        a.btn.btn-accent.btn-lg.px-4.rounded-pill(href='/films')
+          i.fas.fa-film.me-2
+          | Browse films
+        a.btn.btn-outline-accent.btn-lg.px-4.rounded-pill(href='/reports')
+          i.fas.fa-chart-pie.me-2
+          | View analytics
