@@ -47,6 +47,27 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run Cypress tests with server
+        env:
+          # Database configuration - using production database secrets
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_DATABASE: ${{ secrets.DB_DATABASE }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          
+          # Session configuration
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          
+          # Application environment
+          NODE_ENV: test
+          PORT: 3000
+          
+          # Suppress D-Bus errors in headless CI environment
+          DBUS_SESSION_BUS_ADDRESS: disabled
+          XDG_RUNTIME_DIR: /tmp
+          
+          # Suppress additional Cypress/Electron warnings
+          ELECTRON_DISABLE_SECURITY_WARNINGS: true
         run: npx start-server-and-test start http://localhost:3000 cypress:run
         
       - name: Upload test artifacts
