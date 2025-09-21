@@ -1,257 +1,158 @@
 extends ../layout
 
 block content
-  .container-fluid
-    // Back Navigation
-    .mb-3
-      a.btn.btn-outline-secondary(href="/customer/dashboard")
-        i.fas.fa-arrow-left.me-2
-        | Back to Dashboard
-
-    // Flash Messages
-    if messages && messages.success && messages.success.length > 0
-      each msg in messages.success
-        .alert.alert-success.alert-dismissible.fade.show
-          i.fas.fa-check-circle.me-2
-          | #{msg}
-          button.btn-close(type="button", data-bs-dismiss="alert")
-
-    if messages && messages.error && messages.error.length > 0
-      each msg in messages.error
-        .alert.alert-danger.alert-dismissible.fade.show
-          i.fas.fa-exclamation-triangle.me-2
-          | #{msg}
-          button.btn-close(type="button", data-bs-dismiss="alert")
-
-    .row.mb-4
-      .col-lg-8
-        h1.h2.mb-1
-          i.fas.fa-user-circle.me-2.text-primary
-          | My Profile
-        p.text-muted Manage your account information and preferences
-      
-      .col-lg-4.text-lg-end
-        .btn-group
-          a.btn.btn-outline-primary(href="/customer/dashboard") Dashboard
-          a.btn.btn-outline-info(href="/customer/spending") My Spending
+  section.mx-section.pt-0
+    a.btn.btn-outline-light.btn-sm.rounded-pill.mb-3(href='/customer/dashboard')
+      i.fas.fa-arrow-left.me-2
+      | Back to dashboard
+    .d-flex.flex-wrap.align-items-center.justify-content-between.mb-4
+      div
+        h1.h3.fw-semibold.mb-1
+          i.fas.fa-user-circle.me-2.text-danger
+          | My profile
+        p.text-muted.mb-0 Manage your personal details and rental preferences.
+      .btn-group
+        a.btn.btn-outline-accent.rounded-pill(href='/customer/dashboard') Dashboard
+        a.btn.btn-outline-light.rounded-pill(href='/customer/spending') Spending
 
     if customer
-      .row
-        // Profile Information
-        .col-lg-8.mb-4
-          .card
-            .card-header
-              h5.card-title.mb-0
-                i.fas.fa-id-card.me-2
-                | Personal Information
-            
-            .card-body
-              form(method="POST", action="/customer/profile")
-                .row.mb-3
+      .row.g-4
+        .col-lg-8
+          .mx-card.p-5
+            h2.h5.fw-semibold.mb-4
+              i.fas.fa-id-card.me-2
+              | Personal information
+            form(method='POST' action='/customer/profile')
+              .row.g-3
+                .col-md-6
+                  label.form-label.fw-semibold(for='firstName') First name *
+                  input.form-control.form-control-lg(type='text' id='firstName' name='firstName' value=customer.firstName || '' required maxlength='45')
+                .col-md-6
+                  label.form-label.fw-semibold(for='lastName') Last name *
+                  input.form-control.form-control-lg(type='text' id='lastName' name='lastName' value=customer.lastName || '' required maxlength='45')
+                .col-12
+                  label.form-label.fw-semibold(for='email') Email address *
+                  input.form-control.form-control-lg(type='email' id='email' name='email' value=customer.email || '' required maxlength='50')
+                  .form-text.text-muted We'll send account alerts here.
+              if customer.address
+                .row.g-3.mt-1
+                  .col-md-8
+                    label.form-label.fw-semibold(for='address') Address
+                    input.form-control.form-control-lg(type='text' id='address' name='address' value=customer.address || '' maxlength='50')
+                    .form-text.text-muted Update only if your location changes.
+                  .col-md-4
+                    label.form-label.fw-semibold(for='phone') Phone number
+                    input.form-control.form-control-lg(type='tel' id='phone' name='phone' value=customer.phone || '' maxlength='20')
+                .row.g-3
                   .col-md-6
-                    label.form-label First Name *
-                    input.form-control(type="text", name="firstName", value=customer.firstName || '', required, maxlength="45")
+                    label.form-label.fw-semibold(for='postalCode') Postal code
+                    input.form-control.form-control-lg(type='text' id='postalCode' name='postalCode' value=customer.postalCode || '' maxlength='10')
                   .col-md-6
-                    label.form-label Last Name *
-                    input.form-control(type="text", name="lastName", value=customer.lastName || '', required, maxlength="45")
-                
-                .row.mb-3
-                  .col-md-12
-                    label.form-label Email Address *
-                    input.form-control(type="email", name="email", value=customer.email || '', required, maxlength="50")
-                    .form-text.text-muted We'll use this for important notifications
-                
-                if customer.address
-                  .row.mb-3
-                    .col-md-8
-                      label.form-label Address
-                      input.form-control(type="text", name="address", value=customer.address || '', maxlength="50")
-                      .form-text.text-muted Address can be updated if needed
-                    .col-md-4
-                      label.form-label Phone Number
-                      input.form-control(type="tel", name="phone", value=customer.phone || '', maxlength="20")
-                
-                  .row.mb-3
-                    .col-md-6
-                      label.form-label Postal Code
-                      input.form-control(type="text", name="postalCode", value=customer.postalCode || '', maxlength="10")
-                    .col-md-6
-                      label.form-label City (Read Only)
-                      input.form-control(type="text", value=customer.city || '', readonly)
-                      .form-text.text-muted City cannot be changed directly
-                
-                  .row.mb-3
-                    .col-md-12
-                      label.form-label Country (Read Only)
-                      input.form-control(type="text", value=customer.country || '', readonly)
-                      .form-text.text-muted Country is determined by city
-                else
-                  .alert.alert-info
-                    i.fas.fa-info-circle.me-2
-                    | Address information is not available in your profile.
-                
-                .d-flex.gap-2
-                  button.btn.btn-primary(type="submit")
-                    i.fas.fa-save.me-2
-                    | Update Profile
-                  button.btn.btn-outline-secondary(type="reset")
-                    i.fas.fa-undo.me-2
-                    | Reset Changes
-
-        // Account Status & Stats
-        .col-lg-4.mb-4
-          // Account Status
-          .card.mb-3
-            .card-header
-              h5.card-title.mb-0
-                i.fas.fa-user-check.me-2
-                | Account Status
-            
-            .card-body
-              .d-flex.align-items-center.mb-3
-                .me-3
-                  if customer.active
-                    .badge.bg-success.fs-6.p-2
-                      i.fas.fa-check-circle.me-1
-                      | Active
-                  else
-                    .badge.bg-danger.fs-6.p-2
-                      i.fas.fa-times-circle.me-1
-                      | Inactive
-                .flex-grow-1
-                  .small.text-muted Account Status
-              
-              .mb-3
-                .small.text-muted Member Since
-                .fw-bold #{customer.createDate ? new Date(customer.createDate).toLocaleDateString() : 'Unknown'}
-              
-              if customer.lastUpdate
-                .mb-0
-                  .small.text-muted Last Updated
-                  .fw-bold #{new Date(customer.lastUpdate).toLocaleDateString()}
-
-          // Quick Stats
+                    label.form-label.fw-semibold City (read only)
+                    input.form-control.form-control-lg(type='text' value=customer.city || '' readonly)
+                    .form-text.text-muted Contact support to change your home store.
+                .row.g-3
+                  .col-12
+                    label.form-label.fw-semibold Country (read only)
+                    input.form-control.form-control-lg(type='text' value=customer.country || '' readonly)
+              else
+                .alert.alert-info.border-0.mt-3
+                  i.fas.fa-info-circle.me-2
+                  | Address details are not available for this profile yet.
+              .d-flex.flex-wrap.gap-3.mt-4
+                button.btn.btn-accent.btn-lg.rounded-pill(type='submit')
+                  i.fas.fa-floppy-disk.me-2
+                  | Save changes
+                button.btn.btn-outline-light.btn-lg.rounded-pill(type='reset')
+                  i.fas.fa-rotate-left.me-2
+                  | Reset
+        .col-lg-4
+          .mx-card.p-4.mb-4
+            h2.h6.text-uppercase.text-muted.mb-3 Account status
+            .d-flex.align-items-start.gap-3
+              if customer.active
+                span.badge.bg-success.bg-opacity-25.text-success.px-3.py-2.rounded-pill
+                  i.fas.fa-circle-check.me-2
+                  | Active
+              else
+                span.badge.bg-danger.bg-opacity-25.text-danger.px-3.py-2.rounded-pill
+                  i.fas.fa-circle-xmark.me-2
+                  | Inactive
+              div
+                p.text-muted.small.mb-2 Keep your contact details current for uninterrupted access.
+                p.text-muted.small.mb-0 Member since #{customer.createDate ? new Date(customer.createDate).toLocaleDateString() : 'N/A'}
+                if customer.lastUpdate
+                  p.text-muted.small.mb-0 Last updated #{new Date(customer.lastUpdate).toLocaleDateString()}
           if accountStats
-            .card
-              .card-header
-                h5.card-title.mb-0
-                  i.fas.fa-chart-bar.me-2
-                  | Quick Stats
-              
-              .card-body.p-0
-                .list-group.list-group-flush
-                  .list-group-item.d-flex.justify-content-between.align-items-center
-                    .d-flex.align-items-center
-                      i.fas.fa-film.me-2.text-primary
-                      span Active Rentals
-                    span.badge.bg-primary.rounded-pill #{accountStats.activeRentals || 0}
-                  
-                  .list-group-item.d-flex.justify-content-between.align-items-center
-                    .d-flex.align-items-center
-                      i.fas.fa-dollar-sign.me-2.text-success
-                      span Total Spent
-                    span.fw-bold $#{parseFloat(accountStats.totalSpent || 0).toFixed(2)}
-                  
-                  .list-group-item.d-flex.justify-content-between.align-items-center
-                    .d-flex.align-items-center
-                      i.fas.fa-shopping-bag.me-2.text-info
-                      span Total Rentals
-                    span.badge.bg-info.rounded-pill #{accountStats.totalRentals || 0}
-                  
-                  if accountStats.overdueFees > 0
-                    .list-group-item.d-flex.justify-content-between.align-items-center.bg-warning-subtle
-                      .d-flex.align-items-center
-                        i.fas.fa-exclamation-triangle.me-2.text-warning
-                        span Outstanding Fees
-                      span.fw-bold.text-warning $#{parseFloat(accountStats.overdueFees).toFixed(2)}
-
-      // Additional Information
-      .row.mt-4
-        .col-12
-          .card
-            .card-header
-              h5.card-title.mb-0
-                i.fas.fa-info-circle.me-2
-                | Account Information
-            
-            .card-body
-              .row
-                .col-md-6
-                  h6
-                    i.fas.fa-shield-alt.me-2
-                    | Privacy & Security
-                  p.text-muted.small
-                    | Your personal information is protected and only used for account management and service delivery. We don't share your data with third parties.
-                
-                .col-md-6
-                  h6
-                    i.fas.fa-question-circle.me-2
-                    | Need Help?
-                  p.text-muted.small
-                    | If you need assistance updating your profile or have account questions, please contact our support team.
-
+            .mx-card.p-4
+              h2.h6.text-uppercase.text-muted.mb-3 Quick stats
+              .vstack.gap-3
+                .d-flex.justify-content-between.align-items-center
+                  span.d-flex.align-items-center.gap-2
+                    i.fas.fa-film.text-danger
+                    | Active rentals
+                  span.badge.mx-pill.mx-pill-soft #{accountStats.activeRentals || 0}
+                .d-flex.justify-content-between.align-items-center
+                  span.d-flex.align-items-center.gap-2
+                    i.fas.fa-sack-dollar.text-warning
+                    | Total spent
+                  span.fw-semibold $#{Number(accountStats.totalSpent || 0).toFixed(2)}
+                .d-flex.justify-content-between.align-items-center
+                  span.d-flex.align-items-center.gap-2
+                    i.fas.fa-bag-shopping.text-info
+                    | Total rentals
+                  span.badge.mx-pill.mx-pill-soft #{accountStats.totalRentals || 0}
+                if accountStats.overdueFees > 0
+                  .d-flex.justify-content-between.align-items-center
+                    span.d-flex.align-items-center.gap-2.text-warning
+                      i.fas.fa-exclamation-triangle
+                      | Outstanding fees
+                    span.text-warning.fw-semibold $#{Number(accountStats.overdueFees).toFixed(2)}
     else
-      // Error Loading Profile
-      .row
-        .col-12
-          .card
-            .card-body.text-center.py-5
-              .mb-4
-                i.fas.fa-user-times.fa-4x.text-muted
-              h4.text-muted Profile Not Found
-              p.text-muted.mb-4 We couldn't load your profile information. Please try again or contact support.
-              
-              .d-flex.gap-2.justify-content-center
-                a.btn.btn-primary(href="/customer/dashboard")
-                  i.fas.fa-tachometer-alt.me-2
-                  | Go to Dashboard
-                button.btn.btn-outline-secondary(onclick="window.location.reload()")
-                  i.fas.fa-refresh.me-2
-                  | Try Again
+      .mx-card.p-5.text-center
+        i.fas.fa-user-slash.fa-3x.text-muted.mb-3
+        h2.h5.fw-semibold.mb-2 Profile not found
+        p.text-muted.mb-4 We couldn’t load your details. Try again or reach out to support.
+        .d-flex.justify-content-center.gap-3
+          a.btn.btn-accent.rounded-pill.px-4(href='/customer/dashboard')
+            i.fas.fa-gauge-high.me-2
+            | Dashboard
+          button.btn.btn-outline-light.rounded-pill.px-4(type='button' onclick='window.location.reload()')
+            i.fas.fa-rotate-right.me-2
+            | Retry
 
-    // Quick Actions
-    .row.mt-4
-      .col-12
-        .card.bg-light
-          .card-body
-            h6.card-title
-              i.fas.fa-bolt.me-2
-              | Quick Actions
-            .row
-              .col-md-3.mb-2
-                a.btn.btn-outline-primary.w-100(href="/customer/dashboard")
-                  i.fas.fa-tachometer-alt.me-2
-                  | Dashboard
-              
-              .col-md-3.mb-2
-                a.btn.btn-outline-success.w-100(href="/customer/spending")
-                  i.fas.fa-chart-line.me-2
-                  | My Spending
-              
-              .col-md-3.mb-2
-                a.btn.btn-outline-info.w-100(href="/films")
-                  i.fas.fa-film.me-2
-                  | Browse Films
-              
-              .col-md-3.mb-2
-                form(method="POST", action="/auth/logout", style="display:inline;")
-                  button.btn.btn-outline-danger.w-100(type="submit")
-                    i.fas.fa-sign-out-alt.me-2
-                    | Logout
+    section.mx-section.pt-0
+      .mx-card.p-4
+        h2.h6.text-uppercase.text-muted.mb-3 Account resources
+        .row.g-3
+          .col-sm-6.col-md-3
+            a.btn.btn-outline-accent.w-100.rounded-pill.px-0(href='/customer/dashboard')
+              i.fas.fa-gauge-high.me-2
+              | Dashboard
+          .col-sm-6.col-md-3
+            a.btn.btn-outline-light.w-100.rounded-pill.px-0(href='/customer/spending')
+              i.fas.fa-chart-line.me-2
+              | Spending history
+          .col-sm-6.col-md-3
+            a.btn.btn-outline-light.w-100.rounded-pill.px-0(href='/films')
+              i.fas.fa-film.me-2
+              | Browse films
+          .col-sm-6.col-md-3
+            form(method='POST' action='/auth/logout')
+              button.btn.btn-outline-danger.w-100.rounded-pill(type='submit')
+                i.fas.fa-right-from-bracket.me-2
+                | Logout
 
-  style.
-    .card {
-      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      border: 1px solid rgba(0, 0, 0, 0.125);
-    }
-    .card:hover {
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-      transition: box-shadow 0.2s;
-    }
-    .form-control:focus {
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    .list-group-item {
-      padding: 0.75rem 1rem;
-    }
+    section.mx-section.pt-0
+      .mx-card.p-4
+        .row.g-4
+          .col-md-6
+            h3.h6.text-uppercase.text-muted.mb-2
+              i.fas.fa-shield-halved.me-2
+              | Privacy & security
+            p.text-muted.small Your information stays encrypted and is only used to power your rental experience. We never trade or sell personal data.
+          .col-md-6
+            h3.h6.text-uppercase.text-muted.mb-2
+              i.fas.fa-circle-question.me-2
+              | Need help?
+            p.text-muted.small Contact support for account updates, store transfers, or billing assistance. We respond within one business day.

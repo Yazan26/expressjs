@@ -1,133 +1,72 @@
 extends layout
 
 block content
-  .container-fluid
-    // User-Friendly Error Page
-    .row.justify-content-center.mt-5
+  section.mx-section.pt-0
+    .row.justify-content-center
       .col-lg-8.col-xl-6
-        .card.shadow-lg.border-0
-          .card-body.text-center.p-5
-            // Error Icon
-            .mb-4
-              i.fas.fa-exclamation-triangle.fa-5x.text-warning
+        .mx-card.p-5.text-center.shadow-hover
+          .mb-4
+            i.fas.fa-triangle-exclamation.fa-4x.text-warning
+          h1.h3.fw-semibold.mb-3 Something went off-script
+          p.lead.text-muted.mb-4 We hit an unexpected snag while loading this page. Our engineers are already on it.
+          if error && error.status
+            span.badge.mx-pill.mx-pill-soft.fs-6.px-3.py-2.mb-4 Error code: #{error.status}
+          .d-flex.flex-wrap.justify-content-center.gap-3
+            a.btn.btn-accent.btn-lg.px-4.rounded-pill(href='/')
+              i.fas.fa-house.me-2
+              | Back to home
+            a.btn.btn-outline-accent.btn-lg.px-4.rounded-pill(href='javascript:history.back()')
+              i.fas.fa-arrow-left.me-2
+              | Previous page
+            a.btn.btn-outline-light.btn-lg.px-4.rounded-pill(href='/about')
+              i.fas.fa-circle-info.me-2
+              | About MoviezExpress
+          button.btn.btn-outline-light.btn-sm.rounded-pill.mt-4(type='button' data-bs-toggle='collapse' data-bs-target='#developer-info' aria-expanded='false' aria-controls='developer-info')
+            i.fas.fa-code.me-2
+            | Developer diagnostics
 
-            // Main Error Message
-            h1.h2.mb-3.text-muted Oops! Something went wrong
-            p.lead.mb-4
-              | We're sorry, but it looks like we've encountered an unexpected error.
-              br
-              | Our team has been notified and is working to fix this issue.
+          .collapse.mt-4#developer-info
+            .mx-card.bg-dark.bg-opacity-50.border-0
+              .p-4.text-start
+                if error
+                  .mb-3
+                    h6.text-uppercase.text-muted.fw-semibold.mb-2 Summary
+                    p.text-muted.mb-0 #{error.message || 'No message available'}
+                  if error.status
+                    .mb-3
+                      h6.text-uppercase.text-muted.fw-semibold.mb-2 Status code
+                      code.text-break #{error.status}
+                  if error.stack
+                    h6.text-uppercase.text-muted.fw-semibold.mb-2 Stack trace
+                    pre.bg-black.text-light.p-3.rounded.small #{error.stack}
+                else
+                  p.text-muted.mb-0 No additional diagnostic data is available.
 
-            // Error Code (if available)
-            if error && error.status
-              .mb-4
-                .badge.bg-secondary.fs-6.p-2 Error Code: #{error.status}
-
-            // Action Buttons
-            .d-flex.justify-content-center.gap-3.mb-4
-              a.btn.btn-primary.btn-lg(href="/")
-                i.fas.fa-home.me-2
-                | Go to Homepage
-              a.btn.btn-outline-primary.btn-lg(href="javascript:history.back()")
-                i.fas.fa-arrow-left.me-2
-                | Go Back
-              a.btn.btn-outline-info.btn-lg(href="/about")
-                i.fas.fa-info-circle.me-2
-                | Learn More
-
-            // Developer Toggle
-            .mt-4
-              button.btn.btn-sm.btn-outline-secondary(type="button", onclick="toggleDeveloperInfo()")
-                i.fas.fa-code.me-2
-                | Developer Information
-                i.fas.fa-chevron-down.ms-2(id="dev-toggle-icon")
-
-            // Developer Error Details (Hidden by default)
-            .mt-3(id="developer-info", style="display: none;")
-              .card.bg-light
-                .card-header
-                  h6.mb-0
-                    i.fas.fa-bug.me-2
-                    | Technical Details
-                .card-body.text-start
-                  if error
-                    .row.mb-3
-                      .col-sm-3
-                        strong Error Message:
-                      .col-sm-9
-                        code #{error.message || 'No message available'}
-                    if error.status
-                      .row.mb-3
-                        .col-sm-3
-                          strong Status Code:
-                        .col-sm-9
-                          code #{error.status}
-                    if error.stack
-                      .row.mb-3
-                        .col-sm-3
-                          strong Stack Trace:
-                        .col-sm-9
-                          pre.bg-dark.text-light.p-3.rounded.small
-                            code #{error.stack}
-                  else
-                    p.text-muted No additional error information available.
-
-    // Additional Help Section
-    .row.justify-content-center.mt-4
+  section.mx-section.pt-0
+    .row.justify-content-center
       .col-lg-8.col-xl-6
-        .card.bg-light
-          .card-body
-            h5.mb-3
-              i.fas.fa-question-circle.me-2
-              | What can you do?
-            .row
-              .col-md-6.mb-3
-                h6
-                  i.fas.fa-refresh.me-2
-                  | Try Again
-                p.small.text-muted Try refreshing the page or going back to the previous page.
-              .col-md-6.mb-3
-                h6
-                  i.fas.fa-envelope.me-2
-                  | Contact Support
-                p.small.text-muted If the problem persists, please contact our support team.
-              .col-md-6.mb-3
-                h6
-                  i.fas.fa-clock.me-2
-                  | Check Status
-                p.small.text-muted Visit our status page to see if there are any ongoing issues.
-              .col-md-6.mb-3
-                h6
-                  i.fas.fa-book.me-2
-                  | Help Center
-                p.small.text-muted Browse our help documentation for common solutions.
-
-  script.
-    function toggleDeveloperInfo() {
-      const devInfo = document.getElementById('developer-info');
-      const toggleIcon = document.getElementById('dev-toggle-icon');
-
-      if (devInfo.style.display === 'none') {
-        devInfo.style.display = 'block';
-        toggleIcon.className = 'fas fa-chevron-up ms-2';
-      } else {
-        devInfo.style.display = 'none';
-        toggleIcon.className = 'fas fa-chevron-down ms-2';
-      }
-    }
-
-  style.
-    .card {
-      border-radius: 15px;
-    }
-    .btn {
-      border-radius: 8px;
-    }
-    .badge {
-      border-radius: 20px;
-    }
-    pre {
-      font-size: 0.75rem;
-      max-height: 300px;
-      overflow-y: auto;
-    }
+        .mx-card.p-4
+          h5.fw-semibold.mb-4
+            i.fas.fa-life-ring.me-2.text-info
+            | How to get back on track
+          .row.g-4
+            .col-md-6
+              h6.fw-semibold
+                i.fas.fa-rotate.me-2.text-warning
+                | Refresh the page
+              p.text-muted.small Try a quick reload or revisit the previous screen.
+            .col-md-6
+              h6.fw-semibold
+                i.fas.fa-envelope.me-2.text-danger
+                | Contact support
+              p.text-muted.small Persistent issue? Reach out to our support crew anytime.
+            .col-md-6
+              h6.fw-semibold
+                i.fas.fa-tower-broadcast.me-2.text-success
+                | Status dashboard
+              p.text-muted.small Review live system health updates and maintenance notices.
+            .col-md-6
+              h6.fw-semibold
+                i.fas.fa-book-open.me-2.text-info
+                | Help center
+              p.text-muted.small Explore guides covering rentals, billing, and account management.

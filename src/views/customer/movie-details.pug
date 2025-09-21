@@ -1,115 +1,97 @@
 extends ../layout
 
 block content
-  .container.mt-4
-    .row
-      .col-md-8
-        // Movie Details
-        .card.mb-4
-          .card-body
-            .row
-              .col-md-12
-                h1.card-title= movie.title
-                p.lead.text-muted= movie.category
-                
-                .row.mb-3
-                  .col-md-3
-                    strong Rating:
-                    br
-                    span.badge.badge-secondary= movie.rating
-                  .col-md-3
-                    strong Length:
-                    br
-                    = movie.length + ' minutes'
-                  .col-md-3
-                    strong Price:
-                    br
-                    if movie.discounted_price
-                      span.text-muted.text-decoration-line-through $#{parseFloat(movie.rental_rate).toFixed(2)}
-                      br
-                      strong.text-success $#{parseFloat(movie.discounted_price).toFixed(2)}
-                    else
-                      strong.text-success $#{parseFloat(movie.rental_rate).toFixed(2)}
-                  .col-md-3
-                    strong Year:
-                    br
-                    = movie.release_year
-                
-                hr
-                
-                .row.mb-3
-                  .col-md-12
-                    h5 Description
-                    p= movie.description
-                
-                if actors && actors.length > 0
-                  .row.mb-3
-                    .col-md-12
-                      h5 Cast
-                      .row
-                        each actor in actors
-                          .col-md-4.mb-2
-                            span.badge.badge-light= actor.first_name + ' ' + actor.last_name
-                
-                hr
-                
-                // Availability and Rental
-                .row
-                  .col-md-6
-                    if movie.available_copies > 0
-                      .alert.alert-success
-                        strong Available!
-                        p #{movie.available_copies} of #{movie.total_copies} copies available
-                    else
-                      .alert.alert-warning
-                        strong Not Available
-                        p All #{movie.total_copies} copies are currently rented
-                  
-                  .col-md-6.text-right
-                    a.btn.btn-outline-secondary.mr-2(href='/customer/movies') â† Back to Movies
-                    if movie.available_copies > 0
-                      form.d-inline(method='POST' action=`/customer/movies/${movie.film_id}/rent`)
-                        button.btn.btn-success.btn-lg(type='submit' id='rentButton')
-                          i.fas.fa-shopping-cart.mr-2
-                          | Rent Now ($#{movie.discounted_price ? parseFloat(movie.discounted_price).toFixed(2) : parseFloat(movie.rental_rate).toFixed(2)})
-      
-      .col-md-4
-        // Recommendations
+  section.mx-section.pt-0
+    .row.g-4
+      .col-lg-8
+        .mx-card.p-5
+          span.badge.mx-pill.mx-pill-soft.text-uppercase.fw-semibold.mb-3= movie.category
+          h1.h3.fw-semibold.mb-2= movie.title
+          p.text-muted.mb-4= movie.description || 'Detailed synopsis not available for this title yet.'
+          .row.g-3.mb-4
+            .col-sm-6.col-xl-3
+              span.text-muted.text-uppercase.small.fw-semibold Rating
+              .d-flex.align-items-center.gap-2.mt-2
+                i.fas.fa-star.text-warning
+                span.badge.bg-dark.rounded-pill #{movie.rating}
+            .col-sm-6.col-xl-3
+              span.text-muted.text-uppercase.small.fw-semibold Length
+              .d-flex.align-items-center.gap-2.mt-2
+                i.fas.fa-clock.text-info
+                span #{movie.length} minutes
+            .col-sm-6.col-xl-3
+              span.text-muted.text-uppercase.small.fw-semibold Price
+              .d-flex.flex-column.mt-2
+                if movie.discounted_price
+                  span.text-muted.text-decoration-line-through
+                    | $#{Number(movie.rental_rate).toFixed(2)}
+                  span.fw-semibold.text-success
+                    | $#{Number(movie.discounted_price).toFixed(2)}
+                else
+                  span.fw-semibold.text-success
+                    | $#{Number(movie.rental_rate).toFixed(2)}
+            .col-sm-6.col-xl-3
+              span.text-muted.text-uppercase.small.fw-semibold Release year
+              .d-flex.align-items-center.gap-2.mt-2
+                i.fas.fa-calendar-day.text-danger
+                span #{movie.release_year}
+          if actors && actors.length > 0
+            h2.h6.text-uppercase.text-muted.mb-3 Cast
+            .d-flex.flex-wrap.gap-2.mb-4
+              each actor in actors
+                span.badge.bg-light.bg-opacity-10.text-light.rounded-pill #{actor.first_name} #{actor.last_name}
+          .row.g-4.align-items-center
+            .col-md-6
+              if movie.available_copies > 0
+                .alert.alert-success.border-0
+                  strong In stock!
+                  p.text-muted.mb-0 #{movie.available_copies} of #{movie.total_copies} copies available.
+              else
+                .alert.alert-warning.border-0
+                  strong Currently unavailable
+                  p.text-muted.mb-0 All #{movie.total_copies} copies are rented.
+            .col-md-6.text-md-end
+              a.btn.btn-outline-light.rounded-pill.px-4.me-md-3.mt-3.mt-md-0(href='/customer/movies')
+                i.fas.fa-arrow-left.me-2
+                | Back to movies
+              if movie.available_copies > 0
+                form.d-inline(method='POST' action=/customer/movies//rent)
+                  button.btn.btn-accent.btn-lg.rounded-pill.mt-3.mt-md-0(type='submit' id='rentButton')
+                    i.fas.fa-cart-plus.me-2
+                    | Rent now ($#{Number(movie.discounted_price || movie.rental_rate).toFixed(2)})
+      .col-lg-4
         if recommendations && recommendations.length > 0
-          .card
-            .card-header
-              h5.mb-0 You Might Also Like
-            .card-body
+          .mx-card.p-4
+            h2.h5.fw-semibold.mb-3 You might also like
+            .vstack.gap-4
               each rec in recommendations
-                .media.mb-3
-                  .media-body
-                    h6.mt-0
-                      a(href='/customer/movies/' + rec.film_id)= rec.title
-                    p.small.text-muted= rec.category
-                    p.small= rec.description.substring(0, 80) + '...'
-                    .d-flex.justify-content-between.align-items-center
-                      span.text-success
-                        if rec.discounted_price
-                          small.text-muted.text-decoration-line-through $#{parseFloat(rec.rental_rate).toFixed(2)}
-                          br
-                          strong $#{parseFloat(rec.discounted_price).toFixed(2)}
-                        else
-                          strong $#{parseFloat(rec.rental_rate).toFixed(2)}
-                      if rec.available_copies > 0
-                        small.text-success Available
+                div
+                  h3.h6.fw-semibold.mb-1
+                    a.text-decoration-none(href=/customer/movies/)= rec.title
+                  p.text-muted.small.mb-2= rec.category
+                  p.text-muted.small.mb-3= rec.description ? rec.description.substring(0, 120) + '…' : 'Discover more from this collection.'
+                  .d-flex.justify-content-between.align-items-center
+                    span.text-success.fw-semibold
+                      if rec.discounted_price
+                        span.text-muted.text-decoration-line-through.me-2
+                          | $#{Number(rec.rental_rate).toFixed(2)}
+                        span
+                          | $#{Number(rec.discounted_price).toFixed(2)}
                       else
-                        small.text-danger Rented
-                hr
+                        | $#{Number(rec.rental_rate).toFixed(2)}
+                    if rec.available_copies > 0
+                      span.badge.bg-success.bg-opacity-25.text-success Available
+                    else
+                      span.badge.bg-danger.bg-opacity-25.text-danger Rented out
 
   script.
-    // Add loading spinner to rental button
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const rentButton = document.getElementById('rentButton');
-      if (rentButton) {
-        const form = rentButton.closest('form');
-        form.addEventListener('submit', function() {
-          rentButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Processing...';
-          rentButton.disabled = true;
-        });
-      }
+      if (!rentButton) return;
+      const form = rentButton.closest('form');
+      if (!form) return;
+      form.addEventListener('submit', function () {
+        rentButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing';
+        rentButton.disabled = true;
+      });
     });
