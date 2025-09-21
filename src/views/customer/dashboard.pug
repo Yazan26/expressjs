@@ -1,10 +1,10 @@
 extends ../layout
 
 block content
-  section.mx-section.pt-0
+  section.mx-section.pt-0.pb-4
     h1.h3.fw-semibold.mb-1 Customer dashboard
     if user
-      p.text-muted.mb-4 Welcome back, #{user.username} #{user.last_name}! Let’s pick up where you left off.
+      p.text-muted.mb-4 Welcome back, #{user.username} #{user.last_name}! Let's pick up where you left off.
     .row.g-4
       .col-lg-8
         .mx-card.h-100
@@ -26,7 +26,7 @@ block content
                   tbody
                     each rental in activeRentals
                       - const overdue = rental.is_overdue;
-                      tr(class= overdue ? 'table-danger' : '')
+                      tr(class=overdue ? 'table-danger' : '')
                         td
                           strong= rental.title
                           if rental.category
@@ -34,8 +34,7 @@ block content
                             small.text-muted #{rental.category}
                         td= new Date(rental.rental_date).toLocaleDateString()
                         td= new Date(rental.due_date).toLocaleDateString()
-                        td.text-success
-                          | $#{rental.rental_rate}
+                        td.text-success $#{rental.rental_rate}
                         td
                           if overdue
                             span.badge.badge-soft.text-danger Overdue
@@ -43,12 +42,12 @@ block content
                             span.badge.badge-soft.text-success Active
                         td.text-end
                           .btn-group(role='group')
-                            a.btn.btn-sm.btn-outline-accent.rounded-pill(href=/customer/movies/)
+                            a.btn.btn-sm.btn-outline-accent.rounded-pill(href=`/customer/movies/${rental.film_id}`)
                               i.fas.fa-eye.me-2
                               | Details
                             if !overdue
-                              form.d-inline(method='POST' action=/customer/rentals//cancel onsubmit='return confirmCancel()')
-                                button.btn.btn-sm.btn-outline-danger.rounded-pill(type='submit' id=cancelBtn-)
+                              form.d-inline(method='POST' action=`/customer/rentals/${rental.rental_id}/cancel` onsubmit='return confirmCancel()')
+                                button.btn.btn-sm.btn-outline-danger.rounded-pill(type='submit' id=`cancelBtn-${rental.rental_id}`)
                                   i.fas.fa-xmark.me-1
                                   | Cancel
               if summary && summary.total_overdue > 0
@@ -58,10 +57,10 @@ block content
             else
               .text-center.py-5
                 i.fas.fa-film.fa-2x.text-muted.mb-3
-              .text-center.py-5
-                i.fas.fa-film.fa-2x.text-muted.mb-3
                 p.text-muted.mb-3 No active rentals yet - why not start one now?
                 a.btn.btn-accent.rounded-pill.px-4(href='/customer/movies')
+                  i.fas.fa-compass.me-2
+                  | Browse movies
       .col-lg-4
         .mx-card.h-100
           .p-4
@@ -99,7 +98,7 @@ block content
                   | Logout
 
   if recommendations && (recommendations.byCategory.length > 0 || recommendations.byActor.length > 0)
-    section.mx-section.pt-0
+    section.mx-section.pt-0.pb-5
       h2.h4.fw-semibold.mb-3 You might also like
       if recommendations.byCategory.length > 0
         h3.h6.text-uppercase.text-muted.mb-3
@@ -110,7 +109,7 @@ block content
             .col
               .mx-card.h-100.p-4.shadow-hover
                 h5.fw-semibold.mb-2
-                  a.text-decoration-none(href=/films/)= rec.title
+                  a.text-decoration-none(href=`/films/${rec.film_id}`)= rec.title
                 if rec.release_year
                   p.text-muted.small.mb-2 #{rec.release_year}
                 if rec.rating
@@ -118,8 +117,7 @@ block content
                 if rec.category
                   p.text-muted.small.mb-3 #{rec.category}
                 .d-flex.justify-content-between.align-items-center
-                  span.text-success.fw-semibold
-                    | $#{rec.rental_rate}
+                  span.text-success.fw-semibold $#{rec.rental_rate}
                   if rec.available_copies > 0
                     span.badge.bg-success.bg-opacity-25.text-success Available
                   else
@@ -133,7 +131,7 @@ block content
             .col
               .mx-card.h-100.p-4.shadow-hover
                 h5.fw-semibold.mb-2
-                  a.text-decoration-none(href=/films/)= rec.title
+                  a.text-decoration-none(href=`/films/${rec.film_id}`)= rec.title
                 if rec.release_year
                   p.text-muted.small.mb-2 #{rec.release_year}
                 if rec.rating
@@ -141,8 +139,7 @@ block content
                 if rec.category
                   p.text-muted.small.mb-3 #{rec.category}
                 .d-flex.justify-content-between.align-items-center
-                  span.text-success.fw-semibold
-                    | $#{rec.rental_rate}
+                  span.text-success.fw-semibold $#{rec.rental_rate}
                   if rec.available_copies > 0
                     span.badge.bg-success.bg-opacity-25.text-success Available
                   else

@@ -113,7 +113,7 @@ html(lang='en' data-bs-theme='dark')
                 i.fas.fa-circle-info.me-2
                 | About
           form.d-flex.ms-lg-4.my-3.my-lg-0(role='search' action='/search' method='GET')
-            input.form-control.form-control-sm.me-2(type='search' name='q' placeholder='Search movies…' aria-label='Search')
+            input.form-control.form-control-sm.me-2(type='search' name='q' placeholder='Search movies' aria-label='Search')
             button.btn.btn-outline-accent.btn-sm(type='submit')
               i.fas.fa-search
           ul.navbar-nav.ms-lg-4.align-items-lg-center.gap-lg-2
@@ -161,7 +161,7 @@ html(lang='en' data-bs-theme='dark')
     main.flex-grow-1.py-5
       .container-xxl
         block content
-    footer.bg-black.py-5.mt-5
+    footer.bg-black.py-5.mt-auto
       .container-xxl
         .row.gy-4.align-items-center
           .col-lg-6
@@ -171,7 +171,7 @@ html(lang='en' data-bs-theme='dark')
             p.text-muted.mb-0 Comprehensive film rental management with role-based control for growing teams.
           .col-lg-6.text-lg-end
             p.text-muted.mb-2
-              | © #{new Date().getFullYear()} MoviezExpressRentals. All rights reserved.
+              | #{new Date().getFullYear()} MoviezExpressRentals. All rights reserved.
             if authenticated && user
               p.text-muted.mb-0
                 i.fas.fa-user-check.me-2
