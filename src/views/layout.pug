@@ -1,5 +1,5 @@
 doctype html
-html(lang='en' data-bs-theme='dark')
+html(lang='en', data-bs-theme='dark')
   head
     meta(charset='utf-8')
     meta(name='viewport' content='width=device-width, initial-scale=1')
@@ -21,27 +21,28 @@ html(lang='en' data-bs-theme='dark')
           span.rounded-circle.bg-danger.bg-opacity-25.text-danger.d-inline-flex.align-items-center.justify-content-center(style='width: 44px; height: 44px;')
             i.fas.fa-clapperboard
           span MoviezExpressRentals
-        button.navbar-toggler(type='button' data-bs-toggle='collapse' data-bs-target='#primaryNav' aria-controls='primaryNav' aria-expanded='false' aria-label='Toggle navigation')
+        button.navbar-toggler(type='button', data-bs-toggle='collapse', data-bs-target='#primaryNav', aria-controls='primaryNav', aria-expanded='false', aria-label='Toggle navigation')
           span.navbar-toggler-icon
+        // Collapse nav (aligned with button & brand inside .container-xxl)
         .collapse.navbar-collapse#primaryNav
           ul.navbar-nav.me-auto.align-items-lg-center.gap-lg-2
             li.nav-item
-              a.nav-link.py-2.px-lg-3(class=req && req.path === '/' ? 'active' : '')(href='/')
+              a.nav-link.py-2.px-lg-3(href='/', class=(req && req.path === '/' ? 'active' : ''))
                 i.fas.fa-home.me-2
                 | Home
             li.nav-item
-              a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/films') ? 'active' : '')(href='/films')
+              a.nav-link.py-2.px-lg-3(href='/films', class=(req && req.path && req.path.startsWith('/films') ? 'active' : ''))
                 i.fas.fa-film.me-2
                 | Films
             if authenticated && user
               if user.role === 'customer'
                 li.nav-item
-                  a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/customer') ? 'active' : '')(href='/customer/dashboard')
+                  a.nav-link.py-2.px-lg-3(href='/customer/dashboard', class=(req && req.path && req.path.startsWith('/customer') ? 'active' : ''))
                     i.fas.fa-gauge-high.me-2
                     | Customer Dashboard
               else if user.role === 'staff'
                 li.nav-item.dropdown
-                  a.nav-link.dropdown-toggle.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/staff') ? 'active' : '')(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
+                  a.nav-link.dropdown-toggle.py-2.px-lg-3(href='#', role='button', data-bs-toggle='dropdown', aria-expanded='false', class=(req && req.path && req.path.startsWith('/staff') ? 'active' : ''))
                     i.fas.fa-user-tie.me-2
                     | Staff
                   ul.dropdown-menu.dropdown-menu-dark.border-secondary.shadow
@@ -63,7 +64,7 @@ html(lang='en' data-bs-theme='dark')
                         | Users
               else if user.role === 'manager'
                 li.nav-item.dropdown
-                  a.nav-link.dropdown-toggle.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/staff') ? 'active' : '')(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
+                  a.nav-link.dropdown-toggle.py-2.px-lg-3(href='#', role='button', data-bs-toggle='dropdown', aria-expanded='false', class=(req && req.path && req.path.startsWith('/staff') ? 'active' : ''))
                     i.fas.fa-user-tie.me-2
                     | Staff
                   ul.dropdown-menu.dropdown-menu-dark.border-secondary.shadow
@@ -80,12 +81,12 @@ html(lang='en' data-bs-theme='dark')
                         i.fas.fa-star.me-2
                         | My Selections
                 li.nav-item
-                  a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/reports') ? 'active' : '')(href='/reports')
+                  a.nav-link.py-2.px-lg-3(href='/reports', class=(req && req.path && req.path.startsWith('/reports') ? 'active' : ''))
                     i.fas.fa-chart-bar.me-2
                     | Reports
               else if user.role === 'admin'
                 li.nav-item.dropdown
-                  a.nav-link.dropdown-toggle.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/admin') ? 'active' : '')(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
+                  a.nav-link.dropdown-toggle.py-2.px-lg-3(href='#', role='button', data-bs-toggle='dropdown', aria-expanded='false', class=(req && req.path && req.path.startsWith('/admin') ? 'active' : ''))
                     i.fas.fa-user-shield.me-2
                     | Admin
                   ul.dropdown-menu.dropdown-menu-dark.border-secondary.shadow
@@ -106,25 +107,25 @@ html(lang='en' data-bs-theme='dark')
                         i.fas.fa-tags.me-2
                         | Offers
                 li.nav-item
-                  a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/reports') ? 'active' : '')(href='/reports')
+                  a.nav-link.py-2.px-lg-3(href='/reports', class=(req && req.path && req.path.startsWith('/reports') ? 'active' : ''))
                     i.fas.fa-chart-bar.me-2
                     | Reports
             li.nav-item
-              a.nav-link.py-2.px-lg-3(class=req && req.path === '/about' ? 'active' : '')(href='/about')
+              a.nav-link.py-2.px-lg-3(href='/about', class=(req && req.path === '/about' ? 'active' : ''))
                 i.fas.fa-circle-info.me-2
                 | About
             li.nav-item
-              a.nav-link.py-2.px-lg-3(class=req && req.path && req.path.startsWith('/stories') ? 'active' : '')(href='/stories')
+              a.nav-link.py-2.px-lg-3(href='/stories', class=(req && req.path && req.path.startsWith('/stories') ? 'active' : ''))
                 i.fas.fa-list-check.me-2
                 | User Stories
-          form.d-flex.ms-lg-4.my-3.my-lg-0(role='search' action='/search' method='GET')
-            input.form-control.form-control-sm.me-2(type='search' name='q' placeholder='Search movies' aria-label='Search')
+          form.d-flex.ms-lg-4.my-3.my-lg-0(role='search', action='/search', method='GET')
+            input.form-control.form-control-sm.me-2(type='search', name='q', placeholder='Search movies', aria-label='Search')
             button.btn.btn-outline-accent.btn-sm(type='submit')
               i.fas.fa-search
           ul.navbar-nav.ms-lg-4.align-items-lg-center.gap-lg-2
             if authenticated && user
               li.nav-item.dropdown
-                a.nav-link.dropdown-toggle.d-flex.align-items-center.gap-2.py-2.px-lg-3(href='#' role='button' data-bs-toggle='dropdown' aria-expanded='false')
+                a.nav-link.dropdown-toggle.d-flex.align-items-center.gap-2.py-2.px-lg-3(href='#', role='button', data-bs-toggle='dropdown', aria-expanded='false')
                   span.rounded-circle.bg-light.bg-opacity-10.d-inline-flex.align-items-center.justify-content-center(style='width: 36px; height: 36px;')
                     i.fas.fa-user
                   span.d-flex.flex-column.text-start
@@ -139,7 +140,7 @@ html(lang='en' data-bs-theme='dark')
                   li
                     hr.dropdown-divider
                   li
-                    form(action='/auth/logout' method='POST' style='display:inline;')
+                    form(action='/auth/logout', method='POST', style='display:inline;')
                       button.dropdown-item(type='submit')
                         i.fas.fa-right-from-bracket.me-2
                         | Logout

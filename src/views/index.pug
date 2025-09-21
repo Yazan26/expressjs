@@ -6,10 +6,9 @@ block content
       .col-lg-7
         span.mx-section-title.d-inline-flex.align-items-center.gap-2
           span.badge.mx-pill.mx-pill-soft.text-uppercase.fw-semibold Latest Releases Await
-        h1.display-4.fw-bold.mt-3
-          | Your next movie night starts with 
-          span.text-danger MoviezExpressRentals
-        p.lead.text-muted.mt-3 Dive into thousands of blockbusters, indie treasures, and award-winning stories ready to stream or schedule for the perfect premiere at home.
+        // Adjust hero heading & subheading to satisfy Cypress assertions
+        h1.display-4.fw-bold.mt-3 Your Ultimate Movie Rental Experience
+        p.lead.text-muted.mt-3 Discover thousands of movies across genres, eras, and languages.
         if user
           .d-flex.flex-wrap.gap-3.mt-4
             a.btn.btn-accent.btn-lg.px-4.rounded-pill.shadow(href='/films')
@@ -25,7 +24,7 @@ block content
           .d-flex.flex-wrap.gap-3.mt-4
             a.btn.btn-accent.btn-lg.px-4.rounded-pill.shadow(href='/auth/register')
               i.fas.fa-user-plus.me-2
-              | Create Account
+              | Get Started
             a.btn.btn-outline-accent.btn-lg.px-4.rounded-pill(href='/auth/login')
               i.fas.fa-right-to-bracket.me-2
               | Sign In

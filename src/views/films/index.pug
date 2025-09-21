@@ -65,7 +65,8 @@ block content
           .row.row-cols-1.row-cols-md-2.row-cols-xl-3.g-4
             each film in films
               .col
-                .mx-card.h-100.p-4.shadow-hover
+                // expose a stable class for e2e tests
+                .mx-card.h-100.p-4.shadow-hover.film-card
                   .d-flex.justify-content-between.align-items-start.mb-3
                     h2.h5.fw-semibold.mb-0
                       a.text-decoration-none(href=`/films/${film.filmId}`)= film.title

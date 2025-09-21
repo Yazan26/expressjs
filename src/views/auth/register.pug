@@ -43,10 +43,9 @@ block content
               i.fas.fa-user-plus.me-2
               | Create account
           .text-center.mt-4
-            p.text-muted.mb-0 Already registered?
-            a.btn.btn-outline-accent.btn-sm.rounded-pill.mt-2(href='/auth/login')
-              i.fas.fa-arrow-right-to-bracket.me-2
-              | Sign in
+            p.text-muted.mb-2 Already registered?
+            // Add link text consistent with Cypress test expectation
+            a.text-decoration-none(href='/auth/login') Login here
 
   script.
     (function () {
